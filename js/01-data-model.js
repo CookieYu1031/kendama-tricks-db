@@ -130,8 +130,19 @@
     return { categories: cats, tricks: tricks, spaces: spaces };
   }
 
+  // Persistence target depends on login state (see js/19-auth-sync.js):
+  //  - logged out -> plain localStorage, exactly as before.
+  //  - logged in  -> Firestore only (debounced); the browser is no longer
+  //    the source of truth once an account is signed in.
+  // isLoggedIn()/queueCloudSave() are defined later (19-auth-sync.js) but
+  // that's fine — this function body only runs after all scripts have
+  // loaded, so the reference resolves at call time, not at parse time.
   function saveDB(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    if(typeof isLoggedIn === "function" && isLoggedIn()){
+      queueCloudSave();
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }
   }
 
   var db = loadDB();
