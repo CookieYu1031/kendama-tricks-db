@@ -46,6 +46,43 @@
           <button class="lang-btn" data-lang="jp">JP</button>
           <button class="lang-btn" data-lang="en">EN</button>
         </div>
+        <div class="auth-widget" id="authWidget">
+          <button class="icon-btn" id="authLoginBtn" title="登入">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zM4 20.5c0-3.6 3.6-6.5 8-6.5s8 2.9 8 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="auth-user" id="authUserWidget" hidden>
+            <button type="button" class="auth-avatar-btn" id="authAvatarBtn">
+              <img class="auth-avatar-img" id="authAvatarImg" src="" alt="" hidden />
+              <span class="auth-avatar-fallback" id="authAvatarFallback"></span>
+            </button>
+            <div class="auth-menu" id="authMenu">
+              <div class="auth-menu-account" id="authMenuAccount">
+                <span class="auth-menu-avatar-wrap">
+                  <img class="auth-menu-avatar-img" id="authMenuAvatarImg" src="" alt="" hidden />
+                  <span class="auth-menu-avatar-fallback" id="authMenuAvatarFallback"></span>
+                </span>
+                <span class="auth-menu-account-text">
+                  <span class="auth-menu-name-row">
+                    <span class="auth-menu-name" id="authMenuName"></span>
+                    <button type="button" class="auth-menu-edit-btn" id="authMenuEditBtn" title="編輯暱稱" aria-label="編輯暱稱">
+                      <svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 00-3-3L5 17v3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </span>
+                  <span class="auth-menu-email" id="authMenuEmail"></span>
+                </span>
+              </div>
+              <div class="auth-menu-name-edit" id="authMenuNameEdit" hidden>
+                <input type="text" class="auth-menu-name-input" id="authMenuNameInput" maxlength="24" />
+                <div class="auth-menu-name-edit-actions">
+                  <button type="button" class="auth-menu-name-cancel" id="authMenuNameCancel">取消</button>
+                  <button type="button" class="auth-menu-name-save" id="authMenuNameSave">儲存</button>
+                </div>
+              </div>
+              <div class="auth-menu-divider"></div>
+              <button type="button" class="auth-menu-logout" id="authLogoutBtn">登出</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -294,6 +331,14 @@
 <!-- Detail Drawer -->
 <input type="file" id="importFileInput" accept="application/json" hidden />
 
+<!-- Firebase (Auth + Firestore) — see js/00-firebase-config.js for the
+     project's Web App config, and js/19-auth-sync.js for the login /
+     cloud-sync logic. Must load before the app scripts below. -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/00-firebase-config.js"></script>
+
 <script src="js/01-data-model.js"></script>
 <script src="js/02-constants-colors-icons.js"></script>
 <script src="js/03-i18n.js"></script>
@@ -312,5 +357,6 @@
 <script src="js/16-export-import.js"></script>
 <script src="js/18-modal-practice-settings.js"></script>
 <script src="js/17-events-and-init.js"></script>
+<script src="js/19-auth-sync.js"></script>
 </body>
 </html>

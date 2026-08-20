@@ -51,7 +51,13 @@
       viewModeTree:"分層結構", viewModeColumns:"多欄清單", viewModePractice:"練習清單",
       toggleDailyPractice:"加入／移出每日練習", toggleGoal:"加入／移出目標招式",
       practiceTarget:"目標次數", practiceDailyReset:"每日凌晨重置次數",
-      removeFromSection:"從此分區移除", practiceSettings:"練習設定", practiceDone:"完成"
+      removeFromSection:"從此分區移除", practiceSettings:"練習設定", practiceDone:"完成",
+      authLogin:"使用 Gmail 登入", authLogout:"登出", authLoginError:"登入失敗，請再試一次",
+      authSyncingLocal:"正在將本機資料同步至雲端…", authSyncedLocal:"已將本機資料同步至雲端",
+      authLoadError:"雲端資料讀取失敗", authSaveError:"雲端儲存失敗，請檢查網路連線",
+      authLoggingOut:"已登出，切換回本機資料",
+      authEditNickname:"編輯暱稱", authNicknamePlaceholder:"輸入暱稱", authNicknameSave:"儲存", authNicknameCancel:"取消",
+      authNicknameUpdated:"暱稱已更新", authNicknameError:"暱稱更新失敗，請再試一次", authNicknameEmpty:"暱稱不可為空白"
     },
     jp:{
       appTitle:"けん玉技データベース", searchPlaceholder:"技名を検索（中／日／英）…",
@@ -100,7 +106,13 @@
       viewModeTree:"階層構造", viewModeColumns:"複数列リスト", viewModePractice:"練習リスト",
       toggleDailyPractice:"毎日練習に追加／解除", toggleGoal:"目標の技に追加／解除",
       practiceTarget:"目標回数", practiceDailyReset:"毎日深夜にリセット",
-      removeFromSection:"このセクションから削除", practiceSettings:"練習設定", practiceDone:"完了"
+      removeFromSection:"このセクションから削除", practiceSettings:"練習設定", practiceDone:"完了",
+      authLogin:"Gmailでログイン", authLogout:"ログアウト", authLoginError:"ログインに失敗しました。もう一度お試しください",
+      authSyncingLocal:"ローカルデータをクラウドに同期しています…", authSyncedLocal:"ローカルデータをクラウドに同期しました",
+      authLoadError:"クラウドデータの読み込みに失敗しました", authSaveError:"クラウド保存に失敗しました。ネット接続をご確認ください",
+      authLoggingOut:"ログアウトしました。ローカルデータに切り替えます",
+      authEditNickname:"ニックネームを編集", authNicknamePlaceholder:"ニックネームを入力", authNicknameSave:"保存", authNicknameCancel:"キャンセル",
+      authNicknameUpdated:"ニックネームを更新しました", authNicknameError:"更新に失敗しました。もう一度お試しください", authNicknameEmpty:"ニックネームを入力してください"
     },
     en:{
       appTitle:"Kendama Trick Database", searchPlaceholder:"Search trick names (ZH / JP / EN)…",
@@ -149,7 +161,13 @@
       viewModeTree:"Tree", viewModeColumns:"Grid List", viewModePractice:"Practice List",
       toggleDailyPractice:"Add / remove from Daily Practice", toggleGoal:"Add / remove from Goals",
       practiceTarget:"Target reps", practiceDailyReset:"Reset count every midnight",
-      removeFromSection:"Remove from Section", practiceSettings:"Practice Settings", practiceDone:"Done"
+      removeFromSection:"Remove from Section", practiceSettings:"Practice Settings", practiceDone:"Done",
+      authLogin:"Sign in with Gmail", authLogout:"Sign out", authLoginError:"Sign-in failed, please try again",
+      authSyncingLocal:"Syncing local data to the cloud…", authSyncedLocal:"Local data synced to the cloud",
+      authLoadError:"Failed to load cloud data", authSaveError:"Cloud save failed — check your connection",
+      authLoggingOut:"Signed out — switched back to local data",
+      authEditNickname:"Edit nickname", authNicknamePlaceholder:"Enter a nickname", authNicknameSave:"Save", authNicknameCancel:"Cancel",
+      authNicknameUpdated:"Nickname updated", authNicknameError:"Failed to update nickname, please try again", authNicknameEmpty:"Nickname can't be empty"
     }
   };
 
