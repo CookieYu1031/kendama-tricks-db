@@ -1,0 +1,226 @@
+  /* ---------- Miller columns ---------- */
+  .miller-wrap{
+    flex: 1 1 auto;
+    display:flex;
+    align-items:stretch;
+    gap: 14px;
+    overflow-x:hidden;
+    overflow-y:hidden;
+    min-height: 0;
+    padding: 14px 14px 16px;
+  }
+  .m-col{
+    flex: 0 0 260px;
+    min-width: 200px;
+    max-width: 320px;
+    width: auto;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    backdrop-filter: var(--glass-blur-soft);
+    -webkit-backdrop-filter: var(--glass-blur-soft);
+    box-shadow: var(--shadow-sm), var(--glass-highlight);
+    overflow:hidden;
+    padding: 12px;
+    display:flex; flex-direction:column;
+    position:relative;
+    transition: flex-grow .32s var(--ease), flex-basis .32s var(--ease), max-width .32s var(--ease), min-width .32s var(--ease), padding .32s var(--ease), box-shadow .32s var(--ease);
+  }
+  .m-col.collapsed{
+    flex: 0 0 76px; min-width:76px; max-width:76px; padding: 12px 8px;
+  }
+  /* Hovering a collapsed column temporarily reopens it — the underlying
+     ".collapsed" state (and its persisted DOM node, see renderColumns) is what
+     lets this and the auto-collapse both animate instead of popping instantly. */
+  .m-col.collapsed:hover{
+    flex: 0 0 260px; min-width:200px; max-width:320px; padding:12px;
+    z-index:5; box-shadow: var(--shadow-lg), var(--glass-highlight);
+  }
+  /* Collapsed-column icon centering, without `justify-content` (see below).
+     The column's collapsed content width is 76px - 8px*2 padding = 60px, so a
+     symmetric 15px/15px left-right padding centers the 30px icon exactly —
+     both the expanded (0 10px) and collapsed (0 15px) values are concrete
+     lengths, so `padding` can transition smoothly between them every frame. */
+  .m-col.collapsed:not(:hover) .item{ padding:0 15px; gap:0; }
+  /* `justify-content` is a discrete (non-animatable) property — toggling it
+     between flex-start/center used to snap the icon to its new position the
+     instant :hover changed, independent of (and out of sync with) the
+     padding/width transition still in progress, which read as a jump. Now
+     justify-content is never touched: with item-text/item-chevron collapsed
+     to zero width (see below) the icon is the only visible flex child, so
+     the padding transition above is enough to recenter it smoothly on its
+     own — this fixes the jump for every row, not just the selected one.
+     `width` is likewise given an explicit value in both states (100% on the
+     base .item rule below, a fixed px here) instead of ever falling back to
+     the browser's default "auto", which — unlike a plain percentage-to-pixel
+     change — can't be interpolated and used to cause the release/expand snap. */
+  .m-col.collapsed:not(:hover) .item.selected{ width: var(--item-h, 58px); max-width:100%; }
+  .m-col.collapsed:not(:hover) .item-text,
+  .m-col.collapsed:not(:hover) .item-chevron,
+  .m-col.collapsed:not(:hover) .item-edit-actions{ opacity:0; max-width:0; margin:0; pointer-events:none; }
+  .m-col.collapsed:not(:hover) .col-empty div{ opacity:0; max-width:0; }
+  .m-col.collapsed:not(:hover) .col-add-row{ opacity:0; max-height:0; margin-top:0; padding-top:0; border-top-color:transparent; pointer-events:none; }
+  .col-items{ flex: 1 1 auto; overflow-y:auto; overflow-x:hidden; min-height:0; }
+  .col-back-btn{ flex:0 0 auto; margin-bottom:10px; }
+  .col-empty{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    color: var(--paper-faint); font-size:13px; height:70%; text-align:center; padding: 0 24px;
+    flex: 1 1 auto;
+  }
+  .col-empty svg{ width:26px; height:26px; opacity:.5; }
+  .col-empty div{ transition: opacity .22s var(--ease), max-width .3s var(--ease); overflow:hidden; }
+
+  .item{
+    display:flex; align-items:center; gap:10px;
+    height: var(--item-h, 58px);
+    width:100%;
+    padding: 0 10px; border-radius: var(--radius-sm); cursor:pointer;
+    margin-bottom: 2px; border: 1px solid transparent;
+    transition: background .16s var(--ease), border-color .16s var(--ease), box-shadow .16s var(--ease), padding .3s var(--ease), gap .3s var(--ease), width .3s var(--ease), margin .3s var(--ease);
+    position:relative;
+  }
+  .item:hover{ background: var(--glass-2); border-color: var(--glass-border); box-shadow: 0 0 0 1px rgba(var(--lacquer-rgb),0.18), 0 0 14px rgba(var(--lacquer-rgb),0.16); }
+  .item.selected{ background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.22), rgba(var(--lacquer-rgb),0.10)); border-color: rgba(var(--lacquer-rgb),0.45); box-shadow: var(--glass-highlight); }
+  .item-icon{
+    width:30px; height:30px; border-radius: 11px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    background: var(--glass-2); color: var(--wood); border: 1px solid var(--glass-border); box-shadow: var(--glass-highlight);
+    line-height:1; text-align:center;
+  }
+  .item.selected .item-icon{ background: rgba(var(--lacquer-rgb),0.24); color: var(--lacquer-bright); }
+  .item-icon.trick{ color: var(--string); }
+  .item-icon svg{ width:15px; height:15px; }
+  .item-text{ flex:1 1 auto; min-width:0; max-width:220px; opacity:1; overflow:hidden; transition: opacity .24s var(--ease), max-width .3s var(--ease); }
+  .item-name{ font-size:14px; line-height:17px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item-meta{ font-size:11px; color: var(--paper-faint); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; height:14px; line-height:14px; }
+  .item-chevron{ color: var(--paper-faint); flex:0 0 auto; width:14px; height:14px; max-width:14px; opacity:1; display:flex; align-items:center; justify-content:center; overflow:hidden; transition: opacity .24s var(--ease), max-width .3s var(--ease); }
+  .item-chevron svg{ display:block; flex:0 0 auto; }
+  .item-edit-actions{ display:flex; gap:4px; flex:0 0 auto; max-width:60px; opacity:0; overflow:hidden; transition: opacity .15s var(--ease), max-width .3s var(--ease); }
+  .item:hover .item-edit-actions{ opacity:1; }
+  /* .item-text only grows up to its own max-width (220px), so on a wider
+     column there's leftover row width that no flex item claims — the
+     chevron (and/or the edit-action buttons, whichever directly follows the
+     text) would sit stranded short of the row's right edge instead of flush
+     against it. Whichever of the two is text's immediate next sibling
+     absorbs that leftover via auto margin and gets pushed flush right,
+     carrying the other one (if both are present) along with it. */
+  .item-text + .item-edit-actions,
+  .item-text + .item-chevron{ margin-left:auto; }
+  .mini-btn{
+    width:24px; height:24px; border-radius:7px; border:1px solid var(--glass-border); background: var(--glass-2);
+    color: var(--paper-dim); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .mini-btn svg{ width:12px; height:12px; }
+  .mini-btn:hover{ color: var(--paper); background: var(--glass-3); }
+  .mini-btn.danger:hover{ color: #fff; background: var(--danger); border-color: var(--danger); }
+  .drag-handle{ cursor: grab; opacity: 0.55; }
+  .drag-handle:hover{ opacity: 1; }
+  .item.dragging{ opacity: 0.4; }
+  .item.drop-before::before, .item.drop-after::after{
+    content:''; position:absolute; left:4px; right:4px; height:2.5px; border-radius:2px;
+    background: var(--lacquer-bright); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.24); z-index:2;
+  }
+  .item.drop-before::before{ top:-3px; }
+  .item.drop-after::after{ bottom:-3px; }
+
+  .col-add-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding: 10px; border-radius: 999px;
+    border: 1px solid var(--glass-border-strong);
+    background: linear-gradient(165deg, var(--glass-3), var(--glass-2));
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    box-shadow: var(--glass-highlight);
+    color: var(--paper-dim);
+    font-size:13px; font-weight:600; cursor:pointer; transition: all .18s var(--ease);
+  }
+  .col-add-btn:hover{ border-color: var(--lacquer); color: var(--ink); background: linear-gradient(165deg, var(--lacquer-bright), var(--lacquer)); transform: translateY(-1px); }
+  .col-add-btn:active{ transform: translateY(0); }
+  .col-add-btn svg{ width:14px; height:14px; display:block; }
+  .col-add-btn span{ line-height:1; display:inline-block; }
+  .col-add-btn-danger:hover{ border-color: var(--danger); color:#fff; background: linear-gradient(165deg, var(--danger-bright), var(--danger)); }
+  .col-add-row{ display:flex; gap:8px; margin-top:8px; padding-top:8px; border-top: 1px solid var(--line); flex:0 0 auto; overflow:hidden; max-height:60px; opacity:1; transition: opacity .24s var(--ease), max-height .3s var(--ease), margin-top .3s var(--ease), padding-top .3s var(--ease), border-top-color .3s var(--ease); }
+  .col-add-row .col-add-btn{ padding: 9px 6px; font-size:12.5px; }
+
+  .col-header{
+    font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color: var(--paper-faint); padding: 4px 10px 10px; display:flex; justify-content:space-between; align-items:center;
+  }
+
+  @media (max-width: 860px){
+    .miller-wrap{ overflow-x:hidden; }
+    .m-col{ display:none; flex: 1 1 100%; width:100%; min-width:0; max-width:100%; border-right:none; padding: 12px; }
+    .m-col.mobile-active{ display:block; }
+  }
+
+  /* Cross-column drag target: highlights the whole column when a long-pressed
+     item is dragged over empty space (no specific row) inside it, signalling
+     "drop here to move into this level" for the cross-level reorder in JS. */
+  .m-col.drop-target-col{
+    box-shadow: inset 0 0 0 2px var(--lacquer-bright), var(--shadow-sm), var(--glass-highlight);
+  }
+
+  /* ---------- Flat "columns" view ("多欄清單" / Grid List): a flat, non-
+     hierarchical grid of trick cards — no category nodes, no depth, and no
+     extension/variant tricks pulled in from inside a trick-folder (see
+     getFlatSpaceTricks in 05-data-helpers.js). Every card reuses the exact
+     .item look from the tree browser (see buildItemVisual in
+     08-render-browse-columns.js) at the same fixed width/height as a
+     regular hierarchical row, just wrapped so several sit side by side
+     instead of stacked one-per-row down a single tall list. ---------- */
+  .miller-wrap.flat-view{ overflow-y:auto; align-items:flex-start; padding: 14px 14px 16px; }
+  .grid-list-view{ flex:1 1 auto; width:100%; display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start; }
+  .grid-item{ flex:0 0 260px; width:260px; box-sizing:border-box; }
+  .grid-item .flat-edit-actions{ opacity:0; flex:0 0 auto; max-width:none; }
+  .grid-item:hover .flat-edit-actions{ opacity:1; }
+
+  /* ---------- Flat "practice" view (每日練習): three cards per row. Each
+     card's icon+name/meta portion is literally an .item.grid-item — same
+     markup buildItemVisual/renderGridItemRow produce for 目標's grid — with
+     a rep counter appended next to it (see renderPracticeRow in
+     08-render-browse-columns.js). A column's width is therefore never a
+     hardcoded number: max-content lets it size itself to exactly that fixed
+     260px item plus however wide the counter turns out to be. ---------- */
+  .practice-list-view{ flex:1 1 auto; width:100%; display:grid; grid-template-columns: repeat(3, max-content); gap:10px; justify-content:start; align-content:flex-start; }
+  .practice-row{ display:flex; align-items:center; gap:10px; min-width:0; }
+  /* Reused by the practice-settings modal's daily-reset checkbox row. */
+  .practice-setting-toggle{
+    display:flex; align-items:center; gap:7px; font-size:13px; color: var(--paper-dim);
+    font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .practice-setting-toggle input{ width:17px; height:17px; accent-color: var(--lacquer); cursor:pointer; }
+  .practice-counter{ display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+  .practice-counter-btn{
+    width:26px; height:26px; border-radius:9px; border:1px solid var(--glass-border-strong);
+    background: var(--glass-2); color: var(--paper); font-size:14px; line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all .15s var(--ease);
+  }
+  .practice-counter-btn:hover{ border-color: var(--lacquer); color: var(--lacquer-bright); background: var(--glass-3); }
+  .practice-count-display{ min-width:40px; text-align:center; font-family: var(--font-mono); font-size:12.5px; font-weight:600; }
+  /* Shown once the rep count reaches its target, replacing "n / target". */
+  .practice-count-display.done{ color: var(--lacquer-bright); }
+
+  @media (max-width: 1180px){
+    .practice-list-view{ grid-template-columns: repeat(2, max-content); }
+  }
+  @media (max-width: 780px){
+    .practice-list-view{ grid-template-columns: max-content; }
+  }
+
+  /* ---------- Search results ---------- */
+  .search-results{ flex:1 1 auto; overflow-y:auto; padding: 18px 20px; }
+  .sr-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:12px; max-width:1100px; }
+  .sr-card{
+    border:1px solid var(--glass-border); background: var(--glass-1); backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    border-radius: var(--radius); padding:14px;
+    cursor:pointer; transition: transform .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+  }
+  .sr-card:hover{ transform: translateY(-2px); border-color: var(--glass-border-strong); background: var(--glass-2); }
+  .sr-card-title{ font-size:15px; font-weight:600; margin-bottom:4px; }
+  .sr-card-sub{ font-size:12px; color: var(--paper-dim); margin-bottom:10px; }
+  .sr-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{
+    font-size:11px; padding: 3px 9px; border-radius:999px; background: var(--glass-2); color: var(--paper-dim);
+    border:1px solid var(--glass-border); cursor:pointer; transition: all .15s var(--ease);
+  }
+  .chip:hover{ border-color: var(--wood); color: var(--wood); }
+  .sr-none{ color: var(--paper-faint); font-size:14px; padding: 40px 0; text-align:center; }
+

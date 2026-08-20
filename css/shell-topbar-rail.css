@@ -1,0 +1,290 @@
+  /* ---------- Space rail (top-level shelves) ---------- */
+  .space-rail{
+    flex: 0 0 56px; width:56px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding: 14px 8px;
+    border-right: 1px solid var(--glass-border);
+    background: var(--glass-1);
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    overflow-y:auto; overflow-x:hidden;
+  }
+  .space-btn{
+    position:relative;
+    width:40px; height:40px; flex:0 0 auto; border-radius:13px; border:1px solid var(--glass-border);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    color: var(--paper-dim); font-size:19px; display:flex; align-items:center; justify-content:center;
+    line-height:1; text-align:center;
+    cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
+  }
+  .space-btn:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
+  .space-btn.active{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--lacquer-bright); box-shadow: var(--glass-highlight); }
+  /* Long-press-drag reordering feedback for the rail's "other spaces"
+     section — same visual language as .item.dragging/.drop-before/.drop-after
+     in browse-columns.css, mirrored here since .space-btn lives outside
+     .miller-wrap. */
+  .space-btn.dragging{ opacity:0.4; }
+  .space-btn.drop-before::before, .space-btn.drop-after::after{
+    content:''; position:absolute; left:2px; right:2px; height:2.5px; border-radius:2px;
+    background: var(--lacquer-bright); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.24); z-index:2;
+  }
+  .space-btn.drop-before::before{ top:-5px; }
+  .space-btn.drop-after::after{ bottom:-5px; }
+  /* Separates the rail's three sections (總表 / 每日練習+目標 / other spaces).
+     Only ever inserted between two sections that both actually have content
+     — see renderSpaceRail in 08-render-browse-columns.js. */
+  .space-rail-divider{ width:28px; height:1px; flex:0 0 auto; background: var(--glass-border-strong); margin: 2px 0; }
+  .space-add-btn{ color: var(--lacquer-bright); border-style:dashed; font-size:16px; }
+  .space-edit-badge{
+    position:absolute; top:-5px; right:-5px; width:16px; height:16px; border-radius:50%;
+    background: var(--lacquer); color:#0b0b0b; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--ink-2); cursor:pointer; z-index:2;
+  }
+  .space-edit-badge svg{ width:9px; height:9px; }
+  .space-edit-badge:hover{ background: var(--lacquer-bright); }
+  .rail-edit-toggle{
+    width:40px; height:40px; flex:0 0 auto; margin-top:auto; border-radius:13px; border:1px solid var(--glass-border);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    color: var(--paper-dim); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
+  }
+  .rail-edit-toggle svg{ width:17px; height:17px; }
+  .rail-edit-toggle:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
+  .rail-edit-toggle.on{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--lacquer-bright); box-shadow: var(--glass-highlight); }
+
+  /* ---------- Topbar ---------- */
+  /* Three-column grid (left / center / right) instead of a plain flex row —
+     this pins .search-wrap to the true horizontal center of the bar, so it no
+     longer drifts when .brand-title's width changes on language switch (a
+     flex layout would otherwise shift the search box left/right along with
+     the brand's width). The two outer columns are equal (1fr each), so the
+     center column always lands in the middle of the bar regardless of how
+     much content sits in either side column. */
+  .topbar{
+    height: var(--topbar-h);
+    flex: 0 0 auto;
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:center;
+    gap:16px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--glass-border);
+    background: linear-gradient(180deg, var(--glass-2), var(--glass-1));
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-highlight);
+    position: relative;
+    z-index: 20;
+  }
+  .topbar-side{ display:flex; align-items:center; min-width:0; }
+  .topbar-side-left{ justify-content:flex-start; }
+  .topbar-side-right{ justify-content:flex-end; }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    flex: 0 0 auto;
+    cursor:pointer;
+    user-select:none;
+  }
+  .brand-mark{
+    width:30px; height:30px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:8px; overflow:hidden;
+  }
+  .brand-mark img{
+    width:100%; height:100%; object-fit:cover;
+  }
+  .brand-title{
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    white-space:nowrap;
+  }
+  .brand-sub{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--paper-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .search-wrap{
+    /* Explicit width instead of flex:1 — it now lives in the topbar grid's own
+       center column (see .topbar), so its size no longer needs to derive from
+       the surrounding flex layout to stay centered. */
+    width: clamp(220px, 32vw, 460px);
+    height: 40px;
+    position: relative;
+    display:flex;
+    align-items:center;
+  }
+  .search-wrap svg{ position:absolute; top:50%; left:12px; width:15px; height:15px; transform: translateY(-50%); color: var(--paper-faint); pointer-events:none; }
+  .search-input{
+    width:100%;
+    height:100%;
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-soft);
+    -webkit-backdrop-filter: var(--glass-blur-soft);
+    border: 1px solid var(--glass-border);
+    color: var(--paper);
+    padding: 0 48px 0 34px;
+    border-radius: 999px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .search-input::placeholder{ color: var(--paper-faint); }
+  .search-input:focus{ border-color: var(--lacquer); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.2); background: var(--glass-3); }
+  /* 20px button + 12px icon (both even numbers) so every inset divides evenly:
+     outer top/bottom gap = (40-20)/2 = 10px exactly, inner icon inset =
+     (20-12)/2 = 4px exactly. right:16px (10px base gap + 6px extra breathing
+     room from the search bar's right edge).
+     Styled after .drawer-close (rounded-square shape, border) but with no
+     background/border by default and a neutral (non-danger) hover — clearing
+     a search isn't destructive enough to warrant the red "delete" treatment,
+     so it stays invisible-until-hovered like an icon button. */
+  .search-clear{
+    position:absolute; top:50%; right:16px; width:20px; height:20px; border-radius:7px;
+    transform: translateY(-50%);
+    display:none; align-items:center; justify-content:center;
+    padding:0; margin:0; line-height:0; flex-shrink:0;
+    background: none; border:1px solid transparent; color: var(--paper-dim); cursor:pointer;
+    -webkit-appearance:none; appearance:none; box-sizing:border-box; font-size:0;
+    transition: color .15s var(--ease), background .15s var(--ease), border-color .15s var(--ease);
+  }
+  .search-clear:hover{ color: var(--paper); background: none; }
+  .search-clear svg{ display:block; margin:auto; width:12px; height:12px; }
+  .search-clear.show{ display:flex; }
+
+  /* Fixed dark surface (not the theme's translucent glass tokens) at 90%
+     opacity, per spec — so the dropdown reads as a solid panel rather than
+     one more glass layer. */
+  .search-suggest{
+    position:absolute; top: calc(100% + 6px); left:0; right:0;
+    background: rgba(78, 79, 79, 0.9);
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg), var(--glass-highlight);
+    padding: 6px; display:none; flex-direction:column; gap:2px;
+    max-height: 60vh; overflow-y:auto; z-index: 30;
+  }
+  .search-suggest.show{ display:flex; }
+  .search-suggest-item{
+    padding: 5px 10px; border-radius: var(--radius-sm); cursor:pointer;
+    font-size:13.5px; line-height:1.3; color: var(--paper);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    transition: background .14s var(--ease);
+  }
+  .search-suggest-item:hover{ background: var(--glass-2); }
+  .search-suggest-command{
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  }
+  .search-suggest-cmd{
+    font-family: var(--font-mono); font-weight:600; color: var(--lacquer-bright);
+    flex: 0 0 auto; white-space:nowrap;
+  }
+  .search-suggest-desc{
+    font-size:12px; color: var(--paper-dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right;
+  }
+
+  .topbar-actions{ flex: 0 0 auto; display:flex; align-items:center; gap:10px; margin-left:auto; }
+
+  .lang-switch{
+    display:flex; justify-content:center; background: var(--glass-2); backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft); border:1px solid var(--glass-border); border-radius: 999px; padding:3px; gap:2px;
+  }
+  .lang-btn{
+    border:none; background:transparent; color: var(--paper-dim);
+    font-size:12.5px; font-weight:600; padding:6px 12px; border-radius: 999px; cursor:pointer;
+    transition: background .2s var(--ease), color .2s var(--ease);
+    letter-spacing: .02em; text-align:center; min-width:38px;
+  }
+  .lang-btn.active{ background: var(--lacquer); color: var(--ink); }
+  .lang-btn:not(.active):hover{ color: var(--paper); }
+
+  .icon-btn{
+    width:36px; height:36px; border-radius:13px; border:1px solid var(--glass-border);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    box-shadow: var(--glass-highlight);
+    color: var(--paper-dim); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition: transform .15s var(--ease), background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .icon-btn svg{ width:16px; height:16px; }
+  .icon-btn:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
+  .icon-btn:active{ transform: translateY(0); }
+
+  .edit-toggle{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--glass-border); background: var(--glass-2); backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    border-radius:999px; padding: 5px 12px 5px 6px;
+    cursor:pointer; user-select:none; transition: border-color .2s var(--ease), background .2s var(--ease);
+  }
+  .edit-toggle.on{ border-color: var(--lacquer); background: rgba(var(--lacquer-rgb),0.16); }
+  .toggle-pill{
+    width:32px; height:18px; border-radius:999px; background: var(--ink-4); position:relative; flex:0 0 auto;
+    transition: background .2s var(--ease);
+  }
+  .toggle-pill::after{
+    content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
+    background: var(--paper-dim); transition: transform .2s var(--ease), background .2s var(--ease);
+  }
+  .edit-toggle.on .toggle-pill{ background: var(--lacquer); }
+  .edit-toggle.on .toggle-pill::after{ transform: translateX(14px); background:#fff; }
+  .edit-toggle-label{ font-size:12.5px; font-weight:600; color: var(--paper-dim); white-space:nowrap; }
+  .edit-toggle.on .edit-toggle-label{ color: var(--paper); }
+
+  @media (max-width: 860px){
+    .brand-sub{ display:none; }
+    /* Switch the topbar from its desktop 3-column grid (built to keep the
+       full-size search bar pinned to the true center) to a plain flex row —
+       collapsed mobile search no longer needs center-pinning, and flex lets
+       margin-left:auto push it flush against the language switch instead. */
+    .topbar{ padding: 0 12px; gap:10px; display:flex; align-items:center; }
+    .edit-toggle-label{ display:none; }
+    .edit-toggle{ padding:5px; }
+
+    /* Collapsed search: a round icon-only button in the same visual family
+       as the collapsed language switch below (pill shape, .glass-2
+       background, same border) so the two sit together as a matched pair at
+       the topbar's right edge — margin-left:auto pushes this element and
+       everything after it (.topbar-side-right, containing the language
+       switch) flush right as one cluster, so the switch lands in its usual
+       rightmost spot with the search button immediately to its left.
+       Tapping adds .search-expanded (see the click handler in
+       17-events-and-init.js), which pulls it out of that flex flow into a
+       full-width absolute overlay instead and drops the button chrome since
+       the input underneath already has its own background. */
+    .search-wrap{
+      width:36px; height:36px; flex:0 0 auto; margin-left:auto;
+      border-radius:999px; border:1px solid var(--glass-border);
+      background: var(--glass-2);
+      backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+      transition: background .18s var(--ease), border-color .18s var(--ease);
+    }
+    .search-wrap svg{ z-index:2; cursor:pointer; }
+    .search-wrap:not(.search-expanded) svg{ left:50%; transform: translate(-50%, -50%); color: var(--paper-dim); }
+    .search-wrap:not(.search-expanded):hover{ background: var(--glass-3); }
+    .search-wrap:not(.search-expanded) .search-input{
+      width:0; padding:0; border-color:transparent; background:transparent; opacity:0; pointer-events:none;
+    }
+    .search-wrap:not(.search-expanded) .search-clear,
+    .search-wrap:not(.search-expanded) .search-suggest{ display:none !important; }
+    .search-wrap.search-expanded{
+      position:absolute; top:50%; left:12px; right:12px; width:auto; height:40px;
+      transform: translateY(-50%); margin-left:0;
+      border-color:transparent; background:none; backdrop-filter:none; -webkit-backdrop-filter:none;
+      z-index:25;
+    }
+    .topbar.search-mode .topbar-side{ opacity:0; pointer-events:none; }
+
+    /* Language switch collapses to just the active language; tapping it
+       cycles zh -> jp -> en instead of picking a specific button (see the
+       click handler in 17-events-and-init.js). */
+    .lang-switch{ padding:2px; }
+    .lang-btn{ display:none; min-width:0; padding:5px 9px; font-size:11px; }
+    .lang-btn.active{ display:block; }
+  }
+
+

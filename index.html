@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>劍玉招式庫 · Kendama Trick Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Varela+Round&family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables-and-base.css">
+<link rel="stylesheet" href="css/shell-topbar-rail.css">
+<link rel="stylesheet" href="css/browse-columns.css">
+<link rel="stylesheet" href="css/detail-drawer.css">
+<link rel="stylesheet" href="css/buttons-and-modals.css">
+<link rel="stylesheet" href="css/toast-and-utility.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-side topbar-side-left">
+      <div class="brand" id="brandHome" title="回到首頁">
+        <div class="brand-mark">
+          <img src="assets/brand-icon.png" alt="劍玉招式庫" />
+        </div>
+        <div>
+          <div class="brand-title" id="brandTitle">劍玉招式庫</div>
+          <div class="brand-sub">Kendama Trick Database</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="搜尋招式名稱（中／日／英）…" autocomplete="off" />
+      <button class="search-clear" id="searchClear">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+      <div class="search-suggest" id="searchSuggest"></div>
+    </div>
+
+    <div class="topbar-side topbar-side-right">
+      <div id="toastContainer"></div>
+      <div class="topbar-actions">
+        <div class="lang-switch" id="langSwitch">
+          <button class="lang-btn" data-lang="zh">ZH</button>
+          <button class="lang-btn" data-lang="jp">JP</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="body-row">
+    <nav class="space-rail" id="spaceRail"></nav>
+    <div class="main-col">
+      <main class="miller-wrap" id="millerWrap"></main>
+      <div class="app-credit" aria-hidden="true">Designed by @Cookie_Yu_1031</div>
+    </div>
+    <aside class="detail-drawer" id="detailDrawer"></aside>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="categoryModalOverlay">
+  <div class="modal" id="categoryModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="categoryModalTitle">新增分類</div>
+      <div class="field">
+        <label id="iconColorFieldLabel">圖示與顏色</label>
+        <button type="button" class="icon-color-preview" id="iconColorPreviewBtn">
+          <span class="icon-color-swatch" id="iconColorSwatch"></span>
+          <span id="iconColorPreviewText">選擇圖示與顏色</span>
+        </button>
+      </div>
+      <div class="field">
+        <label id="categoryNameZhLabel">中文名稱 <span class="req">*</span></label>
+        <input type="text" id="catZh" placeholder="例如：皿系" />
+      </div>
+      <div class="field">
+        <label id="categoryNameJpLabel">日文名稱</label>
+        <input type="text" id="catJp" placeholder="例如：皿系（さらけい）" />
+      </div>
+      <div class="field">
+        <label id="categoryNameEnLabel">英文名稱</label>
+        <input type="text" id="catEn" placeholder="e.g. Cup Tricks" />
+      </div>
+      <div class="field">
+        <label id="catParentLabel">父分類</label>
+        <select id="catParent"></select>
+      </div>
+      <div class="form-error" id="categoryFormError">請至少輸入中文名稱</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions-split">
+        <button class="btn btn-danger" id="catDeleteBtn" hidden>刪除分類</button>
+        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+          <button class="btn btn-ghost" id="catCancelBtn">取消</button>
+          <button class="btn btn-primary" id="catSaveBtn">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Icon & Color Picker Modal -->
+<div class="modal-overlay" id="iconPickerOverlay">
+  <div class="modal modal-lg" id="iconPickerModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="iconPickerTitle">選擇圖示與顏色</div>
+      <div class="field">
+        <label id="colorPickerLabel">顏色</label>
+        <div class="color-swatch-row" id="colorSwatchRow"></div>
+      </div>
+      <div class="field">
+        <label id="emojiPickerLabel">圖示</label>
+        <div class="emoji-grid" id="emojiGrid"></div>
+        <div class="field" style="margin-top:10px;">
+          <input type="text" id="customEmojiInput" maxlength="6" placeholder="貼上任意 Emoji" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="iconPickerNoneBtn">無圖示</button>
+        <button class="btn btn-primary" id="iconPickerDoneBtn">完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trick Modal -->
+<div class="modal-overlay" id="trickModalOverlay">
+  <div class="modal modal-lg" id="trickModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="trickModalTitle">新增招式</div>
+      <div class="modal-sub" id="trickModalSub">招式資料為單一真值來源，可同時歸類於多個分類</div>
+      <div class="field">
+        <label id="trickIconColorFieldLabel">圖示與顏色</label>
+        <button type="button" class="icon-color-preview" id="trickIconColorPreviewBtn">
+          <span class="icon-color-swatch" id="trickIconColorSwatch"></span>
+          <span id="trickIconColorPreviewText">選擇圖示與顏色</span>
+        </button>
+      </div>
+      <div class="field">
+        <label id="trickNameZhLabel">中文名稱 <span class="req">*</span></label>
+        <input type="text" id="trickZh" placeholder="例如：大皿" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label id="trickNameJpLabel">日文名稱</label>
+          <input type="text" id="trickJp" placeholder="例如：大皿（おおざら）" />
+        </div>
+        <div class="field">
+          <label id="trickNameEnLabel">英文名稱</label>
+          <input type="text" id="trickEn" placeholder="e.g. Big Cup" />
+        </div>
+      </div>
+      <div class="field">
+        <label id="trickCatPickerLabel">所屬分類 <span class="req">*</span>（可複選）</label>
+        <div class="cat-tree-picker" id="trickCatPicker"></div>
+      </div>
+      <div class="form-error" id="trickFormError">請輸入中文名稱並至少選擇一個分類</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions-split">
+        <button class="btn btn-danger" id="trickDeleteBtn" hidden>刪除招式</button>
+        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+          <button class="btn btn-ghost" id="trickCancelBtn">取消</button>
+          <button class="btn btn-primary" id="trickSaveBtn">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Media Modal (video only — notes are now edited directly in the drawer) -->
+<div class="modal-overlay" id="mediaModalOverlay">
+  <div class="modal" id="mediaModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="mediaModalTitle">新增影片</div>
+      <div class="field">
+        <label id="mediaNameLabel">名稱</label>
+        <input type="text" id="mediaName" placeholder="例如：正面示範" />
+      </div>
+      <div class="field" id="mediaUrlField">
+        <label id="mediaUrlLabel">影片連結 (YouTube／Instagram／Facebook／TikTok…)</label>
+        <input type="url" id="mediaUrl" placeholder="https://..." />
+      </div>
+      <div class="form-error" id="mediaFormError">請完整填寫</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions-split">
+        <button class="btn btn-danger" id="mediaDeleteBtn" hidden>刪除</button>
+        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+          <button class="btn btn-ghost" id="mediaCancelBtn">取消</button>
+          <button class="btn btn-primary" id="mediaSaveBtn">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Space Modal (leftmost rail shelves) -->
+<div class="modal-overlay" id="spaceModalOverlay">
+  <div class="modal" id="spaceModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="spaceModalTitle">新增分區</div>
+      <div class="field">
+        <label id="spaceIconFieldLabel">圖示</label>
+        <button type="button" class="icon-color-preview" id="spaceIconPreviewBtn">
+          <span class="icon-color-swatch" id="spaceIconSwatch"></span>
+          <span id="spaceIconPreviewText">選擇圖示</span>
+        </button>
+      </div>
+      <!-- New spaces are always created with the standard hierarchical
+           (tree) structure — the columns/grid and practice display styles
+           are reserved for the app's own built-in 每日練習 / 目標 shelves,
+           so there's no picker for it here (see saveSpaceFromModal in
+           13-modal-space.js). -->
+      <div class="field">
+        <label id="spaceNameZhLabel">中文名稱 <span class="req">*</span></label>
+        <input type="text" id="spaceZh" placeholder="例如：新手" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label id="spaceNameJpLabel">日文名稱</label>
+          <input type="text" id="spaceJp" />
+        </div>
+        <div class="field">
+          <label id="spaceNameEnLabel">英文名稱</label>
+          <input type="text" id="spaceEn" />
+        </div>
+      </div>
+      <div class="form-error" id="spaceFormError">請至少輸入中文名稱</div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions-split">
+        <button class="btn btn-danger" id="spaceDeleteBtn" hidden>刪除分區</button>
+        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+          <button class="btn btn-ghost" id="spaceCancelBtn">取消</button>
+          <button class="btn btn-primary" id="spaceSaveBtn">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Practice Settings Modal (target reps / daily reset) — the daily-practice
+     row's own edit button opens this, rather than the fields unfolding
+     inline whenever the app's global edit mode is on. -->
+<div class="modal-overlay" id="practiceSettingsOverlay">
+  <div class="modal modal-sm" id="practiceSettingsModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="practiceSettingsTitle">練習設定</div>
+      <div class="field">
+        <label id="practiceTargetLabel">目標次數</label>
+        <input type="number" min="0" step="1" id="practiceTargetInput" />
+      </div>
+      <label class="practice-setting-toggle" style="margin-top:8px;">
+        <input type="checkbox" id="practiceDailyResetInput" />
+        <span id="practiceDailyResetLabel">每日凌晨重置次數</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="practiceSettingsCancelBtn">取消</button>
+        <button class="btn btn-primary" id="practiceSettingsSaveBtn">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal modal-sm" id="confirmModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="confirmTitle">確認刪除？</div>
+      <div class="modal-sub" id="confirmSub" style="margin-bottom:0;"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="confirmCancelBtn">取消</button>
+        <button class="btn btn-danger" id="confirmOkBtn">確認</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="modal-overlay" id="videoModalOverlay">
+  <div class="modal modal-video" id="videoModal"></div>
+</div>
+
+<!-- Detail Drawer -->
+<input type="file" id="importFileInput" accept="application/json" hidden />
+
+<script src="js/01-data-model.js"></script>
+<script src="js/02-constants-colors-icons.js"></script>
+<script src="js/03-i18n.js"></script>
+<script src="js/04-state.js"></script>
+<script src="js/05-data-helpers.js"></script>
+<script src="js/06-render-chrome-breadcrumb.js"></script>
+<script src="js/07-icons-svg.js"></script>
+<script src="js/08-render-browse-columns.js"></script>
+<script src="js/09-render-detail-drawer.js"></script>
+<script src="js/10-modal-video.js"></script>
+<script src="js/11-modal-media.js"></script>
+<script src="js/12-modal-category.js"></script>
+<script src="js/13-modal-space.js"></script>
+<script src="js/14-modal-trick.js"></script>
+<script src="js/15-modal-confirm-toast.js"></script>
+<script src="js/16-export-import.js"></script>
+<script src="js/18-modal-practice-settings.js"></script>
+<script src="js/17-events-and-init.js"></script>
+</body>
+</html>

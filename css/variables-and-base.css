@@ -1,0 +1,74 @@
+  :root{
+    --ink:#121212;
+    --ink-2:#191919;
+    --ink-3:#212121;
+    --ink-4:#2A2A2A;
+    --line: rgba(240,237,230,0.09);
+    --line-strong: rgba(240,237,230,0.16);
+    --paper:#F0EDE6;
+    --paper-dim: rgba(240,237,230,0.62);
+    --paper-faint: rgba(240,237,230,0.36);
+    --lacquer:#3E9BE0;
+    --lacquer-bright:#7DD8FF;
+    --lacquer-rgb: 62,155,224;
+    --danger:#C0392B;
+    --danger-bright:#E0503F;
+    --danger-rgb: 192,57,43;
+    --wood:#C9A063;
+    --string:#5B8AA6;
+    --shadow-lg: 0 24px 60px -20px rgba(0,0,0,0.7);
+    --shadow-sm: 0 8px 20px -12px rgba(0,0,0,0.55);
+    --radius: 20px;
+    --radius-sm: 14px;
+    --ease: cubic-bezier(.22,1,.36,1);
+    --font-display: 'Zen Maru Gothic', 'Varela Round', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-body: 'Zen Maru Gothic', 'Varela Round', 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --topbar-h: 64px;
+    --crumb-h: 52px;
+    /* --- iOS-style liquid glass surfaces --- */
+    --glass-1: rgba(255,255,255,0.05);
+    --glass-2: rgba(255,255,255,0.09);
+    --glass-3: rgba(255,255,255,0.14);
+    --glass-border: rgba(255,255,255,0.16);
+    --glass-border-strong: rgba(255,255,255,0.30);
+    --glass-highlight: inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.30), inset 1px 0 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.12);
+    --glass-blur: blur(30px) saturate(190%);
+    --glass-blur-soft: blur(18px) saturate(165%);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--ink);
+    background-image:
+      radial-gradient(circle at 10% 6%, rgba(62,155,224,0.16), transparent 40%),
+      radial-gradient(circle at 92% 12%, rgba(91,138,166,0.10), transparent 38%),
+      radial-gradient(circle at 20% 92%, rgba(201,160,99,0.10), transparent 42%),
+      radial-gradient(circle at 96% 88%, rgba(62,155,224,0.09), transparent 40%);
+    background-attachment: fixed;
+    color: var(--paper);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection{ background: var(--lacquer); color:#fff; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line-strong); border-radius: 8px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+  button{ font-family: inherit; }
+  input, select, textarea{ font-family: inherit; }
+
+  #app{ height:100%; display:flex; flex-direction:column; }
+  .body-row{ flex:1 1 auto; display:flex; min-height:0; overflow:hidden; }
+  .main-col{ flex:1 1 auto; display:flex; flex-direction:column; min-width:0; overflow:hidden; position:relative; }
+  /* Small, unobtrusive credit label pinned to the miller-wrap's bottom-right
+     corner — sits in .main-col (millerWrap's own innerHTML is fully replaced
+     on every render, so a child of it would keep getting wiped) with the
+     same footprint, and stays out of the way of clicks/drags underneath it. */
+  .app-credit{
+    position:absolute; right:12px; bottom:8px;
+    font-size:10.5px; color: var(--paper-faint); opacity:0.55;
+    pointer-events:none; user-select:none; z-index:1; white-space:nowrap;
+  }
+
