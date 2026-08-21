@@ -405,10 +405,10 @@
     });
   }
 
-  // Thin horizontal rule separating the rail's three sections (總表 /
-  // 每日練習+目標 / other spaces) — see renderSpaceRail for when each
-  // divider is actually inserted (a divider bordering an empty, hidden
-  // section is skipped rather than shown floating next to its neighbor).
+  // Thin horizontal rule separating the rail's sections (總表 / 目標 /
+  // other spaces) — see renderSpaceRail for when each divider is actually
+  // inserted (a divider bordering an empty, hidden section is skipped
+  // rather than shown floating next to its neighbor).
   function buildRailDivider(){
     var hr = document.createElement("div");
     hr.className = "space-rail-divider";
@@ -420,12 +420,11 @@
     rail.innerHTML = "";
 
     var indexSpace = db.spaces.find(function(s){ return s.id === "space-index"; });
-    var dailySpace = db.spaces.find(function(s){ return s.id === "space-daily"; });
     var goalSpace = db.spaces.find(function(s){ return s.id === "space-goal"; });
     var otherSpaces = db.spaces.filter(function(s){
-      return s.id !== "space-index" && s.id !== "space-daily" && s.id !== "space-goal";
+      return s.id !== "space-index" && s.id !== "space-goal";
     }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
-    var section2Spaces = [dailySpace, goalSpace].filter(function(sp){
+    var section2Spaces = [goalSpace].filter(function(sp){
       return sp && getAllTricksInSpace(sp.id).length > 0;
     });
 
@@ -437,14 +436,14 @@
     }
 
     // A divider only ever separates two sections that both actually have
-    // something in them — if 每日練習/目標 are both currently empty (and thus
-    // hidden), the divider that would normally sit right above them is
-    // dropped too, leaving a single line between 總表 and the next visible
-    // section instead of two lines with nothing between them.
+    // something in them — if 目標 is currently empty (and thus hidden), the
+    // divider that would normally sit right above it is dropped too,
+    // leaving a single line between 總表 and the next visible section
+    // instead of two lines with nothing between them.
     if(section2Spaces.length || otherSpaces.length) rail.appendChild(buildRailDivider());
 
-    // Section 2: 每日練習 / 目標 — fixed position right under 總表, and only
-    // shown once each actually holds at least one trick.
+    // Section 2: 目標 — fixed position right under 總表, and only shown
+    // once it actually holds at least one trick.
     section2Spaces.forEach(function(sp){
       var btn = buildSpaceBtn(sp, true);
       bindSpaceNavigate(btn, sp);
@@ -462,9 +461,9 @@
     });
 
     // If the space currently being viewed just dropped out of the rail
-    // (its last trick was removed from 每日練習 / 目標), fall back to the
-    // total index rather than leaving the view stuck on a hidden tab.
-    if((state.activeSpace === "space-daily" || state.activeSpace === "space-goal")
+    // (its last trick was removed from 目標), fall back to the total index
+    // rather than leaving the view stuck on a hidden tab.
+    if(state.activeSpace === "space-goal"
        && getAllTricksInSpace(state.activeSpace).length === 0
        && indexSpace){
       state.activeSpace = indexSpace.id;
@@ -601,7 +600,7 @@
   }
 
   /* ============================================================
-     FLAT TRICK VIEWS ("columns" / "practice" viewMode)
+     FLAT TRICK VIEWS ("columns" viewMode)
      Shown instead of the miller-column tree for spaces whose viewMode
      isn't "tree".
   ============================================================ */
@@ -613,27 +612,6 @@
     if(mode === "columns"){
       renderGridTrickList(wrap, state.activeSpace);
       return;
-    }
-
-    // "practice" mode: every trick belonging to the space, ignoring category
-    // nesting entirely — a flat list of tricks with target/daily-reset/counter.
-    var tricks = getAllTricksInSpace(state.activeSpace).slice().sort(function(a,b){
-      return localize(a.name).localeCompare(localize(b.name));
-    });
-
-    if(!tricks.length && !state.editMode){
-      var es = document.createElement("div");
-      es.className = "empty-state"; es.style.width = "100%";
-      es.innerHTML = ICON_EMPTY + "<h3>" + escapeHtml(t("emptyTitle")) + "</h3><p>" + escapeHtml(t("emptyBody")) + "</p>";
-      wrap.appendChild(es);
-      return;
-    }
-
-    if(tricks.length){
-      var list = document.createElement("div");
-      list.className = "practice-list-view";
-      tricks.forEach(function(tr){ list.appendChild(renderPracticeRow(tr, state.activeSpace)); });
-      wrap.appendChild(list);
     }
   }
 
@@ -683,14 +661,13 @@
     return row;
   }
 
-  // Edit-mode row actions shared by the goal grid and the daily practice
-  // list: an "edit" button (caller-supplied — full trick editor for the
-  // grid, practice-settings modal for the practice list) plus a "remove"
-  // button. For a bucket-backed space (目標 / 每日練習) removing only takes
-  // the trick out of that bucket — the underlying trick is untouched and
-  // stays wherever else it's filed; for any other "columns" space (no
-  // bucket) it falls back to permanently deleting the trick, same as the
-  // tree browser's own delete button.
+  // Edit-mode row actions for the goal grid: an "edit" button (caller-
+  // supplied — the full trick editor) plus a "remove" button. For a
+  // bucket-backed space (目標) removing only takes the trick out of that
+  // bucket — the underlying trick is untouched and stays wherever else it's
+  // filed; for any other "columns" space (no bucket) it falls back to
+  // permanently deleting the trick, same as the tree browser's own delete
+  // button.
   function appendBucketEditActions(container, tr, spaceId, onEdit){
     var actions = document.createElement("div");
     actions.className = "item-edit-actions flat-edit-actions";
@@ -713,59 +690,6 @@
     });
     actions.appendChild(editBtn); actions.appendChild(removeBtn);
     container.appendChild(actions);
-  }
-
-  // "practice" viewMode ("每日練習"): every card's icon+name/meta portion is
-  // the exact same .item visual (buildItemVisual) the regular hierarchical
-  // tree and the 目標 grid both use — no bespoke look of its own — with a
-  // rep counter appended alongside it. A card's total width is simply that
-  // regular item's width plus whatever room the counter itself needs (see
-  // .practice-row in browse-columns.css, sized via max-content rather than a
-  // hardcoded number), and the whole list lays out three cards per row.
-  // Editing the target/daily-reset settings happens in a secondary modal
-  // (openPracticeSettingsModal), opened only via this row's own edit button.
-  function renderPracticeRow(tr, spaceId){
-    var it = { type:"trick", id:tr.id, name:tr.name, ref:tr };
-    var visual = buildItemVisual(it);
-    var isCurrentTrick = state.detailTrickId === tr.id;
-
-    var itemBox = document.createElement("div");
-    itemBox.className = "item grid-item" + (isCurrentTrick ? " selected" : "");
-    itemBox.title = localize(tr.name);
-    itemBox.dataset.itemId = tr.id; itemBox.dataset.itemType = "trick";
-    itemBox.appendChild(visual.icon);
-    itemBox.appendChild(visual.textWrap);
-    if(state.editMode) appendBucketEditActions(itemBox, tr, spaceId, function(){ openPracticeSettingsModal(tr.id); });
-    itemBox.addEventListener("click", function(){ openDrawerFor(tr.id); });
-
-    var row = document.createElement("div");
-    row.className = "practice-row";
-    row.dataset.itemId = tr.id; row.dataset.itemType = "trick";
-    row.appendChild(itemBox);
-
-    var counter = document.createElement("div");
-    counter.className = "practice-counter";
-    var minusBtn = document.createElement("button");
-    minusBtn.type = "button"; minusBtn.className = "practice-counter-btn"; minusBtn.textContent = "－";
-    var countDisplay = document.createElement("div");
-    countDisplay.className = "practice-count-display";
-    // Once the rep count reaches the target, swap the "n / target" readout
-    // for a plain "完成" (Done) label instead of showing e.g. "10 / 10".
-    function refreshCount(){
-      var cur = getPracticeCount(tr);
-      var done = tr.target > 0 && cur >= tr.target;
-      countDisplay.textContent = done ? t("practiceDone") : (cur + (tr.target ? (" / " + tr.target) : ""));
-      countDisplay.classList.toggle("done", done);
-    }
-    minusBtn.addEventListener("click", function(ev){ ev.stopPropagation(); bumpPracticeCount(tr, -1); refreshCount(); });
-    var plusBtn = document.createElement("button");
-    plusBtn.type = "button"; plusBtn.className = "practice-counter-btn"; plusBtn.textContent = "＋";
-    plusBtn.addEventListener("click", function(ev){ ev.stopPropagation(); bumpPracticeCount(tr, 1); refreshCount(); });
-    refreshCount();
-    counter.appendChild(minusBtn); counter.appendChild(countDisplay); counter.appendChild(plusBtn);
-    row.appendChild(counter);
-
-    return row;
   }
 
   function renderColAddRow(col){
@@ -842,12 +766,12 @@
       metaEl.textContent = bits.join(" · ");
     } else {
       var metaBits = [];
-      // Being filed into 每日練習 / 目標 is a bucket membership, not a real
-      // "this trick also lives under another category" cross-reference —
-      // exclude those two bucket categories from this line so toggling a
-      // trick into 每日練習/目標 doesn't add unrelated-looking text here.
+      // Being filed into 目標 is a bucket membership, not a real "this
+      // trick also lives under another category" cross-reference — exclude
+      // that bucket category from this line so toggling a trick into 目標
+      // doesn't add unrelated-looking text here.
       var realCategoryIds = it.ref.categoryIds.filter(function(cid){
-        return cid !== DAILY_BUCKET_CAT_ID && cid !== GOAL_BUCKET_CAT_ID;
+        return cid !== GOAL_BUCKET_CAT_ID;
       });
       if(realCategoryIds.length > 1){
         metaBits.push(realCategoryIds.map(function(cid){ var cc=getCategory(cid)||getTrick(cid); return cc?localize(cc.name):""; }).filter(Boolean).join(" · "));

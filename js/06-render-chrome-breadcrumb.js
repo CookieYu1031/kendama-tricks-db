@@ -59,10 +59,6 @@
     setText("spaceCancelBtn", t("cancel"));
     setText("spaceSaveBtn", t("save"));
     setText("spaceDeleteBtn", t("deleteSpace"));
-    setText("practiceTargetLabel", t("practiceTarget"));
-    setText("practiceDailyResetLabel", t("practiceDailyReset"));
-    setText("practiceSettingsCancelBtn", t("cancel"));
-    setText("practiceSettingsSaveBtn", t("save"));
 
     function setText(id, val, hasReq){
       var el = document.getElementById(id);

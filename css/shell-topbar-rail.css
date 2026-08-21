@@ -29,7 +29,7 @@
   }
   .space-btn.drop-before::before{ top:-5px; }
   .space-btn.drop-after::after{ bottom:-5px; }
-  /* Separates the rail's three sections (總表 / 每日練習+目標 / other spaces).
+  /* Separates the rail's sections (總表 / 目標 / other spaces).
      Only ever inserted between two sections that both actually have content
      — see renderSpaceRail in 08-render-browse-columns.js. */
   .space-rail-divider{ width:28px; height:1px; flex:0 0 auto; background: var(--glass-border-strong); margin: 2px 0; }
@@ -73,7 +73,11 @@
     -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: var(--glass-highlight);
     position: relative;
-    z-index: 20;
+    /* Higher than the mobile detail-drawer's z-index (41, see
+       detail-drawer.css) so the account menu opened from here can never end
+       up rendered underneath a full-screen drawer sheet — the topbar and
+       everything in it (including .auth-menu) must always stay reachable. */
+    z-index: 45;
   }
   .topbar-side{ display:flex; align-items:center; min-width:0; }
   .topbar-side-left{ justify-content:flex-start; }
@@ -222,6 +226,11 @@
   }
   .auth-menu{
     position:absolute; top: calc(100% + 8px); right:0; min-width:230px;
+    /* Clamped so the menu can never bleed past the left edge of narrow
+       viewports (it would otherwise overflow off-screen on ~320px phones
+       once the name/email are long), which left its buttons partly
+       unreachable. */
+    max-width: calc(100vw - 24px);
     background: rgba(28, 28, 30, 0.96);
     backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
     border:1px solid var(--glass-border); border-radius: var(--radius);

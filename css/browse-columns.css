@@ -172,39 +172,6 @@
   .grid-item .flat-edit-actions{ opacity:0; flex:0 0 auto; max-width:none; }
   .grid-item:hover .flat-edit-actions{ opacity:1; }
 
-  /* ---------- Flat "practice" view (每日練習): three cards per row. Each
-     card's icon+name/meta portion is literally an .item.grid-item — same
-     markup buildItemVisual/renderGridItemRow produce for 目標's grid — with
-     a rep counter appended next to it (see renderPracticeRow in
-     08-render-browse-columns.js). A column's width is therefore never a
-     hardcoded number: max-content lets it size itself to exactly that fixed
-     260px item plus however wide the counter turns out to be. ---------- */
-  .practice-list-view{ flex:1 1 auto; width:100%; display:grid; grid-template-columns: repeat(3, max-content); gap:10px; justify-content:start; align-content:flex-start; }
-  .practice-row{ display:flex; align-items:center; gap:10px; min-width:0; }
-  /* Reused by the practice-settings modal's daily-reset checkbox row. */
-  .practice-setting-toggle{
-    display:flex; align-items:center; gap:7px; font-size:13px; color: var(--paper-dim);
-    font-weight:600; cursor:pointer; white-space:nowrap;
-  }
-  .practice-setting-toggle input{ width:17px; height:17px; accent-color: var(--lacquer); cursor:pointer; }
-  .practice-counter{ display:flex; align-items:center; gap:6px; flex:0 0 auto; }
-  .practice-counter-btn{
-    width:26px; height:26px; border-radius:9px; border:1px solid var(--glass-border-strong);
-    background: var(--glass-2); color: var(--paper); font-size:14px; line-height:1;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all .15s var(--ease);
-  }
-  .practice-counter-btn:hover{ border-color: var(--lacquer); color: var(--lacquer-bright); background: var(--glass-3); }
-  .practice-count-display{ min-width:40px; text-align:center; font-family: var(--font-mono); font-size:12.5px; font-weight:600; }
-  /* Shown once the rep count reaches its target, replacing "n / target". */
-  .practice-count-display.done{ color: var(--lacquer-bright); }
-
-  @media (max-width: 1180px){
-    .practice-list-view{ grid-template-columns: repeat(2, max-content); }
-  }
-  @media (max-width: 780px){
-    .practice-list-view{ grid-template-columns: max-content; }
-  }
-
   /* ---------- Search results ---------- */
   .search-results{ flex:1 1 auto; overflow-y:auto; padding: 18px 20px; }
   .sr-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:12px; max-width:1100px; }

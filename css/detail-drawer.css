@@ -28,7 +28,7 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
   }
   .drawer-close:hover{ color:#fff; background: var(--danger); border-color: var(--danger); }
-  /* Quick add/remove into the 每日練習 (📆) / 目標 (🎯) bucket categories —
+  /* Quick add/remove into the 目標 (🎯) bucket category —
      same footprint as .drawer-close, sitting to its left. "active" (already
      filed into that bucket) gets a lacquer-tinted fill so its state reads at
      a glance without needing a label. */

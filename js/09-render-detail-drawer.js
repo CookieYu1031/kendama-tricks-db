@@ -61,8 +61,8 @@
     var dragging = false, startY = 0, currentY = 0;
     dragZone.addEventListener("pointerdown", function(ev){
       if(!isNarrowViewport()) return;
-      // Any button in the head (daily/goal quick-toggles, close) needs its
-      // own click to fire normally — starting the drag here would call
+      // Any button in the head (goal quick-toggle, close) needs its own
+      // click to fire normally — starting the drag here would call
       // setPointerCapture, which re-targets the eventual click to dragZone
       // itself instead of the button that was actually pressed.
       if(ev.target.closest("button")) return;
@@ -124,21 +124,10 @@
     var headActions = document.createElement("div");
     headActions.className = "drawer-head-actions";
 
-    // Quick-toggle: file this trick into (or out of) the 每日練習 / 目標
-    // bucket category for its matching space — the same categoryIds array
-    // used everywhere else, so editing the trick anywhere else stays in
-    // sync automatically (single source of truth).
-    var dailyBtn = document.createElement("button");
-    dailyBtn.type = "button";
-    dailyBtn.className = "drawer-quick-btn" + (trickInSpaceBucket(tr.id, "space-daily") ? " active" : "");
-    dailyBtn.innerHTML = "📆";
-    dailyBtn.title = t("toggleDailyPractice");
-    dailyBtn.addEventListener("click", function(){
-      toggleTrickInSpaceBucket(tr.id, "space-daily");
-      renderSpaceRail();
-      renderColumns();
-      if(!closeDrawerIfLeftActiveBucket(tr.id, "space-daily")) renderDrawer();
-    });
+    // Quick-toggle: file this trick into (or out of) the 目標 bucket
+    // category — the same categoryIds array used everywhere else, so
+    // editing the trick anywhere else stays in sync automatically (single
+    // source of truth).
     var goalBtn = document.createElement("button");
     goalBtn.type = "button";
     goalBtn.className = "drawer-quick-btn" + (trickInSpaceBucket(tr.id, "space-goal") ? " active" : "");
@@ -155,7 +144,6 @@
     closeBtn.className = "drawer-close"; closeBtn.innerHTML = ICON_X;
     closeBtn.addEventListener("click", closeDrawer);
 
-    headActions.appendChild(dailyBtn);
     headActions.appendChild(goalBtn);
     headActions.appendChild(closeBtn);
     head.appendChild(headLeft); head.appendChild(headActions);

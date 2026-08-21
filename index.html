@@ -250,10 +250,9 @@
         </button>
       </div>
       <!-- New spaces are always created with the standard hierarchical
-           (tree) structure — the columns/grid and practice display styles
-           are reserved for the app's own built-in 每日練習 / 目標 shelves,
-           so there's no picker for it here (see saveSpaceFromModal in
-           13-modal-space.js). -->
+           (tree) structure — the columns/grid display style is reserved
+           for the app's own built-in 目標 shelf, so there's no picker for
+           it here (see saveSpaceFromModal in 13-modal-space.js). -->
       <div class="field">
         <label id="spaceNameZhLabel">中文名稱 <span class="req">*</span></label>
         <input type="text" id="spaceZh" placeholder="例如：新手" />
@@ -277,31 +276,6 @@
           <button class="btn btn-ghost" id="spaceCancelBtn">取消</button>
           <button class="btn btn-primary" id="spaceSaveBtn">儲存</button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Practice Settings Modal (target reps / daily reset) — the daily-practice
-     row's own edit button opens this, rather than the fields unfolding
-     inline whenever the app's global edit mode is on. -->
-<div class="modal-overlay" id="practiceSettingsOverlay">
-  <div class="modal modal-sm" id="practiceSettingsModal">
-    <div class="modal-scroll">
-      <div class="modal-title" id="practiceSettingsTitle">練習設定</div>
-      <div class="field">
-        <label id="practiceTargetLabel">目標次數</label>
-        <input type="number" min="0" step="1" id="practiceTargetInput" />
-      </div>
-      <label class="practice-setting-toggle" style="margin-top:8px;">
-        <input type="checkbox" id="practiceDailyResetInput" />
-        <span id="practiceDailyResetLabel">每日凌晨重置次數</span>
-      </label>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="practiceSettingsCancelBtn">取消</button>
-        <button class="btn btn-primary" id="practiceSettingsSaveBtn">儲存</button>
       </div>
     </div>
   </div>
@@ -355,7 +329,6 @@
 <script src="js/14-modal-trick.js"></script>
 <script src="js/15-modal-confirm-toast.js"></script>
 <script src="js/16-export-import.js"></script>
-<script src="js/18-modal-practice-settings.js"></script>
 <script src="js/17-events-and-init.js"></script>
 <script src="js/19-auth-sync.js"></script>
 </body>

@@ -20,26 +20,22 @@
   // 08-render-browse-columns.js:
   //   "tree"     — the existing miller-column folder browser (default)
   //   "columns"  — a flat multi-column grid of tricks only (no categories)
-  //   "practice" — a flat list of tricks with target-count / daily-reset /
-  //                +/- practice counters
   var DEFAULT_SPACES = [
     { id:"space-index",     icon:"🗂️", name:{ zh:"招式庫",   jp:"トリック一覧", en:"Tricks list" },  viewMode:"tree" },
     { id:"space-kwc",       icon:"🌐", name:{ zh:"KWC",      jp:"KWC",      en:"KWC" },            viewMode:"tree" },
     { id:"space-beginner",  icon:"🔰", name:{ zh:"新手",     jp:"初心者",   en:"Beginner" },        viewMode:"tree" },
-    { id:"space-goal",      icon:"🎯", name:{ zh:"目標",     jp:"ゴール",   en:"Goals" },           viewMode:"columns" },
-    { id:"space-daily",     icon:"📆", name:{ zh:"每日練習", jp:"日々の実践", en:"Daily Practice" },  viewMode:"practice" }
+    { id:"space-goal",      icon:"🎯", name:{ zh:"目標",     jp:"ゴール",   en:"Goals" },           viewMode:"columns" }
   ];
-  var VIEW_MODES = ["tree", "columns", "practice"];
-  // Fixed-id "bucket" categories that the drawer's 📆 / 🎯 quick-toggle
-  // buttons add/remove a trick from — always root categories inside their
-  // matching space, auto-created on first use (see ensureSpaceBucketCategory
-  // in 05-data-helpers.js).
-  var DAILY_BUCKET_CAT_ID = "cat-daily-bucket-root";
+  var VIEW_MODES = ["tree", "columns"];
+  // Fixed-id "bucket" category that the drawer's 🎯 quick-toggle button
+  // adds/removes a trick from — always a root category inside space-goal,
+  // auto-created on first use (see ensureSpaceBucketCategory in
+  // 05-data-helpers.js).
   var GOAL_BUCKET_CAT_ID = "cat-goal-bucket-root";
   // Built-in spaces the person can never delete via the space modal — the
-  // rest of the app assumes the total index, daily practice, and goals
-  // shelves always exist. Other (custom) spaces remain deletable as before.
-  var UNDELETABLE_SPACE_IDS = ["space-index", "space-daily", "space-goal"];
+  // rest of the app assumes the total index and goals shelves always exist.
+  // Other (custom) spaces remain deletable as before.
+  var UNDELETABLE_SPACE_IDS = ["space-index", "space-goal"];
   function getSpace(id){ return db.spaces.find(function(s){ return s.id===id; }); }
   function spaceLabel(id){
     var sp = getSpace(id);
@@ -116,15 +112,7 @@
         order: typeof t.order === "number" ? t.order : idx,
         icon: t.icon || "",
         color: t.color || "",
-        proficiency: PROFICIENCY_LEVELS.indexOf(t.proficiency) !== -1 ? t.proficiency : "none",
-        // Practice-list tracking (see "practice" viewMode): an independently
-        // settable target rep count, an optional daily-at-midnight reset, and
-        // the running count itself (with the date it was last touched, used
-        // to detect when a new day has begun).
-        target: typeof t.target === "number" && t.target >= 0 ? t.target : 0,
-        dailyReset: !!t.dailyReset,
-        practiceCount: typeof t.practiceCount === "number" && t.practiceCount >= 0 ? t.practiceCount : 0,
-        practiceCountDate: t.practiceCountDate || ""
+        proficiency: PROFICIENCY_LEVELS.indexOf(t.proficiency) !== -1 ? t.proficiency : "none"
       };
     });
     return { categories: cats, tricks: tricks, spaces: spaces };

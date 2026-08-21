@@ -22,8 +22,8 @@
 
   // A trick "belongs to" a space if any of its containers' root ancestor
   // (walking up through pathToContainer) is a root category filed under that
-  // space. Used by the flat "columns"/"practice" view modes, which show every
-  // trick in a space regardless of how deep it's nested.
+  // space. Used by the flat "columns" view mode, which shows every trick in
+  // a space regardless of how deep it's nested.
   function trickBelongsToSpace(tr, spaceId){
     if(!tr.categoryIds || !tr.categoryIds.length) return false;
     return tr.categoryIds.some(function(cid){
@@ -63,9 +63,9 @@
     return UNDELETABLE_SPACE_IDS.indexOf(spaceId) !== -1;
   }
 
-  // Lazily creates (once) the fixed-id root category that the drawer's
-  // 📆 / 🎯 quick-toggle buttons file a trick into for a given space — see
-  // DAILY_BUCKET_CAT_ID / GOAL_BUCKET_CAT_ID in 01-data-model.js.
+  // Lazily creates (once) the fixed-id root category that the drawer's 🎯
+  // quick-toggle button files a trick into for a given space — see
+  // GOAL_BUCKET_CAT_ID in 01-data-model.js.
   function ensureSpaceBucketCategory(spaceId, bucketId, icon, name){
     var cat = getCategory(bucketId);
     if(!cat){
@@ -75,7 +75,6 @@
     return cat;
   }
   function spaceBucketFor(spaceId){
-    if(spaceId === "space-daily") return { bucketId: DAILY_BUCKET_CAT_ID, icon:"📆", name:{ zh:"每日練習", jp:"毎日練習", en:"Daily Practice" } };
     if(spaceId === "space-goal") return { bucketId: GOAL_BUCKET_CAT_ID, icon:"🎯", name:{ zh:"目標招式", jp:"目標の技", en:"Goal Tricks" } };
     return null;
   }
@@ -100,7 +99,7 @@
     saveDB();
   }
 
-  // Whenever a trick drops out of spaceId's bucket (📆/🎯 quick-toggle turned
+  // Whenever a trick drops out of spaceId's bucket (🎯 quick-toggle turned
   // off, auto-dropped from 目標 on proficiency change, removed via a list's
   // own remove button, etc.) while that trick's detail drawer is open AND
   // spaceId is the space currently being browsed, the drawer is left
@@ -128,30 +127,6 @@
       }
     }
     return true;
-  }
-
-  // ---- Practice-list counters (see "practice" viewMode) ----------------
-  function todayDateStr(){
-    var d = new Date();
-    return d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2);
-  }
-  // Lazily rolls the count back to 0 the first time it's read on a new day
-  // (only when dailyReset is on) — there's no background timer; the check
-  // just runs whenever the count is displayed or changed.
-  function getPracticeCount(tr){
-    if(tr.dailyReset && tr.practiceCountDate !== todayDateStr()){
-      tr.practiceCount = 0;
-      tr.practiceCountDate = todayDateStr();
-    }
-    return tr.practiceCount;
-  }
-  function bumpPracticeCount(tr, delta){
-    var cur = getPracticeCount(tr);
-    cur = Math.max(0, cur + delta);
-    tr.practiceCount = cur;
-    tr.practiceCountDate = todayDateStr();
-    saveDB();
-    return cur;
   }
 
   // A trick's note is a single free-text field (tr.note). Older data stored notes

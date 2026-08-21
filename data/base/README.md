@@ -1,8 +1,8 @@
 # 通用資料（base data）
 
 這裡的每個 `{spaceId}.json` 對應一個內建分區（space-index / space-kwc /
-space-beginner / space-goal / space-daily），存放「官方隨版本更新」的招式與
-分類。目前全部是空的，之後要放通用內容時直接編輯對應檔案即可：
+space-beginner / space-goal），存放「官方隨版本更新」的招式與分類。目前全部
+是空的，之後要放通用內容時直接編輯對應檔案即可：
 
 ```json
 {

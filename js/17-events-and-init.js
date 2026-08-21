@@ -207,12 +207,6 @@
   document.getElementById("trickDeleteBtn").addEventListener("click", function(){ requestDeleteTrick(state.editingTrickId); });
   // (No overlay-click-to-close — see the category modal comment above.)
 
-  // Practice settings modal (target reps / daily reset — the daily-practice
-  // row's own "二級介面")
-  document.getElementById("practiceSettingsCancelBtn").addEventListener("click", closePracticeSettingsModal);
-  document.getElementById("practiceSettingsSaveBtn").addEventListener("click", savePracticeSettingsFromModal);
-  // (No overlay-click-to-close — see the category modal comment above.)
-
   // Confirm modal
   document.getElementById("confirmCancelBtn").addEventListener("click", closeConfirm);
   document.getElementById("confirmOkBtn").addEventListener("click", function(){
@@ -258,7 +252,6 @@
   bindEnterToSave("trickModalOverlay", saveTrickFromModal);
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
-  bindEnterToSave("practiceSettingsOverlay", savePracticeSettingsFromModal);
 
   // Escape key closes topmost overlay
   document.addEventListener("keydown", function(ev){
@@ -266,7 +259,6 @@
     if(document.getElementById("searchSuggest").classList.contains("show")) return closeSearchSuggest();
     if(searchWrap.classList.contains("search-expanded")){ searchInput.blur(); return collapseMobileSearchIfEmpty(); }
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
-    if(document.getElementById("practiceSettingsOverlay").classList.contains("show")) return closePracticeSettingsModal();
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
