@@ -124,14 +124,14 @@
     var headActions = document.createElement("div");
     headActions.className = "drawer-head-actions";
 
-    // Quick-toggle: file this trick into (or out of) the 目標 bucket
+    // Quick-toggle: file this trick into (or out of) the 收藏 bucket
     // category — the same categoryIds array used everywhere else, so
     // editing the trick anywhere else stays in sync automatically (single
     // source of truth).
     var goalBtn = document.createElement("button");
     goalBtn.type = "button";
     goalBtn.className = "drawer-quick-btn" + (trickInSpaceBucket(tr.id, "space-goal") ? " active" : "");
-    goalBtn.innerHTML = "🎯";
+    goalBtn.innerHTML = "⭐";
     goalBtn.title = t("toggleGoal");
     goalBtn.addEventListener("click", function(){
       toggleTrickInSpaceBucket(tr.id, "space-goal");
@@ -269,19 +269,7 @@
         // now, instead of waiting for the next full render() to touch those
         // persistent DOM nodes — that's what caused the one-render lag.
         refreshTrickIconGlow(tr.id);
-        // A trick marked with any real proficiency (anything but "無"/none) is
-        // no longer just an aspirational goal, so drop it out of 目標
-        // automatically — the goal shelf only ever holds tricks still at "無".
-        var droppedFromGoal = false;
-        if(level !== "none" && trickInSpaceBucket(tr.id, "space-goal")){
-          toggleTrickInSpaceBucket(tr.id, "space-goal");
-          droppedFromGoal = true;
-        }
-        if(droppedFromGoal){
-          renderSpaceRail();
-          renderColumns();
-        }
-        if(!droppedFromGoal || !closeDrawerIfLeftActiveBucket(tr.id, "space-goal")) renderDrawer();
+        renderDrawer();
       });
       profWrap.appendChild(pBtn);
     });

@@ -63,7 +63,7 @@
     return UNDELETABLE_SPACE_IDS.indexOf(spaceId) !== -1;
   }
 
-  // Lazily creates (once) the fixed-id root category that the drawer's 🎯
+  // Lazily creates (once) the fixed-id root category that the drawer's ⭐
   // quick-toggle button files a trick into for a given space — see
   // GOAL_BUCKET_CAT_ID in 01-data-model.js.
   function ensureSpaceBucketCategory(spaceId, bucketId, icon, name){
@@ -75,7 +75,7 @@
     return cat;
   }
   function spaceBucketFor(spaceId){
-    if(spaceId === "space-goal") return { bucketId: GOAL_BUCKET_CAT_ID, icon:"🎯", name:{ zh:"目標招式", jp:"目標の技", en:"Goal Tricks" } };
+    if(spaceId === "space-goal") return { bucketId: GOAL_BUCKET_CAT_ID, icon:"⭐", name:{ zh:"收藏招式", jp:"お気に入りの技", en:"Favorite Tricks" } };
     return null;
   }
   // Whether trickId is currently filed into spaceId's bucket category.
@@ -99,9 +99,9 @@
     saveDB();
   }
 
-  // Whenever a trick drops out of spaceId's bucket (🎯 quick-toggle turned
-  // off, auto-dropped from 目標 on proficiency change, removed via a list's
-  // own remove button, etc.) while that trick's detail drawer is open AND
+  // Whenever a trick drops out of spaceId's bucket (⭐ quick-toggle turned
+  // off, removed via a list's own remove button, etc.) while that trick's
+  // detail drawer is open AND
   // spaceId is the space currently being browsed, the drawer is left
   // pointing at an item no longer in the list behind it — so close it. If
   // that was the bucket's last trick, its space tab disappears from the

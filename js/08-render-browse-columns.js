@@ -405,7 +405,7 @@
     });
   }
 
-  // Thin horizontal rule separating the rail's sections (總表 / 目標 /
+  // Thin horizontal rule separating the rail's sections (總表 / 收藏 /
   // other spaces) — see renderSpaceRail for when each divider is actually
   // inserted (a divider bordering an empty, hidden section is skipped
   // rather than shown floating next to its neighbor).
@@ -436,13 +436,13 @@
     }
 
     // A divider only ever separates two sections that both actually have
-    // something in them — if 目標 is currently empty (and thus hidden), the
+    // something in them — if 收藏 is currently empty (and thus hidden), the
     // divider that would normally sit right above it is dropped too,
     // leaving a single line between 總表 and the next visible section
     // instead of two lines with nothing between them.
     if(section2Spaces.length || otherSpaces.length) rail.appendChild(buildRailDivider());
 
-    // Section 2: 目標 — fixed position right under 總表, and only shown
+    // Section 2: 收藏 — fixed position right under 總表, and only shown
     // once it actually holds at least one trick.
     section2Spaces.forEach(function(sp){
       var btn = buildSpaceBtn(sp, true);
@@ -461,7 +461,7 @@
     });
 
     // If the space currently being viewed just dropped out of the rail
-    // (its last trick was removed from 目標), fall back to the total index
+    // (its last trick was removed from 收藏), fall back to the total index
     // rather than leaving the view stuck on a hidden tab.
     if(state.activeSpace === "space-goal"
        && getAllTricksInSpace(state.activeSpace).length === 0
@@ -663,7 +663,7 @@
 
   // Edit-mode row actions for the goal grid: an "edit" button (caller-
   // supplied — the full trick editor) plus a "remove" button. For a
-  // bucket-backed space (目標) removing only takes the trick out of that
+  // bucket-backed space (收藏) removing only takes the trick out of that
   // bucket — the underlying trick is untouched and stays wherever else it's
   // filed; for any other "columns" space (no bucket) it falls back to
   // permanently deleting the trick, same as the tree browser's own delete
@@ -766,9 +766,9 @@
       metaEl.textContent = bits.join(" · ");
     } else {
       var metaBits = [];
-      // Being filed into 目標 is a bucket membership, not a real "this
+      // Being filed into 收藏 is a bucket membership, not a real "this
       // trick also lives under another category" cross-reference — exclude
-      // that bucket category from this line so toggling a trick into 目標
+      // that bucket category from this line so toggling a trick into 收藏
       // doesn't add unrelated-looking text here.
       var realCategoryIds = it.ref.categoryIds.filter(function(cid){
         return cid !== GOAL_BUCKET_CAT_ID;

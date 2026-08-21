@@ -29,7 +29,7 @@
   }
   .space-btn.drop-before::before{ top:-5px; }
   .space-btn.drop-after::after{ bottom:-5px; }
-  /* Separates the rail's sections (總表 / 目標 / other spaces).
+  /* Separates the rail's sections (總表 / 收藏 / other spaces).
      Only ever inserted between two sections that both actually have content
      — see renderSpaceRail in 08-render-browse-columns.js. */
   .space-rail-divider{ width:28px; height:1px; flex:0 0 auto; background: var(--glass-border-strong); margin: 2px 0; }
@@ -286,7 +286,13 @@
     transition: background .16s var(--ease), border-color .16s var(--ease);
   }
   .auth-menu-logout:hover{ background: var(--glass-3); border-color: var(--lacquer); }
-  .auth-widget.syncing #authAvatarBtn{ opacity:0.55; pointer-events:none; }
+  /* Dimmed (not disabled) while syncing: locking the avatar button out
+     entirely used to mean that if the cloud sync was slow — or a flaky
+     connection left it hanging — the button (and therefore logout) stayed
+     unreachable even though the person was clearly already logged in
+     (their real photo was already showing). The menu/logout must always
+     stay reachable regardless of how long the background sync takes. */
+  .auth-widget.syncing #authAvatarBtn{ opacity:0.55; }
   .auth-widget.syncing #authLoginBtn{ opacity:0.55; pointer-events:none; }
   .auth-widget.syncing .auth-menu-edit-btn{ opacity:0.5; pointer-events:none; }
 

@@ -34,7 +34,7 @@
      but present in "base" already reads as removed.
 
      A trick can legitimately belong to categories in more than one space
-     at once (e.g. tagged into both 招式庫 and 目標 via the drawer's
+     at once (e.g. tagged into both 招式庫 and 收藏 via the drawer's
      quick-toggle bucket) — such tricks are simply written into every
      space's diff they currently touch. That's intentional duplication
      (Firestore has no cross-document joins), not a bug; merging back

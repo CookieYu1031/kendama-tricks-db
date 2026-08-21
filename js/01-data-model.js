@@ -24,13 +24,13 @@
     { id:"space-index",     icon:"🗂️", name:{ zh:"招式庫",   jp:"トリック一覧", en:"Tricks list" },  viewMode:"tree" },
     { id:"space-kwc",       icon:"🌐", name:{ zh:"KWC",      jp:"KWC",      en:"KWC" },            viewMode:"tree" },
     { id:"space-beginner",  icon:"🔰", name:{ zh:"新手",     jp:"初心者",   en:"Beginner" },        viewMode:"tree" },
-    { id:"space-goal",      icon:"🎯", name:{ zh:"目標",     jp:"ゴール",   en:"Goals" },           viewMode:"columns" }
+    { id:"space-goal",      icon:"⭐", name:{ zh:"收藏",     jp:"お気に入り", en:"Favorites" },       viewMode:"columns" }
   ];
   var VIEW_MODES = ["tree", "columns"];
-  // Fixed-id "bucket" category that the drawer's 🎯 quick-toggle button
-  // adds/removes a trick from — always a root category inside space-goal,
-  // auto-created on first use (see ensureSpaceBucketCategory in
-  // 05-data-helpers.js).
+  // Fixed-id "bucket" category that the drawer's ⭐ quick-toggle button
+  // adds/removes a trick from — always a root category inside space-goal
+  // (the 收藏 shelf), auto-created on first use (see
+  // ensureSpaceBucketCategory in 05-data-helpers.js).
   var GOAL_BUCKET_CAT_ID = "cat-goal-bucket-root";
   // Built-in spaces the person can never delete via the space modal — the
   // rest of the app assumes the total index and goals shelves always exist.
