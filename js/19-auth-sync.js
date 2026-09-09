@@ -9,10 +9,15 @@
      unchanged. This file only concerns itself with how that shape gets
      serialized to/from Firestore once someone is logged in.
 
-     BASE DATA — data/base/{spaceId}.json (one file per *built-in* space:
-     see DEFAULT_SPACES in 01-data-model.js), each { version, categories,
-     tricks }. Ships with the app and updates whenever Cookie edits those
-     files — see data/base/README.md. Custom (user-created) spaces have
+     BASE DATA — data/base/{spaceId}.json (one file per *built-in* space
+     other than space-index — see DEFAULT_SPACES in 01-data-model.js), each
+     { version, categories, tricks }. Ships with the app and updates
+     whenever Cookie edits those files — see data/base/README.md.
+     space-index (總表/招式庫) is the one exception: its base isn't a static
+     file at all, but a live, versioned document tree in Firestore that only
+     ADMIN_UID can publish new versions of — see the SHARED BASE section
+     further down. Custom (user-created) spaces have no base at all; their
+     base is treated as empty. Custom (user-created) spaces have
      no base file; their base is treated as empty.
 
      USER DIFF — Firestore, split by space (not one big document):
@@ -44,24 +49,40 @@
 
   var BASE_DATA_DIR = "data/base/";
   var DEFAULT_SPACE_IDS = DEFAULT_SPACES.map(function(s){ return s.id; });
+  // The one built-in space (招式庫/總表) whose "base" isn't a static file
+  // shipped with the app, but a live document tree in Firestore that only
+  // ADMIN_UID can publish new versions of — see the SHARED BASE section
+  // further down for the full design.
+  var SHARED_BASE_SPACE_ID = "space-index";
 
   var authCurrentUser = null;
   var _authFirstStateSeen = false; // avoids reloading local data before we know anything, on the very first (logged-out) check at page load
   var _cloudSaveTimer = null;
   var CLOUD_SAVE_DEBOUNCE_MS = 600;
-  var baseDataCache = {}; // spaceId -> {version, categories, tricks}
+  var baseDataCache = {}; // spaceId -> {version, categories, tricks} (static-file spaces); "space-index@N" -> same shape (shared-base versions)
+  // This session's resolved view of the shared 總表: which version this
+  // account is currently pinned to (its diff is computed against this
+  // exact snapshot, not whatever the latest published version happens to
+  // be), and the latest pointer doc so the update banner knows if it's
+  // behind. Both are populated by ensureViewingVersionResolved()/
+  // fetchSharedBasePointer() and read by maybeShowBaseUpdateBanner().
+  var _currentViewingVersion = null;
+  var _lastSeenPointer = null;
 
   function isLoggedIn(){ return !!authCurrentUser; }
+  function isAdminAccount(){ return !!(authCurrentUser && authCurrentUser.uid === ADMIN_UID); }
 
   /* ------------------------------------------------------------
      Base data loading (cached per space id for the page's lifetime)
   ------------------------------------------------------------ */
   function fetchBaseSpaceData(spaceId){
     if(baseDataCache[spaceId]) return Promise.resolve(baseDataCache[spaceId]);
-    if(DEFAULT_SPACE_IDS.indexOf(spaceId) === -1){
-      // Custom space: no shipped base file, base is just empty.
+    if(DEFAULT_SPACE_IDS.indexOf(spaceId) === -1 || spaceId === SHARED_BASE_SPACE_ID){
+      // Custom space (no shipped base file) OR the shared-base space, which
+      // is fetched through fetchSharedBaseVersion()/ensureViewingVersionResolved()
+      // instead — this function only ever serves the *other* built-in spaces.
       var empty = { version: 0, categories: [], tricks: [] };
-      baseDataCache[spaceId] = empty;
+      if(spaceId !== SHARED_BASE_SPACE_ID) baseDataCache[spaceId] = empty;
       return Promise.resolve(empty);
     }
     return fetch(BASE_DATA_DIR + spaceId + ".json")
@@ -76,6 +97,135 @@
         baseDataCache[spaceId] = normalized;
         return normalized;
       });
+  }
+
+  /* ------------------------------------------------------------
+     SHARED BASE (總表/招式庫 — space-index): admin-published, live in
+     Firestore instead of a static shipped file.
+
+       sharedBase/space-index -> { latestVersion, latestNote, publishedAt }
+       sharedBase/space-index/versions/{n} -> { version, categories, tricks,
+                                                 note, publishedAt }
+       users/{uid}/meta/spaceIndexSync -> { viewingVersion, updatedAt }
+
+     Every account (including guests with no Firestore identity at all) is
+     pinned to a specific *version* of this space, not "whatever's newest" —
+     that pin only ever advances when the person explicitly clicks the
+     update banner's button (or, for the admin, the moment they publish).
+     Their own added/modified/removed diff for space-index (same
+     spaceData/space-index doc every other space already uses) is always
+     computed against that pinned version, so publishing a new version can
+     never silently disturb anything they've already added/changed/removed
+     — the merge logic in mergeSpaceData/computeSpaceDiff doesn't change at
+     all for this space, only where its "base" argument comes from does.
+  ------------------------------------------------------------ */
+  function sharedBaseRef(){ return fbStore.collection("sharedBase").doc(SHARED_BASE_SPACE_ID); }
+
+  function fetchSharedBasePointer(){
+    return sharedBaseRef().get().then(function(snap){
+      var d = snap.exists ? snap.data() : {};
+      return {
+        latestVersion: d.latestVersion || 0,
+        latestNote: d.latestNote || "",
+        publishedAt: d.publishedAt || null
+      };
+    }).catch(function(err){
+      console.error("Shared base pointer fetch failed:", err);
+      return { latestVersion: 0, latestNote: "", publishedAt: null };
+    });
+  }
+
+  function fetchSharedBaseVersion(version){
+    var cacheKey = SHARED_BASE_SPACE_ID + "@" + version;
+    if(baseDataCache[cacheKey]) return Promise.resolve(baseDataCache[cacheKey]);
+    if(!version){
+      // Nothing published yet (version 0) — base is just empty, same as any
+      // other space that's never had base content.
+      var empty = { version: 0, categories: [], tricks: [] };
+      baseDataCache[cacheKey] = empty;
+      return Promise.resolve(empty);
+    }
+    return sharedBaseRef().collection("versions").doc(String(version)).get()
+      .then(function(snap){
+        var d = snap.exists ? snap.data() : {};
+        var normalized = {
+          version: d.version || version,
+          categories: Array.isArray(d.categories) ? d.categories : [],
+          tricks: Array.isArray(d.tricks) ? d.tricks : []
+        };
+        baseDataCache[cacheKey] = normalized;
+        return normalized;
+      })
+      .catch(function(err){
+        console.error("Shared base version fetch failed:", err);
+        // Deliberately not cached, so a transient failure can be retried
+        // (e.g. on the next render) instead of getting stuck on "empty".
+        return { version: version, categories: [], tricks: [] };
+      });
+  }
+
+  function fetchUserViewingVersion(uid){
+    return fbStore.collection("users").doc(uid).collection("meta").doc("spaceIndexSync").get()
+      .then(function(snap){
+        // null (not 0) specifically means "never set" — distinguishes a
+        // brand-new account (which should start pinned at *today's*
+        // latest, not silently at version 0 with a huge backlog of
+        // "missed" update notes) from an account genuinely still on v0.
+        return (snap.exists && typeof snap.data().viewingVersion === "number") ? snap.data().viewingVersion : null;
+      })
+      .catch(function(err){
+        console.error("Viewing-version fetch failed:", err);
+        return null;
+      });
+  }
+
+  function saveUserViewingVersion(uid, version){
+    return fbStore.collection("users").doc(uid).collection("meta").doc("spaceIndexSync").set({
+      viewingVersion: version,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
+  // Resolves (and caches for the rest of this page session) which shared-base
+  // version this account's space-index diff should be computed against.
+  // First-ever call for an account with no stored pin yet adopts whatever
+  // is currently latest (so a new sign-up doesn't immediately see a stack
+  // of "missed updates" for versions that predate their account).
+  function ensureViewingVersionResolved(uid){
+    if(_currentViewingVersion !== null && _lastSeenPointer) return Promise.resolve(_currentViewingVersion);
+    return fetchSharedBasePointer().then(function(pointer){
+      _lastSeenPointer = pointer;
+      return fetchUserViewingVersion(uid).then(function(viewingVersion){
+        if(viewingVersion === null){
+          _currentViewingVersion = pointer.latestVersion;
+          return saveUserViewingVersion(uid, pointer.latestVersion).then(function(){ return _currentViewingVersion; });
+        }
+        _currentViewingVersion = viewingVersion;
+        return _currentViewingVersion;
+      });
+    });
+  }
+
+  // Not-logged-in visitors have no Firestore identity to pin a version
+  // against (and per spec, only ever see it read-only) — always show
+  // whatever's currently latest, straight into db.categories/db.tricks,
+  // replacing only the space-index slice (every other space's content, and
+  // any of the guest's own local-only tricks that also happen to live in
+  // other spaces, is left untouched).
+  function loadGuestSpaceIndexBase(){
+    return fetchSharedBasePointer().then(function(pointer){
+      _lastSeenPointer = pointer;
+      if(!pointer.latestVersion) return;
+      return fetchSharedBaseVersion(pointer.latestVersion).then(function(base){
+        var otherCats = db.categories.filter(function(c){ return c.spaceId !== SHARED_BASE_SPACE_ID; });
+        var priorTrickIds = {};
+        tricksForSpace(SHARED_BASE_SPACE_ID).forEach(function(tr){ priorTrickIds[tr.id] = true; });
+        var otherTricks = db.tricks.filter(function(tr){ return !priorTrickIds[tr.id]; });
+        db.categories = otherCats.concat(base.categories);
+        db.tricks = otherTricks.concat(base.tricks);
+        db = normalizeDB(db);
+      });
+    }).catch(function(err){ console.error("Guest shared-base load failed:", err); });
   }
 
   /* ------------------------------------------------------------
@@ -165,18 +315,25 @@
     var uid = authCurrentUser.uid;
     var spaceIds = allKnownSpaceIds();
     var userRef = fbStore.collection("users").doc(uid);
-    return Promise.all(spaceIds.map(fetchBaseSpaceData)).then(function(bases){
-      var batch = fbStore.batch();
-      spaceIds.forEach(function(sid, i){
-        var diff = computeSpaceDiff(sid, bases[i]);
-        diff.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-        batch.set(userRef.collection("spaceData").doc(sid), diff);
+    return ensureViewingVersionResolved(uid).then(function(viewingVersion){
+      var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_SPACE_ID; });
+      return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
+        return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
+          var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
+          baseMap[SHARED_BASE_SPACE_ID] = indexBase;
+          var batch = fbStore.batch();
+          spaceIds.forEach(function(sid){
+            var diff = computeSpaceDiff(sid, baseMap[sid]);
+            diff.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+            batch.set(userRef.collection("spaceData").doc(sid), diff);
+          });
+          batch.set(userRef.collection("meta").doc("spaces"), {
+            spaces: db.spaces,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          return batch.commit();
+        });
       });
-      batch.set(userRef.collection("meta").doc("spaces"), {
-        spaces: db.spaces,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      return batch.commit();
     }).catch(function(err){
       console.error("Cloud save failed:", err);
       showToast(t("authSaveError"), "error");
@@ -207,10 +364,16 @@
           ? metaSnap.data().spaces
           : DEFAULT_SPACES.map(function(s){ return { id:s.id, icon:s.icon, name:s.name, viewMode:s.viewMode }; });
 
-        return Promise.all(spaceIds.map(fetchBaseSpaceData)).then(function(bases){
-          var baseMap = {}; spaceIds.forEach(function(id, i){ baseMap[id] = bases[i]; });
-          var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
-          return normalizeDB({ categories: merged.categories, tricks: merged.tricks, spaces: spacesList });
+        return ensureViewingVersionResolved(uid).then(function(viewingVersion){
+          var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_SPACE_ID; });
+          return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
+            return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
+              var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
+              baseMap[SHARED_BASE_SPACE_ID] = indexBase;
+              var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
+              return normalizeDB({ categories: merged.categories, tricks: merged.tricks, spaces: spacesList });
+            });
+          });
         });
       });
     });
@@ -229,6 +392,133 @@
 
   function setSyncing(on){
     document.getElementById("authWidget").classList.toggle("syncing", !!on);
+  }
+
+  /* ------------------------------------------------------------
+     Publishing new 總表 versions (admin only) + the update banner
+     everyone else sees once they're behind.
+  ------------------------------------------------------------ */
+  function publishSpaceIndexUpdate(note){
+    if(!isAdminAccount()) return Promise.resolve();
+    note = (note || "").trim();
+    if(!note){ showToast(t("publishNoteRequired"), "error"); return Promise.resolve(); }
+    var uid = authCurrentUser.uid;
+    setSyncing(true);
+    return fetchSharedBasePointer().then(function(pointer){
+      var newVersion = (pointer.latestVersion || 0) + 1;
+      // The admin's own current, fully-merged space-index content (base +
+      // their not-yet-published diff) becomes the new base wholesale —
+      // "publishing" is exactly that: promoting the admin's working diff
+      // into everyone else's shared base.
+      var snapshot = {
+        version: newVersion,
+        categories: categoriesForSpace(SHARED_BASE_SPACE_ID),
+        tricks: tricksForSpace(SHARED_BASE_SPACE_ID),
+        note: note,
+        publishedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      var batch = fbStore.batch();
+      batch.set(sharedBaseRef().collection("versions").doc(String(newVersion)), snapshot);
+      batch.set(sharedBaseRef(), {
+        latestVersion: newVersion,
+        latestNote: note,
+        publishedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return batch.commit().then(function(){
+        // Prime the cache with exactly what was just written so the diff
+        // save below (which needs this version's base) doesn't need a
+        // network round-trip to read back what we just sent.
+        baseDataCache[SHARED_BASE_SPACE_ID + "@" + newVersion] = {
+          version: newVersion, categories: snapshot.categories, tricks: snapshot.tricks
+        };
+        _lastSeenPointer = { latestVersion: newVersion, latestNote: note, publishedAt: null };
+        _currentViewingVersion = newVersion;
+        return saveUserViewingVersion(uid, newVersion);
+      }).then(function(){
+        // The admin's diff against this brand-new base is now empty by
+        // construction (the base literally *is* what they just had) — this
+        // save just makes that explicit in Firestore too.
+        return saveDiffToCloud();
+      });
+    }).catch(function(err){
+      console.error("Publish failed:", err);
+      showToast(t("publishError"), "error");
+    }).then(function(){
+      setSyncing(false);
+    });
+  }
+
+  function fetchMissedVersionNotes(fromVersionExclusive, toVersionInclusive){
+    var versions = [];
+    for(var v = fromVersionExclusive + 1; v <= toVersionInclusive; v++) versions.push(v);
+    return Promise.all(versions.map(function(v){
+      return sharedBaseRef().collection("versions").doc(String(v)).get()
+        .then(function(snap){
+          var d = snap.exists ? snap.data() : {};
+          return { version: v, note: d.note || "" };
+        })
+        .catch(function(){ return { version: v, note: "" }; });
+    }));
+  }
+
+  function hideBaseUpdateBanner(){
+    document.getElementById("baseUpdateBanner").hidden = true;
+  }
+
+  function showBaseUpdateBanner(fromVersionExclusive, toVersionInclusive){
+    return fetchMissedVersionNotes(fromVersionExclusive, toVersionInclusive).then(function(notes){
+      var listEl = document.getElementById("baseUpdateNotes");
+      listEl.innerHTML = "";
+      notes.forEach(function(item){
+        var row = document.createElement("div");
+        row.className = "base-update-note-row";
+        var v = document.createElement("span");
+        v.className = "base-update-version";
+        v.textContent = "v" + item.version;
+        row.appendChild(v);
+        row.appendChild(document.createTextNode(item.note || ""));
+        listEl.appendChild(row);
+      });
+      document.getElementById("baseUpdateBanner").hidden = false;
+    });
+  }
+
+  // Called after any successful login-triggered load — shows the banner iff
+  // this account is genuinely behind the latest published version. A no-op
+  // (and safe to call unconditionally) for the admin whenever they haven't
+  // published anything newer than what they're already looking at.
+  function maybeShowBaseUpdateBanner(){
+    if(!authCurrentUser || !_lastSeenPointer || _currentViewingVersion === null){ hideBaseUpdateBanner(); return; }
+    if(_lastSeenPointer.latestVersion > _currentViewingVersion){
+      showBaseUpdateBanner(_currentViewingVersion, _lastSeenPointer.latestVersion);
+    } else {
+      hideBaseUpdateBanner();
+    }
+  }
+
+  // The banner's own "立即更新" button — advances this account's pin to
+  // latest and re-merges, all without touching a single item the person
+  // added/modified/removed themselves (see the SHARED BASE comment above).
+  function applyBaseIndexUpdate(){
+    if(!authCurrentUser || !_lastSeenPointer) return;
+    var uid = authCurrentUser.uid;
+    var newVersion = _lastSeenPointer.latestVersion;
+    setSyncing(true);
+    saveUserViewingVersion(uid, newVersion).then(function(){
+      _currentViewingVersion = newVersion;
+      return loadMergedDBFromCloud(uid);
+    }).then(function(merged){
+      db = merged;
+      reconcileActiveSpaceAfterSwap();
+      hideBaseUpdateBanner();
+      render();
+      showToast(t("baseUpdateApplied"));
+    }).catch(function(err){
+      console.error("Base update apply failed:", err);
+      showToast(t("authLoadError"), "error");
+    }).then(function(){
+      setSyncing(false);
+    });
   }
 
   /* ------------------------------------------------------------
@@ -325,6 +615,9 @@
       userWidget.hidden = true;
       closeAuthMenu();
     }
+
+    document.getElementById("publishUpdateBtn").hidden = !isAdminAccount();
+    document.getElementById("publishUpdateBtn").title = t("publishUpdate");
   }
 
   document.getElementById("authLoginBtn").addEventListener("click", authLogin);
@@ -357,6 +650,30 @@
   });
 
   /* ------------------------------------------------------------
+     Publish modal (admin only) + update banner
+  ------------------------------------------------------------ */
+  document.getElementById("publishUpdateBtn").addEventListener("click", function(){
+    document.getElementById("publishNoteInput").value = "";
+    document.getElementById("publishModalOverlay").classList.add("show");
+    document.getElementById("publishNoteInput").focus();
+  });
+  document.getElementById("publishCancelBtn").addEventListener("click", function(){
+    document.getElementById("publishModalOverlay").classList.remove("show");
+  });
+  document.getElementById("publishConfirmBtn").addEventListener("click", function(){
+    var note = document.getElementById("publishNoteInput").value;
+    if(!note.trim()){ showToast(t("publishNoteRequired"), "error"); return; }
+    publishSpaceIndexUpdate(note).then(function(){
+      document.getElementById("publishModalOverlay").classList.remove("show");
+      showToast(t("publishSuccess"));
+      renderSpaceRail();
+      renderColumns();
+    });
+  });
+  document.getElementById("baseUpdateNowBtn").addEventListener("click", applyBaseIndexUpdate);
+  document.getElementById("baseUpdateDismissBtn").addEventListener("click", hideBaseUpdateBanner);
+
+  /* ------------------------------------------------------------
      Auth state -> data source switch
   ------------------------------------------------------------ */
   fbAuth.onAuthStateChanged(function(user){
@@ -380,6 +697,7 @@
           db = merged;
           reconcileActiveSpaceAfterSwap();
           render();
+          maybeShowBaseUpdateBanner();
         });
       }).catch(function(err){
         console.error("Cloud load failed:", err);
@@ -387,14 +705,22 @@
       }).then(function(){
         setSyncing(false);
       });
-    } else if(_authFirstStateSeen){
-      // Only reload from localStorage on an actual sign-out transition —
-      // not on the very first (logged-out) auth check at page load, since
-      // `db` already holds the right thing from the synchronous loadDB()
-      // call in 01-data-model.js.
-      db = loadDB();
-      reconcileActiveSpaceAfterSwap();
-      render();
+    } else {
+      hideBaseUpdateBanner();
+      _currentViewingVersion = null; // no per-account pin once logged out
+      if(_authFirstStateSeen){
+        // Only reload from localStorage on an actual sign-out transition —
+        // not on the very first (logged-out) auth check at page load, since
+        // `db` already holds the right thing from the synchronous loadDB()
+        // call in 01-data-model.js.
+        db = loadDB();
+        reconcileActiveSpaceAfterSwap();
+      }
+      // Guests get the published 總表 merged in read-only, straight from
+      // whatever's currently latest (see loadGuestSpaceIndexBase above).
+      loadGuestSpaceIndexBase().then(function(){
+        render();
+      });
     }
     _authFirstStateSeen = true;
   });

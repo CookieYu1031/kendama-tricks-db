@@ -385,4 +385,27 @@
     .lang-btn.active{ display:block; }
   }
 
+  /* ---------- 總表更新通知 (base-update-banner) ---------- */
+  .base-update-banner{
+    display:flex; align-items:flex-start; gap:12px;
+    margin:10px 20px 0; padding:12px 16px;
+    background: var(--glass-2); border:1px solid var(--glass-border-strong); border-radius: var(--radius);
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    box-shadow: var(--shadow-sm);
+  }
+  .base-update-banner-icon{ font-size:18px; line-height:1.4; flex:0 0 auto; }
+  .base-update-banner-body{ flex:1 1 auto; min-width:0; }
+  .base-update-banner-title{ font-weight:700; font-size:13.5px; color: var(--paper); margin-bottom:4px; }
+  .base-update-notes{ display:flex; flex-direction:column; gap:3px; }
+  .base-update-note-row{ font-size:12.5px; color: var(--paper-dim); line-height:1.5; }
+  .base-update-version{
+    display:inline-block; font-family: var(--font-mono); font-size:11px; font-weight:700;
+    color: var(--lacquer-bright); margin-right:7px;
+  }
+  .base-update-banner-actions{ display:flex; gap:8px; flex:0 0 auto; align-items:flex-start; margin-top:1px; }
+  @media (max-width: 780px){
+    .base-update-banner{ flex-direction:column; margin:8px 12px 0; }
+    .base-update-banner-actions{ width:100%; justify-content:flex-end; }
+  }
+
 

@@ -59,6 +59,13 @@
     setText("spaceCancelBtn", t("cancel"));
     setText("spaceSaveBtn", t("save"));
     setText("spaceDeleteBtn", t("deleteSpace"));
+    setText("baseUpdateBannerTitle", t("baseUpdateAvailable"));
+    setText("baseUpdateNowBtn", t("baseUpdateNow"));
+    setText("baseUpdateDismissBtn", t("baseUpdateDismiss"));
+    setText("publishModalTitle", t("publishUpdate"));
+    setText("publishNoteLabel", t("publishNoteLabel"));
+    setText("publishCancelBtn", t("cancel"));
+    setText("publishConfirmBtn", t("publishConfirm"));
 
     function setText(id, val, hasReq){
       var el = document.getElementById(id);

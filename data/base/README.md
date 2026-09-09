@@ -1,8 +1,8 @@
 # 通用資料（base data）
 
-這裡的每個 `{spaceId}.json` 對應一個內建分區（space-index / space-kwc /
-space-beginner / space-goal），存放「官方隨版本更新」的招式與分類。目前全部
-是空的，之後要放通用內容時直接編輯對應檔案即可：
+這裡的每個 `{spaceId}.json` 對應一個內建分區（space-kwc / space-beginner /
+space-goal），存放「官方隨版本更新」的招式與分類。目前全部是空的，之後要放
+通用內容時直接編輯對應檔案即可：
 
 ```json
 {
@@ -21,3 +21,9 @@ space-beginner / space-goal），存放「官方隨版本更新」的招式與�
   使用者若曾修改或刪除某個 base 項目，那筆差異會繼續蓋過 base 的更新內容。
 - 自訂分區（使用者自己新增的分區）沒有對應的 base 檔案，一律視為 base 是空的
   （使用者新增的一切都會被記錄成「新增」）。
+- **space-index（總表/招式庫）是唯一的例外**：它不是靜態檔案，而是即時存在
+  Firestore 的版本化資料（`sharedBase/space-index/**`），只有管理員帳號
+  （`ADMIN_UID`，見 `js/01-data-model.js`）能透過 App 內的「發布」按鈕新增
+  版本。一般使用者/訪客看到的內容，是他們目前釘選的那個已發布版本 + 自己的
+  差異合併而成；只有點擊「更新」通知才會把釘選的版本往前推進。細節見
+  `js/19-auth-sync.js` 開頭的「SHARED BASE」註解區塊。

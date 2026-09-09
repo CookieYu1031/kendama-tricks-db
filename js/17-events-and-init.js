@@ -252,13 +252,13 @@
   bindEnterToSave("trickModalOverlay", saveTrickFromModal);
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
-
   // Escape key closes topmost overlay
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
     if(document.getElementById("searchSuggest").classList.contains("show")) return closeSearchSuggest();
     if(searchWrap.classList.contains("search-expanded")){ searchInput.blur(); return collapseMobileSearchIfEmpty(); }
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
+    if(document.getElementById("publishModalOverlay").classList.contains("show")) return document.getElementById("publishModalOverlay").classList.remove("show");
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();

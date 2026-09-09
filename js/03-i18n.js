@@ -56,7 +56,11 @@
       authLoadError:"雲端資料讀取失敗", authSaveError:"雲端儲存失敗，請檢查網路連線",
       authLoggingOut:"已登出，切換回本機資料",
       authEditNickname:"編輯暱稱", authNicknamePlaceholder:"輸入暱稱", authNicknameSave:"儲存", authNicknameCancel:"取消",
-      authNicknameUpdated:"暱稱已更新", authNicknameError:"暱稱更新失敗，請再試一次", authNicknameEmpty:"暱稱不可為空白"
+      authNicknameUpdated:"暱稱已更新", authNicknameError:"暱稱更新失敗，請再試一次", authNicknameEmpty:"暱稱不可為空白",
+      publishUpdate:"發布總表更新", publishNoteRequired:"請輸入更新備註", publishError:"發布失敗，請檢查網路連線",
+      publishSuccess:"已發布更新", baseUpdateApplied:"已更新總表內容",
+      baseUpdateAvailable:"總表有更新", baseUpdateNow:"立即更新", baseUpdateDismiss:"稍後再說",
+      publishNoteLabel:"更新備註", publishConfirm:"發布"
     },
     jp:{
       appTitle:"けん玉技データベース", searchPlaceholder:"技名を検索（中／日／英）…",
@@ -110,7 +114,11 @@
       authLoadError:"クラウドデータの読み込みに失敗しました", authSaveError:"クラウド保存に失敗しました。ネット接続をご確認ください",
       authLoggingOut:"ログアウトしました。ローカルデータに切り替えます",
       authEditNickname:"ニックネームを編集", authNicknamePlaceholder:"ニックネームを入力", authNicknameSave:"保存", authNicknameCancel:"キャンセル",
-      authNicknameUpdated:"ニックネームを更新しました", authNicknameError:"更新に失敗しました。もう一度お試しください", authNicknameEmpty:"ニックネームを入力してください"
+      authNicknameUpdated:"ニックネームを更新しました", authNicknameError:"更新に失敗しました。もう一度お試しください", authNicknameEmpty:"ニックネームを入力してください",
+      publishUpdate:"総表の更新を発行", publishNoteRequired:"更新メモを入力してください", publishError:"発行に失敗しました。ネット接続をご確認ください",
+      publishSuccess:"更新を発行しました", baseUpdateApplied:"総表の内容を更新しました",
+      baseUpdateAvailable:"総表に更新があります", baseUpdateNow:"今すぐ更新", baseUpdateDismiss:"後で",
+      publishNoteLabel:"更新メモ", publishConfirm:"発行"
     },
     en:{
       appTitle:"Kendama Trick Database", searchPlaceholder:"Search trick names (ZH / JP / EN)…",
@@ -164,7 +172,11 @@
       authLoadError:"Failed to load cloud data", authSaveError:"Cloud save failed — check your connection",
       authLoggingOut:"Signed out — switched back to local data",
       authEditNickname:"Edit nickname", authNicknamePlaceholder:"Enter a nickname", authNicknameSave:"Save", authNicknameCancel:"Cancel",
-      authNicknameUpdated:"Nickname updated", authNicknameError:"Failed to update nickname, please try again", authNicknameEmpty:"Nickname can't be empty"
+      authNicknameUpdated:"Nickname updated", authNicknameError:"Failed to update nickname, please try again", authNicknameEmpty:"Nickname can't be empty",
+      publishUpdate:"Publish index update", publishNoteRequired:"Please enter a changelog note", publishError:"Publish failed — check your connection",
+      publishSuccess:"Update published", baseUpdateApplied:"Index content updated",
+      baseUpdateAvailable:"Index update available", baseUpdateNow:"Update now", baseUpdateDismiss:"Later",
+      publishNoteLabel:"Changelog note", publishConfirm:"Publish"
     }
   };
 

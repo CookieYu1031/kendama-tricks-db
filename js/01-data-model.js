@@ -32,6 +32,11 @@
   // (the 收藏 shelf), auto-created on first use (see
   // ensureSpaceBucketCategory in 05-data-helpers.js).
   var GOAL_BUCKET_CAT_ID = "cat-goal-bucket-root";
+  // Firebase Auth UID for the one account allowed to publish official
+  // 招式庫/總表 updates (see js/19-auth-sync.js). Not a secret — Firestore UIDs
+  // can't be used to sign in as someone else — the real enforcement lives in
+  // Firestore's own security rules, this just controls what the UI shows.
+  var ADMIN_UID = "2PFyyWWVrANFAsSxVHgsk3QHUlT2";
   // Built-in spaces the person can never delete via the space modal — the
   // rest of the app assumes the total index and goals shelves always exist.
   // Other (custom) spaces remain deletable as before.
