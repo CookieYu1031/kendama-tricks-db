@@ -24,7 +24,6 @@
 
   var searchInput = document.getElementById("searchInput");
   var searchClear = document.getElementById("searchClear");
-  var searchSuggest = document.getElementById("searchSuggest");
   var searchToggleBtn = document.getElementById("searchToggleBtn");
   var searchPanel = document.getElementById("searchPanel");
 
@@ -36,40 +35,19 @@
   });
   document.addEventListener("click", function(ev){
     if(!isSearchPanelOpen()) return;
-    if(searchPanel.contains(ev.target) || searchToggleBtn.contains(ev.target)) return;
+    // composedPath: result chips re-render on click, so ev.target may already be detached.
+    var path = ev.composedPath ? ev.composedPath() : [];
+    if(path.indexOf(searchPanel) !== -1 || searchPanel.contains(ev.target) || searchToggleBtn.contains(ev.target)) return;
     closeSearchPanel();
   });
 
-  searchInput.addEventListener("input", function(){
-    var raw = searchInput.value;
-    searchClear.classList.toggle("show", raw.length>0);
-
-    // Everything else searches live, Google-style — no Enter required. The
-    // miller-column view underneath is left exactly as it was; only the small
-    // result count and the suggestion dropdown update.
-    state.searchQuery = raw;
-    updateSearchInlineCount(raw);
-    renderSearchSuggest(raw);
-  });
-  searchInput.addEventListener("keydown", function(ev){
-    if(ev.key !== "Enter") return;
-    closeSearchSuggest();
-  });
-  searchInput.addEventListener("blur", function(){
-    // Let mousedown on a suggestion row register before the dropdown disappears.
-    setTimeout(function(){
-      closeSearchSuggest();
-    }, 120);
-  });
-  searchInput.addEventListener("focus", function(){
-    renderSearchSuggest(searchInput.value);
-  });
+  searchInput.addEventListener("input", onSearchInput);
+  searchInput.addEventListener("keydown", onSearchKeydown);
   searchClear.addEventListener("click", function(){
     searchInput.value = "";
     searchClear.classList.remove("show");
     state.searchQuery = "";
-    updateSearchInlineCount("");
-    closeSearchSuggest();
+    runSearchPanel();
     searchInput.focus();
   });
 
@@ -87,7 +65,6 @@
   document.getElementById("addCloseBtn").addEventListener("click", closeAddModal);
   document.getElementById("addSaveBtn").addEventListener("click", saveAddModal);
   document.getElementById("addIconBtn").addEventListener("click", function(){ openIconPicker("add"); });
-  document.getElementById("addLinkId").addEventListener("input", function(){ if(addForm) syncAddLinking(); });
 
   // Icon & color picker modal
   document.getElementById("iconPickerNoneBtn").addEventListener("click", function(){
@@ -108,13 +85,6 @@
       });
     }
   });
-
-  // Trick modal
-  document.getElementById("trickIconColorPreviewBtn").addEventListener("click", function(){ openIconPicker("trick"); });
-  document.getElementById("trickCancelBtn").addEventListener("click", closeTrickModal);
-  document.getElementById("trickSaveBtn").addEventListener("click", saveTrickFromModal);
-  document.getElementById("trickDeleteBtn").addEventListener("click", function(){ requestDeleteTrick(state.editingTrickId, "*"); });
-  // (No overlay-click-to-close — see the category modal comment above.)
 
   // Info modal
   document.getElementById("infoCancelBtn").addEventListener("click", closeInfoModal);
@@ -167,7 +137,6 @@
     });
   }
   bindEnterToSave("categoryModalOverlay", saveCategoryFromModal);
-  bindEnterToSave("trickModalOverlay", saveTrickFromModal);
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
   bindEnterToSave("addModalOverlay", saveAddModal);
@@ -177,7 +146,6 @@
   // Escape key closes topmost overlay
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
-    if(document.getElementById("searchSuggest").classList.contains("show")) return closeSearchSuggest();
     if(isSearchPanelOpen()) return closeSearchPanel();
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
     if(document.getElementById("publishModalOverlay").classList.contains("show")) return document.getElementById("publishModalOverlay").classList.remove("show");
@@ -187,7 +155,6 @@
     if(document.getElementById("infoModalOverlay").classList.contains("show")) return closeInfoModal();
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("addModalOverlay").classList.contains("show")) return closeAddModal();
-    if(document.getElementById("trickModalOverlay").classList.contains("show")) return closeTrickModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
     if(isSettingsOpen()) return closeSettings();
     if(document.getElementById("detailDrawer").classList.contains("show")) return closeDrawer();

@@ -34,16 +34,6 @@
     setText("catSaveBtn", t("save"));
     setText("catDeleteBtn", t("deleteCategory"));
 
-    setText("trickIconColorFieldLabel", t("iconColorLabel"));
-    setText("trickNameZhLabel", t("categoryNameZh"), true);
-    setText("trickNameJpLabel", t("categoryNameJp"));
-    setText("trickNameEnLabel", t("categoryNameEn"));
-    setText("trickModalSub", t("trickModalSub"));
-    setPlaceholder("trickZh", eg + t("trickCatEgZh"));
-    setPlaceholder("trickJp", eg + t("trickCatEgJp"));
-    setText("trickCancelBtn", t("cancel"));
-    setText("trickSaveBtn", t("save"));
-    setText("trickDeleteBtn", t("deleteTrick"));
 
     setText("confirmCancelBtn", t("cancel"));
     setText("confirmOkBtn", t("confirm"));

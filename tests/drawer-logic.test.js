@@ -6,7 +6,7 @@ const { load } = require("./_load");
 
 function setup(){
   const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/05-data-helpers.js",
-    "js/07-id.js", "js/08-loc-code.js", "js/09-names.js", "js/30-trick-drawer.js"], { state: { lang: "zh", activeSpace: "t00" } });
+    "js/07-id.js", "js/08-loc-code.js", "js/09-names.js", "js/30-drawer-logic.js", "js/31-drawer-sections.js", "js/32-trick-drawer.js"], { state: { lang: "zh", activeSpace: "t00" } });
   ctx.saveDB = () => {};
   const tr = (id, cats, extra) => Object.assign({ id, name: { zh: id, jp: "", en: "" }, categoryIds: cats, orderByCategory: {}, tagIds: [], parts: [], grip: null, rate: null }, extra);
   ctx.db = {
@@ -20,21 +20,22 @@ function setup(){
   return ctx;
 }
 
-test("toggleRate: set, switch, clear on repeat, ignore unknown", () => {
+test("setRate: set, switch, null/unknown clears", () => {
   const c = setup(), t = {};
-  assert.strictEqual(c.toggleRate(t, "rare"), "rare");
-  assert.strictEqual(c.toggleRate(t, "most"), "most");
-  assert.strictEqual(c.toggleRate(t, "most"), null);
-  assert.strictEqual(c.toggleRate(t, "bogus"), null);
+  assert.strictEqual(c.setRate(t, "rare"), "rare");
+  assert.strictEqual(c.setRate(t, "most"), "most");
+  assert.strictEqual(c.setRate(t, null), null);
+  assert.strictEqual(c.setRate(t, "rare"), "rare");
+  assert.strictEqual(c.setRate(t, "bogus"), null);
 });
 
-test("toggleRate: picking a rate marks landed; clearing keeps landed", () => {
-  const c = setup(), t = { landed: false };
-  c.toggleRate(t, "sometimes");
+test("setRate: landed follows rate (level sets, none clears)", () => {
+  const c = setup(), t = { landed: false, rate: null };
+  c.setRate(t, "sometimes");
   assert.strictEqual(t.landed, true);
-  c.toggleRate(t, "sometimes");
+  c.setRate(t, null);
   assert.strictEqual(t.rate, null);
-  assert.strictEqual(t.landed, true);
+  assert.strictEqual(t.landed, false);
 });
 
 test("toggleGrip single / togglePart multi in canonical order", () => {

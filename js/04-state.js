@@ -18,12 +18,9 @@
     detailTrickId: null,
     editingCategoryId: null,   // set when category modal is in "edit" mode
     editingCategoryParentHint: null, // parent to preselect when adding new
-    editingTrickId: null,
     confirmAction: null,
     categoryDraftIcon: "",
     categoryDraftColor: "default",
-    trickDraftIcon: "",
-    trickDraftColor: "",
     iconPickerTarget: "category",
     editingSpaceId: null,
     spaceDraftIcon: "",

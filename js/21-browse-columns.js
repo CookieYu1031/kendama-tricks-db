@@ -180,7 +180,7 @@
     row.appendChild(visual.icon);
     row.appendChild(visual.textWrap);
 
-    if(state.editMode && canModifyItem(it, null, isAdminNow())) appendBucketEditActions(row, tr, spaceId, function(){ openTrickModal(tr.id, null); });
+    if(state.editMode && canModifyItem(it, null, isAdminNow())) appendBucketEditActions(row, tr, spaceId, null);
 
     row.addEventListener("click", function(){ openDrawerFor(tr.id); });
     return row;
@@ -196,9 +196,12 @@
   function appendBucketEditActions(container, tr, spaceId, onEdit){
     var actions = document.createElement("div");
     actions.className = "item-edit-actions flat-edit-actions";
-    var editBtn = document.createElement("button");
-    editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
-    editBtn.addEventListener("click", function(ev){ ev.stopPropagation(); onEdit(); });
+    var editBtn = null;
+    if(onEdit){ // tricks pass null: they are edited in the drawer
+      editBtn = document.createElement("button");
+      editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
+      editBtn.addEventListener("click", function(ev){ ev.stopPropagation(); onEdit(); });
+    }
     var removeBtn = document.createElement("button");
     removeBtn.className = "mini-btn"; removeBtn.innerHTML = ICON_X;
     removeBtn.title = t("removeFromSection");
@@ -213,7 +216,8 @@
         requestDeleteTrick(tr.id, null);
       }
     });
-    actions.appendChild(editBtn); actions.appendChild(removeBtn);
+    if(editBtn) actions.appendChild(editBtn);
+    actions.appendChild(removeBtn);
     container.appendChild(actions);
   }
 
@@ -249,7 +253,10 @@
       var cHex = colorHex(it.ref.color);
       icon.style.background = hexToRgba(cHex, 0.22);
       icon.style.color = cHex;
-      if(it.ref.icon){
+      if(isImageIcon(it.ref.icon)){
+        icon.classList.add("img-icon");
+        icon.innerHTML = iconHtml(it.ref.icon);
+      } else if(it.ref.icon){
         icon.style.fontSize = "15px";
         icon.textContent = it.ref.icon;
       } else {
@@ -337,14 +344,16 @@
     if(state.editMode && canModifyItem(it, parentId, admin)){
       var actions = document.createElement("div");
       actions.className = "item-edit-actions";
-      var editBtn = document.createElement("button");
-      editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
-      editBtn.addEventListener("click", function(ev){
-        ev.stopPropagation();
-        if(it.type==="category") openCategoryModal(it.id, parentId);
-        else if(it.type==="info") openInfoModal(it.id, parentId, true);
-        else openTrickModal(it.id, null);
-      });
+      var editBtn = null; // tricks have no edit button: the drawer edits them
+      if(it.type !== "trick"){
+        editBtn = document.createElement("button");
+        editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
+        editBtn.addEventListener("click", function(ev){
+          ev.stopPropagation();
+          if(it.type==="category") openCategoryModal(it.id, parentId);
+          else openInfoModal(it.id, parentId, true);
+        });
+      }
       var delBtn = document.createElement("button");
       delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
       delBtn.addEventListener("click", function(ev){
@@ -353,7 +362,8 @@
         else if(it.type==="info") requestDeleteInfo(it.id);
         else requestDeleteTrick(it.id, parentId);
       });
-      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      if(editBtn) actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
       row.appendChild(actions);
 
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.

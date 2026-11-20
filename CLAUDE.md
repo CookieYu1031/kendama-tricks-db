@@ -72,9 +72,12 @@
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
 | 右滑返回上一層 | `js/23-browse-gestures.js` |
 | 快捷鍵 | `js/24-browse-keys.js` |
-| 招式資訊抽屜、影片列 | `js/30-trick-drawer.js` |
+| 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
+| 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
+| 抽屜各區塊 builder（圖示、標籤、持法部位、影片備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
+| 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
-| 確認框和 toast、影片、媒體、類別、space、招式 modal | `js/40`–`js/45` |
+| 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜） | `js/40`–`js/45` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
 | 登入、登出、暱稱、帳號選單（含同步時間與手動同步鈕） | `js/52-auth.js` |
@@ -82,7 +85,9 @@
 | Local-first 同步佇列（dirty、觸發點、admins 旗標、使用者快取） | `js/54-sync-queue.js`（快取讀寫在 `js/01-data-model.js`） |
 | 同步衝突（三方合併、三選一彈窗） | `js/55-sync-conflict.js` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
-| 搜尋比對、建議下拉 | `js/60-search-suggest.js` |
+| 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
+| 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
+| 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |

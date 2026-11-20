@@ -7,7 +7,7 @@
   ============================================================ */
   addStrings({
     zh:{ addTypeTrick:"招式", addTypeFolder:"資料夾", addTypeInfo:"資訊", addTitleBtn:"新增",
-         addNameLabel:"名稱", addLinkLabel:"填入既有招式 ID（選填，填寫後改為連結該招式）", addLinkPlaceholder:"7 碼 ID",
+         addNameLabel:"名稱", addLinkNote:"將連結既有招式：",
          addVideoLabel:"影片連結（選填）", addTagsLabel:"標籤", addNoTags:"（尚無標籤）",
          addContentLabel:"內容", addOfficialNoteLabel:"官方備註",
          addErrName:"請至少輸入一種語言的名稱", addErrVideo:"影片連結必須以 http:// 或 https:// 開頭",
@@ -15,7 +15,7 @@
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
          addLinkedToast:"已連結招式" },
     jp:{ addTypeTrick:"技", addTypeFolder:"フォルダ", addTypeInfo:"情報", addTitleBtn:"追加",
-         addNameLabel:"名前", addLinkLabel:"既存の技ID（任意。入力するとその技を配置します）", addLinkPlaceholder:"7文字のID",
+         addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
          addContentLabel:"内容", addOfficialNoteLabel:"公式メモ",
          addErrName:"少なくとも1つの言語で名前を入力してください", addErrVideo:"動画リンクは http:// または https:// で始めてください",
@@ -23,7 +23,7 @@
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
          addLinkedToast:"技をリンクしました" },
     en:{ addTypeTrick:"Trick", addTypeFolder:"Folder", addTypeInfo:"Info", addTitleBtn:"Add",
-         addNameLabel:"Name", addLinkLabel:"Existing trick ID (optional; links that trick here)", addLinkPlaceholder:"7-char ID",
+         addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
          addContentLabel:"Content", addOfficialNoteLabel:"Official note",
          addErrName:"Enter a name in at least one language", addErrVideo:"Video link must start with http:// or https://",
@@ -72,6 +72,21 @@
     return tr;
   }
 
+  // "@0qbk3xY" (7-char id, surrounding spaces allowed) -> "0qbk3xY", else null.
+  function parseAtId(str){
+    var m = /^\s*@\s*([0-9A-Za-z]{7})\s*$/.exec(typeof str === "string" ? str : "");
+    return m ? m[1] : null;
+  }
+  // fields: array or object of name strings; first one that is an @id wins.
+  function findLinkTarget(fields){
+    var list = Array.isArray(fields) ? fields : Object.keys(fields || {}).map(function(k){ return fields[k]; });
+    for(var i = 0; i < list.length; i++){
+      var id = parseAtId(list[i]);
+      if(id) return id;
+    }
+    return null;
+  }
+
   function addNameObj(f){ return { zh: (f.zh || "").trim(), jp: (f.jp || "").trim(), en: (f.en || "").trim() }; }
   function addNameEmpty(n){ return !n.zh && !n.jp && !n.en; }
 
@@ -103,6 +118,7 @@
   }
 
   /* ---------------- UI ---------------- */
+  var addInputsBound = false;
   var addForm = null; // { type, parentId, spaceId, types, grip, parts, tagIds }
 
   function addEl(id){ return document.getElementById(id); }
@@ -119,11 +135,27 @@
     var hex = (isTrick && !state.addDraftColor) ? TRICK_DEFAULT_HEX : colorHex(state.addDraftColor || "default");
     sw.style.background = hexToRgba(hex, 0.22);
     sw.style.color = hex;
-    sw.innerHTML = state.addDraftIcon ? escapeHtml(state.addDraftIcon) : (isTrick ? ICON_PLAY : ICON_FOLDER);
+    sw.classList.toggle("img-icon", isImageIcon(state.addDraftIcon));
+    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_FOLDER);
   }
 
-  function addIsLinking(){
-    return addForm.type === "trick" && addEl("addLinkId").value.trim() !== "";
+  function addNameValues(){
+    return [addEl("addMainName").value, addEl("addAlt1").value, addEl("addAlt2").value];
+  }
+  // Link target id typed as "@id" in any name field (trick type only), else null.
+  function addLinkTarget(){
+    return addForm && addForm.type === "trick" ? findLinkTarget(addNameValues()) : null;
+  }
+  function addIsLinking(){ return !!addLinkTarget(); }
+  function addNoteEl(){
+    var n = addEl("addLinkNote");
+    if(!n){
+      n = document.createElement("div");
+      n.id = "addLinkNote"; n.className = "field-hint add-link-note"; n.hidden = true;
+      var row = addEl("addMainName").closest(".add-name-row");
+      row.parentNode.insertBefore(n, row.nextSibling);
+    }
+    return n;
   }
 
   function renderAddChips(){
@@ -164,9 +196,6 @@
       b.classList.toggle("active", b.dataset.type === type);
     });
     if(isTrick){
-      var linkOk = addLinkAllowed(addForm.spaceId, isAdminNow());
-      addEl("addLinkId").disabled = !linkOk;
-      addEl("addLinkId").closest(".field").hidden = !linkOk;
       var admOfficial = !addForm.types.customTrick && !!(getSpace(addForm.spaceId) || {}).locked && isAdminNow();
       addEl("addOfficialField").hidden = !admOfficial;
     }
@@ -177,15 +206,21 @@
     addShowError("");
   }
 
-  // While an ID is typed the other trick fields are ignored (disabled).
+  // While a name field holds "@id": show which trick will be linked (or why it can't be).
   function syncAddLinking(){
-    var link = addIsLinking();
-    ["addMainName", "addAlt1", "addAlt2", "addVideoUrl", "addNote", "addOfficialNote"].forEach(function(id){
-      if(addForm.type === "trick") addEl(id).disabled = link;
-      else addEl(id).disabled = false;
-    });
-    addEl("addTrickFields").classList.toggle("add-disabled", link && addForm.type === "trick");
-    addEl("addIconBtn").disabled = link && addForm.type === "trick";
+    var note = addNoteEl();
+    var id = addLinkTarget();
+    var key = "";
+    note.classList.remove("form-error", "show");
+    if(!id){ note.hidden = true; note.textContent = ""; return; }
+    key = validateLinkTrick(id, addForm.parentId, addForm.spaceId, isAdminNow());
+    note.hidden = false;
+    if(key){
+      note.textContent = t(key);
+      note.classList.add("form-error", "show");
+    } else {
+      note.textContent = t("addLinkNote") + resolveDisplayName(getTrick(id).name).text;
+    }
   }
 
   function openAddModal(parentId, spaceId){
@@ -214,9 +249,12 @@
     addEl("addMainLabel").textContent = names[state.lang];
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
-    ["addMainName", "addAlt1", "addAlt2", "addVideoUrl", "addLinkId", "addNote", "addOfficialNote", "addContent"].forEach(function(id){ addEl(id).value = ""; });
-    addEl("addLinkLabel").textContent = t("addLinkLabel");
-    addEl("addLinkId").placeholder = t("addLinkPlaceholder");
+    ["addMainName", "addAlt1", "addAlt2", "addVideoUrl", "addNote", "addOfficialNote", "addContent"].forEach(function(id){ addEl(id).value = ""; });
+    if(!addInputsBound){
+      addInputsBound = true;
+      // Linking an existing trick: type "@id" in a name field.
+      ["addMainName", "addAlt1", "addAlt2"].forEach(function(id){ addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); }); });
+    }
     addEl("addVideoLabel").textContent = t("addVideoLabel");
     addEl("addGripLabel").textContent = t("gripLabel");
     addEl("addPartsLabel").textContent = t("partsLabel");
@@ -246,9 +284,10 @@
     if(!addForm.types[type]) return addShowError("addErrNotAllowed");
 
     if(addIsLinking()){
-      var key = validateLinkTrick(addEl("addLinkId").value, parentId, spaceId, admin);
+      var lid = addLinkTarget();
+      var key = validateLinkTrick(lid, parentId, spaceId, admin);
       if(key) return addShowError(key);
-      linkTrickInto(addEl("addLinkId").value.trim(), parentId, spaceId);
+      linkTrickInto(lid, parentId, spaceId);
       saveDB(); closeAddModal(); showToast(t("addLinkedToast")); render();
       return;
     }
