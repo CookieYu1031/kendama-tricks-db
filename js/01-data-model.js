@@ -241,6 +241,7 @@
   // loaded, so the reference resolves at call time, not at parse time.
   function saveDB(){
     if(typeof invalidateDbIndex === "function") invalidateDbIndex();
+    if(typeof rebuildReadingDict === "function") rebuildReadingDict(db.tricks);
     if(typeof isLoggedIn === "function" && isLoggedIn()){
       queueCloudSave();
     } else {
