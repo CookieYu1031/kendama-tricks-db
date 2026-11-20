@@ -61,18 +61,23 @@
 | 顏色、icon 常數 | `js/02-constants-colors-icons.js` |
 | i18n 字串、假名轉羅拼、名稱顯示 | `js/03-i18n.js` |
 | UI state | `js/04-state.js` |
-| 資料查詢 helpers、escapeHtml | `js/05-data-helpers.js` |
-| 麵包屑、頂欄 | `js/06-render-chrome-breadcrumb.js` |
-| SVG icons | `js/07-icons-svg.js` |
-| 左欄、欄位瀏覽、拖曳、搜尋建議 | `js/08-render-browse-columns.js`（待拆） |
-| 招式資訊抽屜 | `js/09-render-detail-drawer.js` |
-| 影片、媒體、類別、space、招式、確認 modal | `js/10`–`js/15` |
-| 匯出匯入（待移除） | `js/16-export-import.js` |
-| 事件綁定、init | `js/17-events-and-init.js` |
-| 登入、雲端同步、共享 base 發布 | `js/19-auth-sync.js`（待拆） |
+| 資料查詢 helpers、escapeHtml、isSafeHttpUrl | `js/05-data-helpers.js` |
+| SVG icons | `js/06-icons-svg.js` |
+| 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
+| 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
+| 欄位鏈、項目排序 | `js/20-browse-order.js` |
+| `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
+| 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
+| 招式資訊抽屜、影片列 | `js/30-trick-drawer.js` |
+| 確認框和 toast、影片、媒體、類別、space、招式 modal | `js/40`–`js/45` |
+| 雲端同步核心（base 資料、diff、merge、存取） | `js/50-sync-core.js` |
+| 總表版本、發布、更新通知 | `js/51-shared-base.js` |
+| 登入、登出、暱稱、帳號選單 | `js/52-auth.js` |
+| 登入狀態切換資料來源 | `js/59-auth-state.js` |
+| 搜尋比對、建議下拉 | `js/60-search-suggest.js` |
+| 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |
 | 部署 | `firebase.json`、`.github/workflows/deploy.yml` |
-| 測試 | `tests/_load.js`（vm loader）、`tests/*.test.js` |
+| 測試、截圖、console 檢查 | `tests/_load.js`、`tests/*.test.js`、`scripts/shot.sh`、`scripts/console.sh` |
 
-v0.1 拆檔完成後，這張表要改成新的編號。
