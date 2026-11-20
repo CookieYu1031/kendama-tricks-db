@@ -82,6 +82,13 @@
   // button / Escape are the deliberate ways out.)
   document.getElementById("iconColorPreviewBtn").addEventListener("click", function(){ openIconPicker("category"); });
 
+  // Unified add modal (js/47-modal-add.js)
+  document.getElementById("addCancelBtn").addEventListener("click", closeAddModal);
+  document.getElementById("addCloseBtn").addEventListener("click", closeAddModal);
+  document.getElementById("addSaveBtn").addEventListener("click", saveAddModal);
+  document.getElementById("addIconBtn").addEventListener("click", function(){ openIconPicker("add"); });
+  document.getElementById("addLinkId").addEventListener("input", function(){ if(addForm) syncAddLinking(); });
+
   // Icon & color picker modal
   document.getElementById("iconPickerNoneBtn").addEventListener("click", function(){
     setDraftIcon(state.iconPickerTarget, "");
@@ -163,6 +170,7 @@
   bindEnterToSave("trickModalOverlay", saveTrickFromModal);
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
+  bindEnterToSave("addModalOverlay", saveAddModal);
   bindEnterToSave("infoModalOverlay", function(){
     if(!document.getElementById("infoEditBody").hidden) saveInfoFromModal();
   });
@@ -178,6 +186,7 @@
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
     if(document.getElementById("infoModalOverlay").classList.contains("show")) return closeInfoModal();
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
+    if(document.getElementById("addModalOverlay").classList.contains("show")) return closeAddModal();
     if(document.getElementById("trickModalOverlay").classList.contains("show")) return closeTrickModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
     if(isSettingsOpen()) return closeSettings();

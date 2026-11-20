@@ -40,21 +40,25 @@
   function getDraftIcon(target){
     if(target==="trick") return state.trickDraftIcon;
     if(target==="space") return state.spaceDraftIcon;
+    if(target==="add") return state.addDraftIcon;
     return state.categoryDraftIcon;
   }
   function getDraftColor(target){
     if(target==="trick") return state.trickDraftColor;
     if(target==="space") return state.spaceDraftColor;
+    if(target==="add") return state.addDraftColor;
     return state.categoryDraftColor;
   }
   function setDraftIcon(target, val){
     if(target==="trick") state.trickDraftIcon = val;
     else if(target==="space") state.spaceDraftIcon = val;
+    else if(target==="add") state.addDraftIcon = val;
     else state.categoryDraftIcon = val;
   }
   function setDraftColor(target, val){
     if(target==="trick") state.trickDraftColor = val;
     else if(target==="space") state.spaceDraftColor = val;
+    else if(target==="add") state.addDraftColor = val;
     else state.categoryDraftColor = val;
   }
 
@@ -167,7 +171,8 @@
   }
   function closeIconPicker(){
     document.getElementById("iconPickerOverlay").classList.remove("show");
-    updateIconColorPreview(state.iconPickerTarget);
+    if(state.iconPickerTarget === "add") updateAddIconPreview();
+    else updateIconColorPreview(state.iconPickerTarget);
   }
 
   function saveCategoryFromModal(){

@@ -59,7 +59,7 @@
   .m-col.collapsed:not(:hover) .item-chevron,
   .m-col.collapsed:not(:hover) .item-edit-actions{ opacity:0; max-width:0; margin:0; pointer-events:none; }
   .m-col.collapsed:not(:hover) .col-empty div{ opacity:0; max-width:0; }
-  .m-col.collapsed:not(:hover) .col-add-row{ opacity:0; max-height:0; margin-top:0; padding-top:0; border-top-color:transparent; pointer-events:none; }
+  .m-col.collapsed:not(:hover) .col-add-fab{ opacity:0; transform:scale(.6); pointer-events:none; }
   .col-items{ flex: 1 1 auto; overflow-y:auto; overflow-x:hidden; min-height:0; }
   .col-back-btn{ flex:0 0 auto; margin-bottom:10px; }
   .col-empty{
@@ -140,8 +140,19 @@
   .col-add-btn svg{ width:14px; height:14px; display:block; }
   .col-add-btn span{ line-height:1; display:inline-block; }
   .col-add-btn-danger:hover{ border-color: var(--danger); color:#fff; background: linear-gradient(165deg, var(--danger-bright), var(--danger)); }
-  .col-add-row{ display:flex; gap:8px; margin-top:8px; padding-top:8px; border-top: 1px solid var(--line); flex:0 0 auto; overflow:hidden; max-height:60px; opacity:1; transition: opacity .24s var(--ease), max-height .3s var(--ease), margin-top .3s var(--ease), padding-top .3s var(--ease), border-top-color .3s var(--ease); }
-  .col-add-row .col-add-btn{ padding: 9px 6px; font-size:12.5px; }
+  /* Floating "+" at a column bottom-right (edit mode); the list gets bottom padding so the last row stays reachable. */
+  .col-add-fab{
+    position:absolute; right:14px; bottom:14px; z-index:3; width:46px; height:46px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:1px solid var(--lacquer-bright); color: var(--on-accent);
+    background: linear-gradient(165deg, var(--lacquer-bright), var(--lacquer));
+    box-shadow: var(--shadow-md, var(--shadow-sm)), var(--glass-highlight);
+    transition: transform .18s var(--ease), opacity .24s var(--ease), box-shadow .18s var(--ease);
+  }
+  .col-add-fab svg{ width:20px; height:20px; display:block; }
+  .col-add-fab:hover{ transform: translateY(-2px); }
+  .col-add-fab:active{ transform: scale(.94); }
+  .m-col.has-fab .col-items{ padding-bottom: 72px; }
 
   .col-header{
     font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
