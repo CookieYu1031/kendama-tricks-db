@@ -38,5 +38,6 @@
         render();
       });
     }
+    if(typeof maybeStartTour==="function") maybeStartTour(user);
     _authFirstStateSeen = true;
   });

@@ -1,0 +1,26 @@
+/* PWA install banner (js/17-shell-pwa.js) */
+.pwa-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 24px));
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-sm);
+  color: var(--paper);
+  font-family: var(--font-body);
+  z-index: 900;
+}
+.pwa-banner-text { flex: 1; min-width: 0; }
+.pwa-banner-title { font-size: 14px; font-weight: 600; }
+.pwa-banner-body { font-size: 12px; color: var(--paper-dim); margin-top: 2px; }
+.pwa-banner .btn { flex: none; }
+.pwa-banner-x { color: var(--paper-dim); }

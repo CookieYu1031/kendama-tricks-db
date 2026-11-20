@@ -79,8 +79,10 @@
 
 ## v0.8 PWA 與教學（分支 `v0.8`）
 
-- [ ] manifest、service worker、安裝提示
-- [ ] 操作教學頁
+- [x] manifest、service worker、安裝提示（設定頁一列＋第 2 次開啟起出現一次性小橫幅；iOS 顯示「分享→加入主畫面」）
+- [x] 操作教學：首次使用／首次登入自動互動式導覽，設定頁「快速導覽」可重看
+- [x] v0.7 遺留：設定頁加「隱私說明」（三語）；GA4 暫不做
+- 備註（v0.8）：service worker 對同源檔案採 network-first（有網路時永遠最新，離線時用快取，避免新舊檔混用），所以不需要「新版已就緒」提示；Firebase SDK、字型 cache-first；`/__/`、Firestore、登入 API 不經過 SW。改 sw.js 邏輯時要更新 `CACHE_VERSION`。App icon 由 brand-icon 生成（`assets/app-icon-180/192/512.png`，深色底）
 
 ## 擱置
 
