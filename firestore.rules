@@ -2,31 +2,104 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Each account's own data: per-space diffs (added/modified/removed vs
-    // whatever base that space uses) + small metadata docs (their custom
-    // shelf list, and which shared-base version they're currently pinned
-    // to). Only that account can ever read or write its own subtree.
-    match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    // Admins are listed in the admins collection (created by hand in the
+    // Firebase console). No UID is hardcoded here.
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
 
-      match /spaceData/{spaceId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
+    // admins/{uid}: a user may only check their own entry. Never writable
+    // from clients; manage in the console.
+    match /admins/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Root user doc is unused by the app: owner read only, no client writes.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+
       match /meta/{metaId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && (
+          (metaId == 'spaces' &&
+            request.resource.data.keys().hasOnly(['spaces', 'tags', 'schema', 'clientUpdatedAt', 'updatedAt']) &&
+            (!('spaces' in request.resource.data) ||
+              (request.resource.data.spaces is list && request.resource.data.spaces.size() <= 40)) &&
+            (!('tags' in request.resource.data) ||
+              (request.resource.data.tags is list && request.resource.data.tags.size() <= 2000)) &&
+            (!('schema' in request.resource.data) || request.resource.data.schema is int) &&
+            (!('clientUpdatedAt' in request.resource.data) || request.resource.data.clientUpdatedAt is number) &&
+            (!('updatedAt' in request.resource.data) ||
+              (request.resource.data.updatedAt is timestamp && request.resource.data.updatedAt == request.time)))
+          ||
+          (metaId == 'spaceIndexSync' &&
+            request.resource.data.keys().hasOnly(['viewingVersion', 'updatedAt']) &&
+            (!('viewingVersion' in request.resource.data) ||
+              (request.resource.data.viewingVersion is int && request.resource.data.viewingVersion >= 0)) &&
+            (!('updatedAt' in request.resource.data) ||
+              (request.resource.data.updatedAt is timestamp && request.resource.data.updatedAt == request.time)))
+        );
+      }
+
+      match /spaceData/{sid} {
+        // Read/delete stay open to the owner so old schema-2 docs can be
+        // read and cleaned up.
+        allow read, delete: if isOwner(uid) && sid.matches('^[0-9A-Za-z_-]{1,40}$');
+        allow create, update: if isOwner(uid) &&
+          sid.matches('^[0-9A-Za-z_-]{1,40}$') &&
+          request.resource.data.keys().hasOnly(['schema', 'baseVersion', 'chunks', 'hash', 'updatedAt']) &&
+          request.resource.data.schema == 3 &&
+          request.resource.data.chunks is int &&
+          request.resource.data.chunks >= 0 && request.resource.data.chunks <= 50 &&
+          request.resource.data.hash is string && request.resource.data.hash.size() <= 128 &&
+          request.resource.data.baseVersion is int && request.resource.data.baseVersion >= 0 &&
+          (!('updatedAt' in request.resource.data) ||
+            (request.resource.data.updatedAt is timestamp && request.resource.data.updatedAt == request.time));
+
+        match /chunks/{i} {
+          allow read, delete: if isOwner(uid);
+          allow create, update: if isOwner(uid) &&
+            sid.matches('^[0-9A-Za-z_-]{1,40}$') &&
+            i.matches('^[0-9]{1,2}$') &&
+            request.resource.data.keys().hasOnly(['data']) &&
+            request.resource.data.data is string &&
+            request.resource.data.data.size() <= 1000000;
+        }
       }
     }
 
-    // The official 總表/招式庫 (space-index) shared base: everyone (including
-    // signed-out visitors) can read it, but only the one admin account can
-    // publish new versions.
+    // Official shared base: public read, admin-only write.
     match /sharedBase/space-index {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == "2PFyyWWVrANFAsSxVHgsk3QHUlT2";
+      allow delete: if isAdmin();
+      allow create, update: if isAdmin() &&
+        request.resource.data.keys().hasOnly(['latestVersion', 'latestNote', 'publishedAt']);
 
-      match /versions/{version} {
+      match /versions/{v} {
         allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == "2PFyyWWVrANFAsSxVHgsk3QHUlT2";
+        allow delete: if isAdmin();
+        allow create, update: if isAdmin() &&
+          v.matches('^[0-9]{1,6}$') &&
+          request.resource.data.keys().hasOnly(['version', 'note', 'publishedAt', 'chunks']);
+
+        match /chunks/{i} {
+          allow read: if true;
+          allow delete: if isAdmin();
+          allow create, update: if isAdmin() &&
+            i.matches('^[0-9]{1,2}$') &&
+            request.resource.data.keys().hasOnly(['data']) &&
+            request.resource.data.data is string &&
+            request.resource.data.data.size() <= 1000000;
+        }
       }
     }
 

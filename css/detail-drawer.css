@@ -70,6 +70,9 @@
     flex: 0 0 auto; padding: 14px 20px; border-top: 1px solid var(--line);
   }
   .drawer-proficiency-foot .drawer-cats-label{ margin-bottom: 8px; }
+  .drawer-guest-foot{ display:flex; align-items:center; gap:12px; }
+  .drawer-guest-hint{ flex:1; font-size:13px; color:var(--paper-dim); line-height:1.5; }
+  .drawer-guest-foot .col-add-btn{ flex:0 0 auto; width:auto; }
   /* A single pill-shaped row of six connected buttons — rounding lives on the
      wrapper (clipped via overflow:hidden) so only the far-left/far-right ends
      are curved and every button in between is a flush, shared edge. */

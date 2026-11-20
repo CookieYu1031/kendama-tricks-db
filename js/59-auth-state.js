@@ -6,44 +6,30 @@
   /* ------------------------------------------------------------
      Auth state -> data source switch
   ------------------------------------------------------------ */
+  // Local-first: the app already opened from the last user's cache (see loadDB in 01).
+  // Here auth confirms that user (then syncs once, no polling) or falls back to guest.
   fbAuth.onAuthStateChanged(function(user){
     authCurrentUser = user;
-    renderAuthUI();
 
     if(user){
-      setSyncing(true);
-      var userRef = fbStore.collection("users").doc(user.uid);
-      userRef.collection("spaceData").limit(1).get().then(function(snap){
-        if(snap.empty){
-          // Brand-new account: nothing in the cloud yet, so treat whatever's
-          // currently in `db` (loaded from this browser's localStorage) as
-          // the starting point and push it up as the initial diff.
-          showToast(t("authSyncingLocal"));
-          return saveDiffToCloud().then(function(){
-            showToast(t("authSyncedLocal"));
-          });
-        }
-        return loadMergedDBFromCloud(user.uid).then(function(merged){
-          db = merged;
-          reconcileActiveSpaceAfterSwap();
-          render();
-          maybeShowBaseUpdateBanner();
-        });
-      }).catch(function(err){
-        console.error("Cloud load failed:", err);
-        showToast(t("authLoadError"), "error");
-      }).then(function(){
-        setSyncing(false);
+      var swapped = activateUserCache(user);
+      renderAuthUI();
+      if(swapped){ reconcileActiveSpaceAfterSwap(); render(); }
+      refreshAdminFlag(user.uid);
+      // Reconciles with the cloud: pushes pending edits, loads newer cloud data, asks on conflict.
+      syncReconcile({}).then(function(){
+        renderAuthUI();
+        maybeShowBaseUpdateBanner();
       });
     } else {
       hideBaseUpdateBanner();
       _currentViewingVersion = null; // no per-account pin once logged out
-      if(_authFirstStateSeen){
-        // Only reload from localStorage on an actual sign-out transition —
-        // not on the very first (logged-out) auth check at page load, since
-        // `db` already holds the right thing from the synchronous loadDB()
-        // call in 01-data-model.js.
-        db = loadDB();
+      var wasUser = !!userCache;
+      deactivateUserCache();
+      renderAuthUI();
+      if(wasUser || _authFirstStateSeen){
+        // Guests hold no saved data of their own (read-only): back to the empty view.
+        db = emptyDB();
         reconcileActiveSpaceAfterSwap();
       }
       // Guests get the published 總表 merged in read-only, straight from

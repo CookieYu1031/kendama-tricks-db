@@ -8,8 +8,10 @@
      Firestore instead of a static shipped file.
 
        sharedBase/space-index -> { latestVersion, latestNote, publishedAt }
-       sharedBase/space-index/versions/{n} -> { version, categories, tricks,
-                                                 note, publishedAt }
+       sharedBase/space-index/versions/{n} -> { version, note, publishedAt, chunks }
+       sharedBase/space-index/versions/{n}/chunks/{i} -> { data }  // JSON of
+                                  { categories, tricks, infos, tags } split into pieces
+                                  (older versions stored categories/tricks inline: still read)
        users/{uid}/meta/spaceIndexSync -> { viewingVersion, updatedAt }
 
      Every account (including guests with no Firestore identity at all) is
@@ -39,24 +41,39 @@
     });
   }
 
+  function normalizeBaseSnapshot(version, d){
+    return {
+      version: version,
+      categories: Array.isArray(d.categories) ? d.categories : [],
+      tricks: Array.isArray(d.tricks) ? d.tricks : [],
+      infos: Array.isArray(d.infos) ? d.infos : [],
+      tags: Array.isArray(d.tags) ? d.tags : []
+    };
+  }
+  function sharedVersionPath(version){ return "sharedBase/" + SHARED_BASE_DOC_ID + "/versions/" + version; }
+
   function fetchSharedBaseVersion(version){
     var cacheKey = SHARED_BASE_TABLE_ID + "@" + version;
     if(baseDataCache[cacheKey]) return Promise.resolve(baseDataCache[cacheKey]);
     if(!version){
       // Nothing published yet (version 0) — base is just empty, same as any
       // other space that's never had base content.
-      var empty = { version: 0, categories: [], tricks: [] };
+      var empty = emptyBase(0);
       baseDataCache[cacheKey] = empty;
       return Promise.resolve(empty);
     }
-    return sharedBaseRef().collection("versions").doc(String(version)).get()
+    return fbStore.doc(sharedVersionPath(version)).get()
       .then(function(snap){
         var d = snap.exists ? snap.data() : {};
-        var normalized = {
-          version: d.version || version,
-          categories: Array.isArray(d.categories) ? d.categories : [],
-          tricks: Array.isArray(d.tricks) ? d.tricks : []
-        };
+        if(typeof d.chunks === "number"){
+          return readChunkedPayload(sharedVersionPath(version), d.chunks).then(function(str){
+            if(str === null) throw new Error("shared base chunks missing");
+            return normalizeBaseSnapshot(d.version || version, JSON.parse(str));
+          });
+        }
+        return normalizeBaseSnapshot(d.version || version, d); // old inline layout
+      })
+      .then(function(normalized){
         baseDataCache[cacheKey] = normalized;
         return normalized;
       })
@@ -64,7 +81,7 @@
         console.error("Shared base version fetch failed:", err);
         // Deliberately not cached, so a transient failure can be retried
         // (e.g. on the next render) instead of getting stuck on "empty".
-        return { version: version, categories: [], tricks: [] };
+        return emptyBase(version);
       });
   }
 
@@ -125,8 +142,13 @@
         var priorTrickIds = {};
         tricksForSpace(SHARED_BASE_TABLE_ID).forEach(function(tr){ priorTrickIds[tr.id] = true; });
         var otherTricks = db.tricks.filter(function(tr){ return !priorTrickIds[tr.id]; });
+        var otherInfos = (db.infos || []).filter(function(n){ return n.spaceId !== SHARED_BASE_TABLE_ID; });
         db.categories = otherCats.concat(base.categories);
         db.tricks = otherTricks.concat(base.tricks);
+        db.infos = otherInfos.concat(base.infos);
+        var tagMap = {};
+        (db.tags || []).concat(base.tags).forEach(function(g){ tagMap[g.id] = g; });
+        db.tags = objVals(tagMap);
         db = normalizeDB(db);
       });
     }).catch(function(err){ console.error("Guest shared-base load failed:", err); });
@@ -149,34 +171,27 @@
       // "publishing" is exactly that: promoting the admin's working diff
       // into everyone else's shared base.
       var snapshot = {
-        version: newVersion,
         categories: categoriesForSpace(SHARED_BASE_TABLE_ID),
         tricks: tricksForSpace(SHARED_BASE_TABLE_ID),
-        note: note,
-        publishedAt: firebase.firestore.FieldValue.serverTimestamp()
+        infos: infosForSpace(SHARED_BASE_TABLE_ID),
+        tags: db.tags
       };
-      var batch = fbStore.batch();
-      batch.set(sharedBaseRef().collection("versions").doc(String(newVersion)), snapshot);
-      batch.set(sharedBaseRef(), {
-        latestVersion: newVersion,
-        latestNote: note,
-        publishedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      return batch.commit().then(function(){
+      var ops = buildChunkedOps(sharedVersionPath(newVersion), JSON.stringify(snapshot),
+        { version: newVersion, note: note }, 0, "publishedAt");
+      ops.push({ kind: "set", path: "sharedBase/" + SHARED_BASE_DOC_ID, ts: "publishedAt", bytes: 500,
+        data: { latestVersion: newVersion, latestNote: note } });
+      return commitOps(ops).then(function(){
         // Prime the cache with exactly what was just written so the diff
         // save below (which needs this version's base) doesn't need a
         // network round-trip to read back what we just sent.
-        baseDataCache[SHARED_BASE_TABLE_ID + "@" + newVersion] = {
-          version: newVersion, categories: snapshot.categories, tricks: snapshot.tricks
-        };
+        baseDataCache[SHARED_BASE_TABLE_ID + "@" + newVersion] = normalizeBaseSnapshot(newVersion, snapshot);
         _lastSeenPointer = { latestVersion: newVersion, latestNote: note, publishedAt: null };
         _currentViewingVersion = newVersion;
         return saveUserViewingVersion(uid, newVersion);
       }).then(function(){
         // The admin's diff against this brand-new base is now empty by
-        // construction (the base literally *is* what they just had) — this
-        // save just makes that explicit in Firestore too.
-        return saveDiffToCloud();
+        // construction — push it so the cloud reflects that too.
+        return forceSyncNow();
       });
     }).catch(function(err){
       console.error("Publish failed:", err);
@@ -242,14 +257,16 @@
     var uid = authCurrentUser.uid;
     var newVersion = _lastSeenPointer.latestVersion;
     setSyncing(true);
-    saveUserViewingVersion(uid, newVersion).then(function(){
+    // Push pending local changes first, so reloading from the cloud cannot drop them.
+    flushSync({}).then(function(){
+      if(userCache && userCache.dirty) throw new Error("unsynced local changes");
+      return saveUserViewingVersion(uid, newVersion);
+    }).then(function(){
       _currentViewingVersion = newVersion;
       return loadMergedDBFromCloud(uid);
-    }).then(function(merged){
-      db = merged;
-      reconcileActiveSpaceAfterSwap();
+    }).then(function(res){
+      applyCloudDb(res);
       hideBaseUpdateBanner();
-      render();
       showToast(t("baseUpdateApplied"));
     }).catch(function(err){
       console.error("Base update apply failed:", err);

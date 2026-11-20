@@ -187,6 +187,8 @@
       rail.appendChild(addBtn);
     }
 
+    if(isGuest()) return; // D8: read-only, no edit mode
+
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "");

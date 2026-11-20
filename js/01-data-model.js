@@ -6,6 +6,9 @@
   // v2 (企劃書 v0.2): the old v1 data (incl. static base files) is dropped, not migrated.
   var STORAGE_KEY = "kendama-trick-db-v2";
   var OLD_STORAGE_KEY = "kendama-trick-db-v1";
+  // v0.3 local-first: only signed-in users persist data, in a per-uid cache (see saveDB below).
+  var USER_CACHE_PREFIX = "kendama-trick-db-v2:u:";
+  var LAST_UID_KEY = "kendama-last-uid";
   var LANG_KEY = "kendama-lang-v1";
   var SPACE_KEY = "kendama-active-space-v2";
 
@@ -37,11 +40,6 @@
   var FAV_TABLE_ID = "fav";
   var FAV_STARRED_ID = "fav-starred"; // virtual folder: tricks with favorite:true
   var FAV_CUSTOM_ID = "fav-custom";   // virtual folder: tricks with custom:true + tricks added directly
-  // Firebase Auth UID for the one account allowed to publish official
-  // 總表 updates (see js/51-shared-base.js). Not a secret — Firestore UIDs
-  // can't be used to sign in as someone else — the real enforcement lives in
-  // Firestore's own security rules, this just controls what the UI shows.
-  var ADMIN_UID = "2PFyyWWVrANFAsSxVHgsk3QHUlT2";
   // Tables that can never be deleted.
   var UNDELETABLE_SPACE_IDS = ["t00", "t01", "t02", "fav"];
   function getSpace(id){ return db.spaces.find(function(s){ return s.id===id; }); }
@@ -51,8 +49,15 @@
   }
   function isDefaultSpaceId(id){ return DEFAULT_SPACES.some(function(s){ return s.id === id; }); }
 
+  // Guests (D8): read-only, and only the public tables 00/01/02 are shown.
+  // isLoggedIn lives in 50; missing (tests) = treated as signed in.
+  var GUEST_SPACE_IDS = ["t00", "t01", "t02"];
+  function isGuest(){ return typeof isLoggedIn === "function" && !isLoggedIn(); }
+  function isGuestVisibleSpace(id){ return GUEST_SPACE_IDS.indexOf(id) !== -1; }
+
   // Locked tables: only the admin account edits official content.
   function canEditTable(spaceId){
+    if(isGuest()) return false;
     var sp = getSpace(spaceId);
     if(!sp) return false;
     if(!sp.locked) return true;
@@ -60,6 +65,7 @@
   }
   // Non-admins may still add custom:true tricks into locked tables.
   function canAddCustomTrick(spaceId){
+    if(isGuest()) return false;
     var sp = getSpace(spaceId);
     return !!(sp && sp.locked);
   }
@@ -119,17 +125,80 @@
     return { categories: {}, tricks: {} };
   }
 
-  function loadDB(){
-    try{ localStorage.removeItem(OLD_STORAGE_KEY); }catch(e){ /* ignore */ }
+  // Per-user local cache (v0.3 C1/C2): { db, dirty, lastSyncAt, cloudClientUpdatedAt,
+  // hashes:{sid:hash}, synced:<db at last sync>, isAdmin, localUpdatedAt }.
+  // `userCache` is the live object for the signed-in (or last-known) user, null for guests.
+  var userCache = null;
+  var _optimisticUid = null; // last-known uid used to open instantly before auth resolves
+
+  function emptyUserCache(uid){
+    return { uid: uid, db: null, dirty: false, lastSyncAt: 0, cloudClientUpdatedAt: 0,
+      hashes: {}, synced: null, isAdmin: false, localUpdatedAt: 0 };
+  }
+  function readUserCache(uid){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        var parsed = JSON.parse(raw);
-        if(parsed && parsed.categories && parsed.tricks) return normalizeDB(parsed);
+      var raw = localStorage.getItem(USER_CACHE_PREFIX + uid);
+      if(!raw) return null;
+      var c = JSON.parse(raw);
+      if(!c || typeof c !== "object") return null;
+      var out = emptyUserCache(uid);
+      Object.keys(out).forEach(function(k){ if(c[k] !== undefined) out[k] = c[k]; });
+      out.uid = uid;
+      if(!out.hashes || typeof out.hashes !== "object") out.hashes = {};
+      return out;
+    }catch(e){ return null; }
+  }
+  // Writes the live cache (+ current db). When storage is full, drops `synced` and retries.
+  function writeUserCache(){
+    if(!userCache) return false;
+    var payload = Object.assign({}, userCache, { db: db });
+    try{
+      localStorage.setItem(USER_CACHE_PREFIX + userCache.uid, JSON.stringify(payload));
+      return true;
+    }catch(e){
+      userCache.synced = null;
+      payload.synced = null;
+      try{
+        localStorage.setItem(USER_CACHE_PREFIX + userCache.uid, JSON.stringify(payload));
+        return true;
+      }catch(e2){ return false; }
+    }
+  }
+  function emptyDB(){
+    return normalizeDB({ categories: [], tricks: [] });
+  }
+
+  function loadDB(){
+    // Old guest data is discarded on purpose (guests are read-only since v0.3).
+    try{ localStorage.removeItem(OLD_STORAGE_KEY); }catch(e){ /* ignore */ }
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){ /* ignore */ }
+    userCache = null;
+    _optimisticUid = null;
+    try{
+      var lastUid = localStorage.getItem(LAST_UID_KEY);
+      if(lastUid){
+        var c = readUserCache(lastUid);
+        if(c){
+          userCache = c;
+          _optimisticUid = lastUid;
+          if(c.db && c.db.categories && c.db.tricks) return normalizeDB(c.db);
+        }
       }
-    }catch(e){ /* fall through to seed */ }
-    var seed = seedData();
-    return normalizeDB({ categories: objVals(seed.categories), tricks: objVals(seed.tricks) });
+    }catch(e){ /* fall through to empty */ }
+    return emptyDB();
+  }
+
+  // Video platform is detected from the URL; detectPlatform (05) loads after this file,
+  // so videos normalized at load time may have an empty platform. Fills them in place.
+  function backfillPlatforms(database){
+    if(typeof detectPlatform !== "function") return 0;
+    var n = 0;
+    ((database && database.tricks) || []).forEach(function(tr){
+      (tr.media || []).forEach(function(m){
+        if(m && !m.platform && m.url){ m.platform = detectPlatform(m.url); n++; }
+      });
+    });
+    return n;
   }
 
   function objVals(o){ return Object.keys(o).map(function(k){ return o[k]; }); }
@@ -232,21 +301,19 @@
     return { categories: cats, tricks: tricks, infos: infos, tags: tags, spaces: spaces };
   }
 
-  // Persistence target depends on login state (see js/59-auth-state.js):
-  //  - logged out -> plain localStorage, exactly as before.
-  //  - logged in  -> Firestore only (debounced); the browser is no longer
-  //    the source of truth once an account is signed in.
-  // isLoggedIn()/queueCloudSave() are defined later (50-sync-core.js) but
-  // that's fine — this function body only runs after all scripts have
-  // loaded, so the reference resolves at call time, not at parse time.
+  // Local-first persistence (企劃書 §五.3): only a signed-in user (or the last-known user
+  // before auth resolves) persists anything — to the per-uid cache, flagged dirty. The
+  // cloud push happens later (js/54-sync-queue.js). Guests are read-only: nothing is saved.
+  var _mutSeq = 0; // bumped on every mutation; lets a running sync detect edits made meanwhile
   function saveDB(){
     if(typeof invalidateDbIndex === "function") invalidateDbIndex();
     if(typeof rebuildReadingDict === "function") rebuildReadingDict(db.tricks);
-    if(typeof isLoggedIn === "function" && isLoggedIn()){
-      queueCloudSave();
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    }
+    if(!userCache) return;
+    _mutSeq++;
+    userCache.dirty = true;
+    userCache.localUpdatedAt = Date.now();
+    writeUserCache();
+    if(typeof renderSyncUI === "function") renderSyncUI();
   }
 
   var db = loadDB();

@@ -82,6 +82,7 @@
     spaces.forEach(function(s){ byId[s.id] = s; });
     var out = [];
     ["t00", "t01", "t02"].forEach(function(id){ if(byId[id]) out.push(byId[id]); });
+    if(isGuest()) return out; // D8: guests see only the public tables
     out.push("divider");
     if(byId[FAV_TABLE_ID]) out.push(byId[FAV_TABLE_ID]);
     spaces.filter(function(s){ return !isDefaultSpaceId(s.id); })
@@ -94,6 +95,7 @@
   // folders and rows inside the starred list never; items of a locked table only
   // for the admin, except custom:true tricks (user-owned).
   function canModifyItem(it, parentId, isAdmin){
+    if(isGuest()) return false;
     if(parentId === FAV_STARRED_ID || (it.ref && it.ref.virtual)) return false;
     if(it.type === "trick" && it.ref.custom) return true;
     var sid = it.type === "trick" ? containerSpaceId(it.ref.categoryIds[0]) : it.ref.spaceId;
@@ -111,7 +113,7 @@
   function allowedAddButtons(parentId, spaceId, isAdmin){
     var none = { folder:false, trick:false, info:false, customTrick:false };
     var sp = getSpace(spaceId);
-    if(!sp) return none;
+    if(!sp || isGuest()) return none;
     if(parentId === FAV_STARRED_ID) return none;
     if(spaceId === FAV_TABLE_ID && parentId === null) return none; // root = two virtual folders
     var locked = !!sp.locked && !isAdmin;
