@@ -219,6 +219,21 @@
     return l;
   }
 
+  // D8: guests can't record landed / rate / favorites; the foot asks them to sign in instead.
+  function buildGuestFoot(){
+    var foot = document.createElement("div");
+    foot.className = "drawer-proficiency-foot drawer-guest-foot drawer-expand-content";
+    var msg = document.createElement("div");
+    msg.className = "drawer-guest-hint";
+    msg.textContent = t("guestLoginHint");
+    var btn = document.createElement("button");
+    btn.type = "button"; btn.className = "col-add-btn";
+    btn.textContent = t("authLogin");
+    btn.addEventListener("click", function(){ if(typeof authLogin === "function") authLogin(); });
+    foot.appendChild(msg); foot.appendChild(btn);
+    return foot;
+  }
+
   function renderDrawer(){
     var drawer = document.getElementById("detailDrawer");
     if(!state.detailTrickId){ return; }
@@ -270,7 +285,7 @@
     closeBtn.className = "drawer-close"; closeBtn.innerHTML = ICON_X;
     closeBtn.addEventListener("click", closeDrawer);
 
-    headActions.appendChild(goalBtn);
+    if(!isGuest()) headActions.appendChild(goalBtn); // D8: guests can't favorite
     headActions.appendChild(closeBtn);
     head.appendChild(headLeft); head.appendChild(headActions);
     dragZone.appendChild(head);
@@ -550,7 +565,7 @@
       profWrap.appendChild(pBtn);
     });
     profFoot.appendChild(profWrap);
-    drawer.appendChild(profFoot);
+    drawer.appendChild(isGuest() ? buildGuestFoot() : profFoot);
 
     if(canEditTrick){
       var foot = document.createElement("div");

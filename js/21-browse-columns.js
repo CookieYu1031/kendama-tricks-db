@@ -9,11 +9,20 @@
   // first, so a partial render never reads stale data.
   function render(parts){
     invalidateDbIndex();
+    if(isGuest()) enforceGuestView();
     var all = !parts;
     if(all || parts.chrome) renderChrome();
     if(all || parts.rail) renderSpaceRail();
     if(all || parts.columns) renderColumns();
     if(all || parts.drawer) renderDrawer();
+  }
+  // D8: guests can't edit and can't sit in 收藏 / custom tables (e.g. right after logout).
+  function enforceGuestView(){
+    state.editMode = false;
+    if(!isGuestVisibleSpace(state.activeSpace)){
+      state.activeSpace = GUEST_SPACE_IDS[0];
+      state.path = []; state.detailTrickId = null;
+    }
   }
   // Tree navigation (path change only): rail, chrome and drawer don't depend on it.
   var RENDER_COLUMNS_ONLY = { columns: true };

@@ -49,8 +49,15 @@
   }
   function isDefaultSpaceId(id){ return DEFAULT_SPACES.some(function(s){ return s.id === id; }); }
 
+  // Guests (D8): read-only, and only the public tables 00/01/02 are shown.
+  // isLoggedIn lives in 50; missing (tests) = treated as signed in.
+  var GUEST_SPACE_IDS = ["t00", "t01", "t02"];
+  function isGuest(){ return typeof isLoggedIn === "function" && !isLoggedIn(); }
+  function isGuestVisibleSpace(id){ return GUEST_SPACE_IDS.indexOf(id) !== -1; }
+
   // Locked tables: only the admin account edits official content.
   function canEditTable(spaceId){
+    if(isGuest()) return false;
     var sp = getSpace(spaceId);
     if(!sp) return false;
     if(!sp.locked) return true;
@@ -58,6 +65,7 @@
   }
   // Non-admins may still add custom:true tricks into locked tables.
   function canAddCustomTrick(spaceId){
+    if(isGuest()) return false;
     var sp = getSpace(spaceId);
     return !!(sp && sp.locked);
   }
