@@ -42,7 +42,6 @@
     --surface-drawer-a: rgba(50,54,60,0.55);
     --surface-drawer-b: rgba(18,20,22,0.62);
     --surface-search: rgba(28,28,30,0.96);
-    --surface-suggest: rgba(78,79,79,0.9);
     --wood-tint: rgba(201,160,99,0.08);
     --wood-tint-strong: rgba(201,160,99,0.13);
     --wood-tint-cell: rgba(201,160,99,0.14);
@@ -72,7 +71,6 @@
     --surface-modal-a: rgba(255,255,255,0.78); --surface-modal-b: rgba(250,247,240,0.86);
     --surface-drawer-a: rgba(255,255,255,0.78); --surface-drawer-b: rgba(250,247,240,0.86);
     --surface-search: rgba(252,250,245,0.97);
-    --surface-suggest: rgba(255,255,255,0.95);
     --wood-tint: rgba(168,123,60,0.10);
     --wood-tint-strong: rgba(168,123,60,0.14);
     --wood-tint-cell: rgba(168,123,60,0.16);

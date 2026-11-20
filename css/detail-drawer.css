@@ -1,5 +1,6 @@
   /* ---------- Detail Drawer ---------- */
-  :root{ --drawer-custom-tint: var(--wood-tint-strong); } /* custom:true tricks: warm (--wood) tint on the head */
+  :root{ --drawer-custom-tint: var(--wood-tint-strong); --star:#E0B040; } /* custom:true tricks: warm (--wood) tint on the head */
+  :root[data-theme="light"]{ --star:#D69A1E; }
   .detail-drawer{
     flex: 0 0 0px; width:0; min-width:0; max-width:0; overflow:hidden;
     background: linear-gradient(165deg, var(--surface-drawer-a), var(--surface-drawer-b));
@@ -17,7 +18,23 @@
     padding: 18px 20px; border-bottom: 1px solid var(--line); display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
   }
   .drawer-eyebrow{ font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color: var(--string); margin-bottom:6px; }
+  .drawer-head-left{ flex:1 1 auto; min-width:0; }
   .drawer-title{ font-family: var(--font-display); font-size:24px; font-weight:700; line-height:1.25; }
+  /* Edit mode: the title is an input — same type, subtle underline */
+  .drawer-title-input{
+    display:block; width:100%; min-width:0; background:transparent; color: var(--paper);
+    border:none; border-bottom:1px solid var(--line); border-radius:0; padding:0 0 2px; outline:none;
+    transition: border-color .2s var(--ease);
+  }
+  .drawer-title-input::placeholder{ color: var(--paper-faint); font-weight:400; }
+  .drawer-title-input:focus{ border-bottom-color: var(--lacquer); }
+  /* Unique ID (edit mode), left of the star */
+  .drawer-id-btn{
+    font-family: var(--font-mono); font-size:11px; letter-spacing:.02em; padding: 4px 6px; border-radius:8px;
+    background: transparent; color: var(--paper-faint); border:none; cursor:pointer; white-space:nowrap;
+    transition: color .15s var(--ease);
+  }
+  .drawer-id-btn:hover{ color: var(--paper); }
   .drawer-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
   .drawer-close{
     width:32px; height:32px; border-radius:9px; border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper-dim);
@@ -38,6 +55,7 @@
     background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.32), rgba(var(--lacquer-rgb),0.14));
     border-color: var(--lacquer-bright); box-shadow: 0 0 0 1px rgba(var(--lacquer-rgb),0.3);
   }
+  .drawer-star-btn.active{ color: var(--star); }
   .drawer-body{ padding: 20px; overflow-y:auto; flex:1 1 auto; }
   .name-table{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
   .name-row{ display:flex; align-items:baseline; gap:10px; padding: 9px 0; border-bottom:1px solid var(--line); }

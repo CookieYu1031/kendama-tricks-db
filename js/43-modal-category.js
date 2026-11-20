@@ -37,33 +37,36 @@
 
   var TRICK_DEFAULT_HEX = "#5B8AA6"; // matches --string, the default (un-customized) trick tint
 
+  // "drawer" target: an external caller (the trick drawer) owns the draft. Set by
+  // openIconPicker("drawer", { icon, color, onDone(icon, color) }); onDone runs once on close.
+  var drawerPicker = null;
+
   function getDraftIcon(target){
-    if(target==="trick") return state.trickDraftIcon;
+    if(target==="drawer") return drawerPicker ? drawerPicker.icon : "";
     if(target==="space") return state.spaceDraftIcon;
     if(target==="add") return state.addDraftIcon;
     return state.categoryDraftIcon;
   }
   function getDraftColor(target){
-    if(target==="trick") return state.trickDraftColor;
+    if(target==="drawer") return drawerPicker ? drawerPicker.color : "";
     if(target==="space") return state.spaceDraftColor;
     if(target==="add") return state.addDraftColor;
     return state.categoryDraftColor;
   }
   function setDraftIcon(target, val){
-    if(target==="trick") state.trickDraftIcon = val;
+    if(target==="drawer"){ if(drawerPicker) drawerPicker.icon = val; }
     else if(target==="space") state.spaceDraftIcon = val;
     else if(target==="add") state.addDraftIcon = val;
     else state.categoryDraftIcon = val;
   }
   function setDraftColor(target, val){
-    if(target==="trick") state.trickDraftColor = val;
+    if(target==="drawer"){ if(drawerPicker) drawerPicker.color = val; }
     else if(target==="space") state.spaceDraftColor = val;
     else if(target==="add") state.addDraftColor = val;
     else state.categoryDraftColor = val;
   }
 
   var ICON_TARGET_ELS = {
-    trick:    { swatch:"trickIconColorSwatch",   text:"trickIconColorPreviewText" },
     space:    { swatch:"spaceIconSwatch",        text:"spaceIconPreviewText" },
     category: { swatch:"iconColorSwatch",        text:"iconColorPreviewText" }
   };
@@ -74,11 +77,12 @@
     var text = document.getElementById(els.text);
     if(!swatch || !text) return;
     var colorKey = getDraftColor(target);
-    var hex = (target==="trick" && !colorKey) ? TRICK_DEFAULT_HEX : colorHex(colorKey);
+    var hex = colorHex(colorKey);
     swatch.style.background = hexToRgba(hex, 0.22);
     swatch.style.color = hex;
     var icon = getDraftIcon(target);
-    swatch.innerHTML = icon ? escapeHtml(icon) : (target==="trick" ? ICON_PLAY : target==="space" ? ICON_EMPTY : ICON_FOLDER);
+    swatch.classList.toggle("img-icon", isImageIcon(icon));
+    swatch.innerHTML = iconHtml(icon, target==="space" ? ICON_EMPTY : ICON_FOLDER);
     text.textContent = t("chooseIconColor");
   }
 
@@ -164,14 +168,18 @@
       grid.appendChild(groupEl);
     });
   }
-  function openIconPicker(target){
+  function openIconPicker(target, opts){
     state.iconPickerTarget = target || "category";
+    drawerPicker = target === "drawer" ? { icon: (opts && opts.icon) || "", color: (opts && opts.color) || "", onDone: opts && opts.onDone } : null;
     renderIconPicker();
     document.getElementById("iconPickerOverlay").classList.add("show");
   }
   function closeIconPicker(){
     document.getElementById("iconPickerOverlay").classList.remove("show");
-    if(state.iconPickerTarget === "add") updateAddIconPreview();
+    if(state.iconPickerTarget === "drawer"){
+      var dp = drawerPicker; drawerPicker = null;
+      if(dp && typeof dp.onDone === "function") dp.onDone(dp.icon, dp.color);
+    } else if(state.iconPickerTarget === "add") updateAddIconPreview();
     else updateIconColorPreview(state.iconPickerTarget);
   }
 

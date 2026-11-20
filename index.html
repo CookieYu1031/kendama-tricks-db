@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Varela+Round&family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/variables-and-base.css">
 <link rel="stylesheet" href="css/shell-topbar-rail.css">
+<link rel="stylesheet" href="css/search-panel.css">
 <link rel="stylesheet" href="css/browse-columns.css">
 <link rel="stylesheet" href="css/detail-drawer.css">
 <link rel="stylesheet" href="css/buttons-and-modals.css">
@@ -34,16 +35,32 @@
       <span id="searchToggleLabel">搜尋</span>
     </button>
 
-    <!-- Search panel: drops down below the topbar (v0.5 extends it with filters). -->
+    <!-- Search panel: drops down below the topbar (v0.5: text / #tag + grip / part conditions + live results). -->
     <div class="search-panel" id="searchPanel">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <input type="text" class="search-input" id="searchInput" placeholder="搜尋招式名稱（中／日／英）…" autocomplete="off" />
+        <input type="text" class="search-input" id="searchInput" placeholder="搜尋招式名稱，或輸入 #標籤…" autocomplete="off" />
         <button class="search-clear" id="searchClear">
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
         </button>
-        <div class="search-suggest" id="searchSuggest"></div>
       </div>
+      <div class="search-tag-suggest drawer-chip-row" id="searchTagSuggest"></div>
+      <div class="search-section">
+        <div class="search-label" id="searchGripLabel"></div>
+        <div class="lang-switch search-seg" id="searchGripRow"></div>
+      </div>
+      <div class="search-section">
+        <div class="search-label-row">
+          <div class="search-label" id="searchPartsLabel"></div>
+          <div class="lang-switch search-seg search-seg-sm" id="searchPartsMode"></div>
+        </div>
+        <div class="drawer-chip-row" id="searchPartsRow"></div>
+      </div>
+      <div class="search-results-bar">
+        <span class="search-count" id="searchCount"></span>
+        <button type="button" class="drawer-chip" id="searchResetBtn"></button>
+      </div>
+      <div class="search-list" id="searchList"></div>
     </div>
 
     <div class="topbar-side topbar-side-right">
@@ -233,51 +250,6 @@
   </div>
 </div>
 
-<!-- Trick Modal -->
-<div class="modal-overlay" id="trickModalOverlay">
-  <div class="modal modal-lg" id="trickModal">
-    <div class="modal-scroll">
-      <div class="modal-title" id="trickModalTitle">新增招式</div>
-      <div class="modal-sub" id="trickModalSub">招式資料為單一真值來源，可同時歸類於多個分類</div>
-      <div class="field">
-        <label id="trickIconColorFieldLabel">圖示與顏色</label>
-        <button type="button" class="icon-color-preview" id="trickIconColorPreviewBtn">
-          <span class="icon-color-swatch" id="trickIconColorSwatch"></span>
-          <span id="trickIconColorPreviewText">選擇圖示與顏色</span>
-        </button>
-      </div>
-      <div class="field">
-        <label id="trickNameZhLabel">中文名稱 <span class="req">*</span></label>
-        <input type="text" id="trickZh" placeholder="例如：大皿" />
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label id="trickNameJpLabel">日文名稱</label>
-          <input type="text" id="trickJp" placeholder="例如：大皿（おおざら）" />
-        </div>
-        <div class="field">
-          <label id="trickNameEnLabel">英文名稱</label>
-          <input type="text" id="trickEn" placeholder="e.g. Big Cup" />
-        </div>
-      </div>
-      <div class="field">
-        <label id="trickCatPickerLabel">所屬分類 <span class="req">*</span>（可複選）</label>
-        <div class="cat-tree-picker" id="trickCatPicker"></div>
-      </div>
-      <div class="form-error" id="trickFormError">請輸入中文名稱並至少選擇一個分類</div>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-actions-split">
-        <button class="btn btn-danger" id="trickDeleteBtn" hidden>刪除招式</button>
-        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
-          <button class="btn btn-ghost" id="trickCancelBtn">取消</button>
-          <button class="btn btn-primary" id="trickSaveBtn">儲存</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Media Modal (video only — notes are now edited directly in the drawer) -->
 <div class="modal-overlay" id="mediaModalOverlay">
   <div class="modal" id="mediaModal">
@@ -440,7 +412,6 @@
         <div class="field"><label id="addContentLabel"></label><textarea id="addContent" rows="4"></textarea></div>
       </div>
       <div id="addTrickSection" hidden>
-        <div class="field"><label id="addLinkLabel"></label><input type="text" id="addLinkId" maxlength="7" autocomplete="off" /></div>
         <div id="addTrickFields">
           <div class="field"><label id="addVideoLabel"></label><input type="url" id="addVideoUrl" placeholder="https://" /></div>
           <div class="field"><label id="addGripLabel"></label><div class="drawer-chip-row" id="addGripRow"></div></div>
@@ -529,7 +500,9 @@
 <script src="js/22-browse-drag.js"></script>
 <script src="js/23-browse-gestures.js"></script>
 <script src="js/24-browse-keys.js"></script>
-<script src="js/30-trick-drawer.js"></script>
+<script src="js/30-drawer-logic.js"></script>
+<script src="js/31-drawer-sections.js"></script>
+<script src="js/32-trick-drawer.js"></script>
 <script src="js/40-modal-confirm-toast.js"></script>
 <script src="js/41-modal-video.js"></script>
 <script src="js/42-modal-media.js"></script>
@@ -546,6 +519,8 @@
 <script src="js/55-sync-conflict.js"></script>
 <script src="js/59-auth-state.js"></script>
 <script src="js/60-search-suggest.js"></script>
+<script src="js/61-search-index.js"></script>
+<script src="js/62-search-panel.js"></script>
 <script src="js/90-events-and-init.js"></script>
 </body>
 </html>

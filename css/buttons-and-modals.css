@@ -105,6 +105,11 @@
   .emoji-cell:hover{ background: var(--ink-4); }
   .emoji-cell.selected{ border-color: var(--wood); background: var(--wood-tint-cell); }
   /* ---------- Unified add modal (js/47-modal-add.js) ---------- */
+  /* Fixed size for every type (trick / folder / info): body scrolls inside. */
+  .modal.add-modal{ width:520px; height:min(700px, calc(100dvh - 32px)); max-height:none; }
+  .add-modal .modal-scroll{ overscroll-behavior:contain; }
+  .add-link-note{ margin:-6px 0 12px; }
+  .add-link-note.form-error{ margin:-6px 0 12px; }
   .add-modal-head{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
   .add-type-switch{ flex:1 1 auto; min-width:0; }
   .add-type-switch .lang-btn{ flex:1 1 0; min-width:0; }

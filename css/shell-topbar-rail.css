@@ -194,28 +194,6 @@
   .search-clear svg{ display:block; margin:auto; width:12px; height:12px; }
   .search-clear.show{ display:flex; }
 
-  /* Fixed dark surface (not the theme's translucent glass tokens) at 90%
-     opacity, per spec — so the dropdown reads as a solid panel rather than
-     one more glass layer. */
-  .search-suggest{
-    position:absolute; top: calc(100% + 6px); left:0; right:0;
-    background: var(--surface-suggest);
-    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg), var(--glass-highlight);
-    padding: 6px; display:none; flex-direction:column; gap:2px;
-    max-height: 60vh; overflow-y:auto; z-index: 30;
-  }
-  .search-suggest.show{ display:flex; }
-  .search-suggest-item{
-    padding: 5px 10px; border-radius: var(--radius-sm); cursor:pointer;
-    font-size:13.5px; line-height:1.3; color: var(--paper);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    transition: background .14s var(--ease);
-  }
-  .search-suggest-item:hover{ background: var(--glass-2); }
-
   .topbar-actions{ flex: 0 0 auto; display:flex; align-items:center; gap:10px; margin-left:auto; }
 
   .lang-switch{
@@ -312,6 +290,9 @@
   .icon-btn svg{ width:16px; height:16px; }
   .icon-btn:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
   .icon-btn:active{ transform: translateY(0); }
+  .icon-btn.has-avatar{ padding:0; overflow:hidden; border-radius:50%; }
+  .settings-btn-avatar{ width:100%; height:100%; object-fit:cover; display:block; border-radius:inherit; }
+  .settings-btn-initial{ font-family: var(--font-display); font-weight:700; font-size:14px; color: var(--paper); line-height:1; }
 
   .edit-toggle{
     display:flex; align-items:center; gap:8px;

@@ -32,10 +32,39 @@
   //   "columns"  — a flat multi-column grid of tricks only (no categories)
   var DEFAULT_SPACES = [
     { id:"t00", code:"00", locked:true,  icon:"🗂️", name:{ zh:"總表", jp:"総表", en:"Master list" },    viewMode:"tree" },
-    { id:"t01", code:"01", locked:true,  icon:"🎖️", name:{ zh:"檢定", jp:"検定", en:"Certification" }, viewMode:"tree" },
+    { id:"t01", code:"01", locked:true,  icon:"📜", name:{ zh:"檢定", jp:"検定", en:"Certification" }, viewMode:"tree" },
     { id:"t02", code:"02", locked:true,  icon:"🏆", name:{ zh:"賽事", jp:"大会", en:"Competition" },    viewMode:"tree" },
     { id:"fav", code:null, locked:false, icon:"⭐", name:{ zh:"收藏", jp:"お気に入り", en:"Favorites" }, viewMode:"tree" }
   ];
+  // Initial level-1 folders (admin may rename / delete / reorder them like any folder). Fixed
+  // 6-char ids (time ids are 7 chars, so no collision). Seeded once per table: a table whose
+  // `seeded` flag is set (it lives on the space record, so it syncs) is never re-seeded.
+  var SEED_FOLDERS = {
+    t01: [
+      { id:"s01jka", name:{ zh:"JKA日本劍玉協會", jp:"JKA 日本けん玉協会", en:"JKA Japan Kendama Association" }, icon:"img:assets/icon-jka.png" },
+      { id:"s01glk", name:{ zh:"GLOKEN", jp:"GLOKEN", en:"GLOKEN" }, icon:"img:assets/icon-gloken.png" }
+    ],
+    t02: [
+      { id:"s02kwc", name:{ zh:"KWC", jp:"KWC", en:"KWC" }, icon:"" },
+      { id:"s02nak", name:{ zh:"NAKO", jp:"NAKO", en:"NAKO" }, icon:"" },
+      { id:"s02btb", name:{ zh:"BATB", jp:"BATB", en:"BATB" }, icon:"" },
+      { id:"s02ekc", name:{ zh:"EKC", jp:"EKC", en:"EKC" }, icon:"" }
+    ]
+  };
+  // Adds the initial folders to every table that is empty and not yet seeded; marks it seeded.
+  function seedDefaultFolders(spaces, cats){
+    spaces.forEach(function(sp){
+      var list = SEED_FOLDERS[sp.id];
+      if(!list || sp.seeded) return;
+      sp.seeded = true;
+      var has = cats.some(function(c){ return c.spaceId === sp.id; });
+      if(has) return;
+      list.forEach(function(f, i){
+        if(cats.some(function(c){ return c.id === f.id; })) return;
+        cats.push({ id:f.id, parentId:null, name:nameOf(f.name), order:i, icon:f.icon, color:"default", spaceId:sp.id });
+      });
+    });
+  }
   var VIEW_MODES = ["tree", "columns"];
   var FAV_TABLE_ID = "fav";
   var FAV_STARRED_ID = "fav-starred"; // virtual folder: tricks with favorite:true
@@ -212,7 +241,7 @@
     var out = DEFAULT_SPACES.map(function(d, idx){
       var s = saved.find(function(x){ return x && x.id === d.id; }) || {};
       return {
-        id:d.id, code:d.code, locked:d.locked, icon: s.icon || d.icon, name: nameOf(d.name),
+        id:d.id, code:d.code, locked:d.locked, icon: d.icon, name: nameOf(d.name), seeded: !!s.seeded,
         order: typeof s.order === "number" ? s.order : idx,
         viewMode: VIEW_MODES.indexOf(s.viewMode) !== -1 ? s.viewMode : d.viewMode
       };
@@ -254,6 +283,7 @@
         spaceId: c.spaceId || spaces[0].id
       };
     });
+    seedDefaultFolders(spaces, cats);
     var infos = (raw.infos||[]).map(function(n, idx){
       return {
         id:n.id, parentId: n.parentId===undefined?null:n.parentId,
@@ -280,6 +310,8 @@
         media = [{ id: newItemId(), type:"video", title:"", url: t.videoUrl, platform: typeof detectPlatform === "function" ? detectPlatform(t.videoUrl) : "" }];
       }
       media = media.slice(0, MAX_VIDEOS);
+      // landed is derived from rate (drawer has no separate toggle): legacy landed w/o rate -> "rare".
+      var rateVal = RATE_LEVELS.indexOf(t.rate) !== -1 ? t.rate : (t.landed ? "rare" : null);
       return {
         id:t.id, name: nameOf(t.name),
         media: media, categoryIds: Array.isArray(t.categoryIds)? t.categoryIds.slice() : [],
@@ -292,8 +324,8 @@
         parts: Array.isArray(t.parts) ? PART_KEYS.filter(function(k){ return t.parts.indexOf(k) !== -1; }) : [],
         officialNote: typeof t.officialNote === "string" ? t.officialNote : "",
         note: typeof t.note === "string" ? t.note : legacyNotes.join("\n\n"),
-        landed: !!t.landed,
-        rate: RATE_LEVELS.indexOf(t.rate) !== -1 ? t.rate : null,
+        landed: !!rateVal,
+        rate: rateVal,
         favorite: !!t.favorite,
         custom: !!t.custom
       };

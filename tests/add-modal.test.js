@@ -6,7 +6,7 @@ const { load } = require("./_load");
 
 function setup(){
   const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
-    "js/07-id.js", "js/09-names.js", "js/20-browse-order.js", "js/30-trick-drawer.js", "js/47-modal-add.js"]);
+    "js/07-id.js", "js/09-names.js", "js/20-browse-order.js", "js/30-drawer-logic.js", "js/31-drawer-sections.js", "js/32-trick-drawer.js", "js/47-modal-add.js"]);
   ctx.saveDB = () => {};
   const nm = (z) => ({ zh: z, jp: "", en: "" });
   ctx.db = ctx.normalizeDB({
@@ -124,6 +124,38 @@ test("createTrickRecord: fields, video, custom flag, root placement", () => {
   assert.strictEqual(plainTr.custom, false);
   assert.deepStrictEqual(Array.from(plainTr.categoryIds), ["t00"]);
   assert.strictEqual(plainTr.media.length, 0);
+});
+
+test("parseAtId: @ + 7 chars, spaces around allowed, else null", () => {
+  const c = setup();
+  assert.strictEqual(c.parseAtId("@0qbk3xY"), "0qbk3xY");
+  assert.strictEqual(c.parseAtId("  @0qbk3xY  "), "0qbk3xY");
+  assert.strictEqual(c.parseAtId("0qbk3xY"), null);
+  assert.strictEqual(c.parseAtId("@0qbk3x"), null);
+  assert.strictEqual(c.parseAtId("@0qbk3xYZ"), null);
+  assert.strictEqual(c.parseAtId("abc @0qbk3xY"), null);
+  assert.strictEqual(c.parseAtId(""), null);
+  assert.strictEqual(c.parseAtId(null), null);
+});
+
+test("findLinkTarget: any name field (array or object)", () => {
+  const c = setup();
+  assert.strictEqual(c.findLinkTarget(["", "x", "@a000000"]), "a000000");
+  assert.strictEqual(c.findLinkTarget({ zh: "名", jp: "@d000000", en: "" }), "d000000");
+  assert.strictEqual(c.findLinkTarget(["a", "b", ""]), null);
+  assert.strictEqual(c.findLinkTarget(null), null);
+});
+
+test("link by @id: validate then link (save path logic)", () => {
+  const c = setup(); lock(c, false);
+  const id = c.findLinkTarget(["", "@d000000", ""]);
+  assert.strictEqual(c.validateLinkTrick(id, "c2", "t00", false), "");
+  c.linkTrickInto(id, "c2", "t00");
+  assert.deepStrictEqual(Array.from(c.getTrick("d000000").categoryIds), ["c3", "c2"]);
+  assert.strictEqual(c.validateLinkTrick(id, "c2", "t00", false), "addErrLinkDup");
+  lock(c, true);
+  assert.strictEqual(c.validateLinkTrick("a000000", "c2", "t00", false), "addErrLinkPerm");
+  assert.strictEqual(c.validateLinkTrick("@x", "c2", "t00", true), "addErrLinkMissing");
 });
 
 test("addNameEmpty", () => {

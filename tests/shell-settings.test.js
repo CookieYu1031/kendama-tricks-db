@@ -70,3 +70,13 @@ test("rail zones: guest sees only the top zone", () => {
   assert.ok(!z.showMiddle && !z.showBottom);
   assert.strictEqual(ctx.railLayout(ctx.db.spaces).length, 3);
 });
+
+test("settingsBtnState: signed out -> icon; signed in -> avatar with photo / initial", () => {
+  const ctx = load(["js/14-shell-settings.js"], { document: { getElementById: () => ({ addEventListener() {} }) } });
+  assert.strictEqual(ctx.settingsBtnState(null).kind, "icon");
+  const a = ctx.settingsBtnState({ displayName: "kenji", photoURL: "http://x/p.png" });
+  assert.deepStrictEqual([a.kind, a.photoURL, a.initial], ["avatar", "http://x/p.png", "K"]);
+  const b = ctx.settingsBtnState({ email: "zed@x.com" });
+  assert.deepStrictEqual([b.photoURL, b.initial], ["", "Z"]);
+  assert.strictEqual(ctx.settingsBtnState({}).initial, "?");
+});
