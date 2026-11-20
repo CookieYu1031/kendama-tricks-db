@@ -1,23 +1,17 @@
 /* Admin panel (js/70-admin-panel.js). Reuses .modal-lg / .field / .btn from buttons-and-modals.css. */
   .admin-modal{ width: 860px; }
-  .admin-grid{
-    display:grid; gap:14px; align-items:start;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: "mail publish" "stats publish" "stats helpers";
-    grid-template-rows: auto 1fr auto;
-  }
-  .admin-area-mail{ grid-area: mail; }
-  .admin-area-stats{ grid-area: stats; align-self:stretch; }
-  .admin-area-publish{ grid-area: publish; }
-  .admin-area-helpers{ grid-area: helpers; }
+  .admin-grid{ display:flex; flex-direction:column; gap:14px; }
+  .admin-right{ display:flex; flex-direction:column; gap:14px; min-width:0; }
+  .admin-actions{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
+  .admin-actions .btn{ min-width:0; padding:9px 6px; white-space:normal; line-height:1.25; }
   .admin-card{
     border:1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-1);
     padding:14px 16px; min-width:0;
   }
+  .admin-card-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+  .admin-card-head .admin-card-title{ margin-bottom:0; }
   .admin-card-title{ font-family: var(--font-display); font-size:15px; font-weight:700; margin-bottom:10px; }
   .admin-card-subtitle{ font-size:12px; font-weight:600; color: var(--paper-dim); margin: 4px 0 6px; }
-  .admin-soon{ font-size:12px; color: var(--accent-text); font-family: var(--font-mono); padding:10px 0; }
-  .admin-mailbox-btn[disabled]{ opacity:0.55; cursor:not-allowed; }
   .admin-last{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color: var(--paper-dim); margin-bottom:12px; }
   .admin-last-value{ font-family: var(--font-mono); color: var(--paper); text-align:right; }
   .admin-pending{ margin-bottom:12px; font-size:13px; }
@@ -29,9 +23,22 @@
   .admin-index-hint a{ color: var(--accent-text); text-decoration:underline; }
   .admin-card .btn[disabled]{ opacity:0.5; cursor:not-allowed; transform:none; }
   .toast-link{ margin-left:8px; color: var(--accent-text); text-decoration:underline; pointer-events:auto; }
-  @media (max-width: 720px){
+
+  /* Wide: two columns, panel fits the viewport; only inner lists scroll. */
+  @media (min-width: 861px){
+    .admin-modal{ height: min(720px, calc(100dvh - 40px)); max-height: calc(100dvh - 40px); }
     .admin-grid{
-      grid-template-columns: 1fr; grid-template-rows: none;
-      grid-template-areas: "publish" "mail" "stats" "helpers";
+      display:grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr);
+      overflow:hidden; padding:18px 22px;
     }
+    .admin-area-stats{ display:flex; flex-direction:column; min-height:0; }
+    .admin-stats-body{ flex:1 1 auto; min-height:0; overflow-y:auto; padding-right:4px; }
+    .admin-right{ min-height:0; }
+    .admin-area-publish{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow-y:auto; }
+    .admin-area-publish .field textarea{ resize:none; }
+    .admin-area-publish .admin-pending{ flex:1 1 auto; min-height:48px; overflow-y:auto; }
+  }
+  /* Narrow (phone): single column, the modal scrolls normally. */
+  @media (max-width: 860px){
+    .admin-actions{ grid-template-columns: 1fr; }
   }

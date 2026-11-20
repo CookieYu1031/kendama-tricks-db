@@ -67,6 +67,7 @@
     icSw.className = "icon-color-swatch";
     var icHex = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
     icSw.style.background = hexToRgba(icHex, 0.22); icSw.style.color = icHex;
+    icSw.classList.toggle("img-icon", isImageIcon(tr.icon));
     icSw.innerHTML = iconHtml(tr.icon, ICON_PLAY);
     var icTx = document.createElement("span");
     icTx.textContent = t("chooseIconColor");
@@ -148,10 +149,28 @@
     }
   }
 
+  // Fills `box` with one .part-group per PART_GROUPS entry; makeBtn(key) returns a chip or null.
+  // Empty groups are skipped. Returns how many chips were added.
+  function fillPartGroups(box, makeBtn){
+    var n = 0;
+    box.innerHTML = "";
+    box.classList.add("part-groups");
+    PART_GROUPS.forEach(function(g){
+      var grp = document.createElement("div");
+      grp.className = "part-group";
+      grp.setAttribute("data-group", g.key);
+      g.parts.forEach(function(k){
+        var b = makeBtn(k);
+        if(b){ grp.appendChild(b); n++; }
+      });
+      if(grp.children.length) box.appendChild(grp);
+    });
+    return n;
+  }
+
   // Grip (single) + parts (multi). View mode: chips for what is set; edit mode: selectors.
   function buildDrawerGripParts(tr, canEditTrick, expandContent){
     if(canEditTrick || tr.grip){
-      expandContent.appendChild(makeLabel(t("gripLabel")));
       var gripRow = document.createElement("div");
       gripRow.className = "drawer-chip-row";
       GRIP_KEYS.forEach(function(k){
@@ -162,14 +181,13 @@
       expandContent.appendChild(gripRow);
     }
     if(canEditTrick || (tr.parts && tr.parts.length)){
-      expandContent.appendChild(makeLabel(t("partsLabel")));
       var partsRow = document.createElement("div");
       partsRow.className = "drawer-chip-row";
-      PART_KEYS.forEach(function(k){
+      fillPartGroups(partsRow, function(k){
         var on = (tr.parts || []).indexOf(k) !== -1;
-        if(!canEditTrick && !on) return;
-        partsRow.appendChild(makeChip(t("part_" + k), on,
-          canEditTrick ? function(){ togglePart(tr, k); saveDB(); renderDrawer(); } : null));
+        if(!canEditTrick && !on) return null;
+        return makeChip(t("part_" + k), on,
+          canEditTrick ? function(){ togglePart(tr, k); saveDB(); renderDrawer(); } : null);
       });
       expandContent.appendChild(partsRow);
     }

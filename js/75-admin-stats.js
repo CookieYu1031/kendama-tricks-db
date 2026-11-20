@@ -13,7 +13,7 @@
       stTopFav:"最多收藏 Top 5", stTopLanded:"最多成招 Top 5", stRateDist:"成招率分布", stSubs:"投稿數",
       stGa4:"GA4 月訪客：尚未設定", stGa4Hint:"需要 GA4 衡量 ID 才能顯示。", stNoAccess:"無權限",
       stT00:"總表", stT01:"檢定", stT02:"賽事", stPeople:"{n} 人",
-      bkTitle:"備份：已發布版本", bkDownload:"下載", bkNone:"尚無已發布版本", bkFail:"下載失敗" },
+      bkTitle:"備份：下載已發布版本", bkDownload:"下載", bkNone:"尚無已發布版本", bkFail:"下載失敗" },
     jp:{ stRefresh:"更新", stLoading:"読み込み中…", stError:"読み込みに失敗しました", stEmpty:"データなし",
       stRegistered:"登録数", stCollected:"総表の収録数", stLang:"言語の割合", stActive7:"7日間アクティブ", stActive30:"30日間アクティブ",
       stTopFav:"お気に入り Top 5", stTopLanded:"成功が多い技 Top 5", stRateDist:"成功率の分布", stSubs:"投稿数",
@@ -105,14 +105,17 @@
       list.innerHTML = "";
       if(!vs.length){ list.textContent = t("bkNone"); return; }
       vs.forEach(function(v){
-        var row = document.createElement("div"); row.className = "stats-row";
-        var lab = document.createElement("span"); lab.className = "stats-row-label";
+        var row = document.createElement("div"); row.className = "stats-row bk-row";
+        var info = document.createElement("div"); info.className = "bk-info";
+        var lab = document.createElement("div"); lab.className = "bk-label";
         var when = v.publishedAt ? " · " + new Date(v.publishedAt).toLocaleDateString() : "";
         lab.textContent = "v" + v.version + (v.label ? " " + v.label : "") + when;
+        info.appendChild(lab);
+        if(v.note){ var nt = document.createElement("div"); nt.className = "bk-note"; nt.textContent = v.note; info.appendChild(nt); }
         var btn = document.createElement("button");
         btn.type = "button"; btn.className = "btn"; btn.textContent = t("bkDownload");
         btn.addEventListener("click", function(){ btn.disabled = true; downloadPublishedVersion(v.version).then(function(){ btn.disabled = false; }); });
-        row.appendChild(lab); row.appendChild(btn); list.appendChild(row);
+        row.appendChild(info); row.appendChild(btn); list.appendChild(row);
       });
     }).catch(function(){ list.textContent = t("stError"); });
   }
@@ -218,12 +221,13 @@
 
   function renderAdminStats(el, force){
     el.innerHTML = "";
-    var head = statsEl("div", "stats-head");
-    var btn = statsEl("button", "btn", t("stRefresh")); btn.type = "button";
-    head.appendChild(btn);
+    // The ↺ button lives in the card header (index.html #adminStatsRefresh), right of the title.
+    var btn = document.getElementById("adminStatsRefresh");
+    if(!btn){ btn = statsEl("button", "stats-refresh", "↺"); btn.type = "button"; el.parentNode && el.parentNode.insertBefore(btn, el); }
+    btn.title = t("stRefresh"); btn.setAttribute("aria-label", t("stRefresh"));
+    btn.onclick = function(){ renderAdminStats(el, true); };
     var body = statsEl("div", "stats-body");
-    el.appendChild(head); el.appendChild(body);
-    btn.addEventListener("click", function(){ renderAdminStats(el, true); });
+    el.appendChild(body);
     function show(d){ body.innerHTML = ""; statsBuildView(body, d); }
     if(_statsCache && !force){ show(_statsCache); return; }
     body.textContent = t("stLoading"); btn.disabled = true;

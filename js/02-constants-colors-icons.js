@@ -46,24 +46,18 @@
   // addStrings() in 04-state.js, because 03-i18n.js loads after this file.
   var DATA_MODEL_STRINGS = {
     zh: {
-      part_kensaki:"劍尖", part_kensakiSide:"劍尖側", part_sara:"大小皿", part_saraEdge:"大小皿邊", part_kenBody:"劍身",
-      part_suberidome:"止滑", part_chuzara:"中皿", part_chuzaraEdge:"中皿邊", part_tamaTop:"球上", part_ana:"球洞",
       grip_ken:"持劍", grip_tama:"持球", grip_ito:"持線",
       rate_rare:"罕見", rate_sometimes:"有時", rate_most:"多數", rate_mastered:"熟練",
       rateHint_rare:"約 1/10", rateHint_sometimes:"約 3/10", rateHint_most:"約 5/10", rateHint_mastered:"約 8/10",
       landed:"成招", notLanded:"無成招"
     },
     jp: {
-      part_kensaki:"剣先", part_kensakiSide:"剣先サイド", part_sara:"大小皿", part_saraEdge:"大小皿のふち", part_kenBody:"けん身",
-      part_suberidome:"すべり止め", part_chuzara:"中皿", part_chuzaraEdge:"中皿のふち", part_tamaTop:"玉の上", part_ana:"穴",
       grip_ken:"けん持ち", grip_tama:"玉持ち", grip_ito:"糸持ち",
       rate_rare:"たまに", rate_sometimes:"ときどき", rate_most:"だいたい", rate_mastered:"得意",
       rateHint_rare:"約1/10", rateHint_sometimes:"約3/10", rateHint_most:"約5/10", rateHint_mastered:"約8/10",
       landed:"成功", notLanded:"未成功"
     },
     en: {
-      part_kensaki:"Spike", part_kensakiSide:"Spike side", part_sara:"Big/small cup", part_saraEdge:"Big/small cup rim", part_kenBody:"Ken body",
-      part_suberidome:"Slip stopper", part_chuzara:"Base cup", part_chuzaraEdge:"Base cup rim", part_tamaTop:"Ball top", part_ana:"Ball hole",
       grip_ken:"Hold ken", grip_tama:"Hold ball", grip_ito:"Hold string",
       rate_rare:"Rarely", rate_sometimes:"Sometimes", rate_most:"Mostly", rate_mastered:"Mastered",
       rateHint_rare:"about 1/10", rateHint_sometimes:"about 3/10", rateHint_most:"about 5/10", rateHint_mastered:"about 8/10",

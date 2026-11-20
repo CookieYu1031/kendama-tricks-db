@@ -27,7 +27,6 @@
     setText("categoryNameZhLabel", t("categoryNameZh"), true);
     setText("categoryNameJpLabel", t("categoryNameJp"));
     setText("categoryNameEnLabel", t("categoryNameEn"));
-    setText("catParentLabel", t("parentCategory"));
     setPlaceholder("catZh", eg + t("categoryEgZh"));
     setPlaceholder("catJp", eg + t("categoryEgJp"));
     setText("catCancelBtn", t("cancel"));

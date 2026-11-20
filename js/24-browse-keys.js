@@ -114,6 +114,13 @@
   }
 
   document.addEventListener("keydown", function(ev){
+    if(typeof clipKeyAction === "function"){
+      var sel = window.getSelection ? window.getSelection() : null;
+      var ctx = kbdContext(ev);
+      ctx.hasTextSelection = !!(sel && !sel.isCollapsed && String(sel).length);
+      var clipAct = clipKeyAction(ev, ctx);
+      if(clipAct){ clipRun(clipAct); ev.preventDefault(); return; }
+    }
     if(ev.key === "Enter" && ev.target && ev.target.closest && ev.target.closest("button, a")) return;
     var action = keyAction(ev.key, kbdContext(ev));
     if(action && kbdRun(action)) ev.preventDefault();

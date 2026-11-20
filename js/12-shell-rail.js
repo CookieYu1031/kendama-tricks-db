@@ -120,7 +120,8 @@
     btn.className = "space-btn" + (state.activeSpace===sp.id ? " active" : "");
     btn.dataset.spaceId = sp.id;
     if(pinned) btn.dataset.pinned = "1";
-    btn.textContent = sp.icon || "🗂️";
+    if(isImageIcon(sp.icon)) btn.classList.add("img-icon");
+    btn.innerHTML = iconHtml(sp.icon, "🗂️");
     btn.title = spaceLabel(sp.id);
     if(state.editMode && (!sp.locked || isAdminNow())){
       var badge = document.createElement("span");

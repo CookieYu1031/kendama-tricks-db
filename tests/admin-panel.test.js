@@ -76,3 +76,12 @@ test("formatPendingCounts + lastVersionLabel + date", () => {
   assert.strictEqual(c.formatPublishedDate(new Date(2026, 10, 5)), "2026-11-05");
   assert.strictEqual(c.formatPublishedDate({ toDate: () => new Date(2026, 0, 31) }), "2026-01-31");
 });
+
+test("admin sub-modal ids + i18n keys in 3 languages", () => {
+  const c = ctx();
+  assert.deepStrictEqual(Array.from(c.ADMIN_SUB_IDS), ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay"]);
+  assert.strictEqual(typeof c.topAdminSubModal, "function");
+  ["adminBackup", "adminHelpers", "adminMailbox"].forEach(k => {
+    ["zh", "jp", "en"].forEach(l => assert.ok(c.UI[l][k], l + "." + k));
+  });
+});

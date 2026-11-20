@@ -146,13 +146,9 @@
     });
   }
 
-  // Replaces the 「即將推出」 placeholder of the helpers card; idempotent. Called by openAdminPanel (70).
-  function renderAdminHelpers(){
-    var title = document.getElementById("adminHelpersTitle");
-    if(!title || !title.parentNode) return;
-    var card = title.parentNode;
-    var soon = card.querySelector("[data-soon]");
-    if(soon) soon.parentNode.removeChild(soon);
+  // Fills the helpers sub-modal body (container from js/70 openAdminHelpers); idempotent.
+  function renderAdminHelpers(card){
+    if(!card) return;
     var body = document.getElementById("contribBody");
     if(!body){
       body = document.createElement("div");
@@ -168,7 +164,7 @@
         if(ev.key === "Enter"){ ev.preventDefault(); submitContribForm(); }
       });
       document.getElementById("contribReviewBtn").addEventListener("click", function(){
-        if(typeof closeAdminPanel === "function") closeAdminPanel();
+        if(typeof closeAdminPanel === "function") closeAdminPanel(); // also closes this sub-modal
         if(typeof toggleSubmissionReviewMode === "function") toggleSubmissionReviewMode(true);
       });
     }

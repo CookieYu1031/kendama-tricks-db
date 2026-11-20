@@ -51,6 +51,7 @@
     var viewMode = activeSpaceObj ? (activeSpaceObj.viewMode || "tree") : "tree";
     if(viewMode !== "tree"){
       renderFlatTrickView(wrap, viewMode);
+      if(typeof syncSwipeBack === "function") syncSwipeBack(0, false);
       return;
     }
     wrap.classList.remove("flat-view");
@@ -77,21 +78,13 @@
       colEl.innerHTML = "";
 
       var collapsed = !isMobile && focusIdx !== -1 && colIndex <= focusIdx - 2;
-      colEl.className = "m-col" + (collapsed ? " collapsed" : "") + (isMobile && colIndex === columns.length-1 ? " mobile-active" : "");
+      colEl.className = "m-col" + (collapsed ? " collapsed" : "") + (isMobile && colIndex === columns.length-1 ? " mobile-active" : "") + (isMobile && columns.length > 1 && colIndex === columns.length-2 ? " mobile-under" : "");
 
       // Removed-but-unpublished items stay in place as ghost rows (56); drag/reorder only sees real rows.
       var ghosts = typeof pendingGhostItems === "function" ? pendingGhostItems(col.parentId) : [];
       var items = sortColumnItems(col.items.concat(ghosts), col.parentId);
       var realItems = ghosts.length ? items.filter(function(x){ return !x.ghost; }) : items;
       var subRows = typeof submissionRowItems === "function" ? submissionRowItems(col.parentId) : []; // admin review mode (76)
-
-      if(isMobile && colIndex > 0){
-        var backBtn = document.createElement("button");
-        backBtn.className = "col-add-btn col-back-btn";
-        backBtn.innerHTML = ICON_ARROW_LEFT + "<span>" + escapeHtml(t("backToList")) + "</span>";
-        backBtn.addEventListener("click", function(){ state.path = state.path.slice(0, colIndex-1); render(RENDER_COLUMNS_ONLY); });
-        colEl.appendChild(backBtn);
-      }
 
       var itemsWrap = document.createElement("div");
       itemsWrap.className = "col-items";
@@ -116,12 +109,14 @@
       // column happens to be deepest. Pinned to the bottom of the column via the
       // col-items flex-grow above, regardless of how many rows are in the list.
       if(state.editMode){
-        var addRow = renderColAddRow(col);
-        if(addRow){ colEl.appendChild(addRow); colEl.classList.add("has-fab"); }
+        var fabParts = renderColFab(col); // + button and edit-this-folder pill (js/26)
+        fabParts.forEach(function(el){ colEl.appendChild(el); });
+        if(fabParts.length) colEl.classList.add("has-fab");
       }
     });
 
     while(wrap.children.length > columns.length) wrap.removeChild(wrap.lastChild);
+    if(typeof syncSwipeBack === "function") syncSwipeBack(columns.length, true); // narrow-view swipe-back handle (js/27)
 
     if(columns.length === 1 && columns[0].items.length === 0 && !state.editMode){
       wrap.innerHTML = "";
@@ -230,21 +225,6 @@
     container.appendChild(actions);
   }
 
-  // One floating "+" per column (edit mode): opens the unified add modal (js/47-modal-add.js).
-  // Shown only when the column accepts at least one type (permissions, level limits).
-  function renderColAddRow(col){
-    var allow = allowedAddButtons(col.parentId, state.activeSpace, isAdminNow());
-    if(!allow.folder && !allow.trick && !allow.info) return null;
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "col-add-fab";
-    b.innerHTML = ICON_PLUS;
-    b.title = t("addTitleBtn");
-    b.setAttribute("aria-label", t("addTitleBtn"));
-    b.addEventListener("click", function(){ openAddModal(col.parentId, state.activeSpace); });
-    return b;
-  }
-
   // Builds the icon + name/meta text block shared by every item row —
   // the miller-column tree (renderItemRow) and the flat "columns" grid
   // (renderGridItemRow) both use this, so a trick or category looks
@@ -275,7 +255,10 @@
       var tHex = it.ref.color ? colorHex(it.ref.color) : TRICK_DEFAULT_HEX;
       icon.style.background = hexToRgba(tHex, 0.22);
       icon.style.color = tHex;
-      if(it.ref.icon){
+      if(isImageIcon(it.ref.icon)){
+        icon.classList.add("img-icon");
+        icon.innerHTML = iconHtml(it.ref.icon);
+      } else if(it.ref.icon){
         icon.style.fontSize = "15px";
         icon.textContent = it.ref.icon;
       } else {
@@ -351,29 +334,20 @@
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
-      var actions = document.createElement("div");
-      actions.className = "item-edit-actions";
-      var editBtn = null; // tricks have no edit button: the drawer edits them
-      if(it.type !== "trick"){
-        editBtn = document.createElement("button");
-        editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
-        editBtn.addEventListener("click", function(ev){
+      // Folders / info items have no inline buttons: edit/delete live in the column's
+      // "edit this folder" pill (js/26) and the info modal. Trick rows keep a delete button.
+      if(it.type === "trick"){
+        var actions = document.createElement("div");
+        actions.className = "item-edit-actions";
+        var delBtn = document.createElement("button");
+        delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
+        delBtn.addEventListener("click", function(ev){
           ev.stopPropagation();
-          if(it.type==="category") openCategoryModal(it.id, parentId);
-          else openInfoModal(it.id, parentId, true);
+          requestDeleteTrick(it.id, parentId);
         });
+        actions.appendChild(delBtn);
+        row.appendChild(actions);
       }
-      var delBtn = document.createElement("button");
-      delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
-      delBtn.addEventListener("click", function(ev){
-        ev.stopPropagation();
-        if(it.type==="category") requestDeleteCategory(it.id);
-        else if(it.type==="info") requestDeleteInfo(it.id);
-        else requestDeleteTrick(it.id, parentId);
-      });
-      if(editBtn) actions.appendChild(editBtn);
-      actions.appendChild(delBtn);
-      row.appendChild(actions);
 
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the

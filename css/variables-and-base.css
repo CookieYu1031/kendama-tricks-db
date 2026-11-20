@@ -105,13 +105,3 @@
   #app{ height:100%; display:flex; flex-direction:column; }
   .body-row{ flex:1 1 auto; display:flex; min-height:0; overflow:hidden; }
   .main-col{ flex:1 1 auto; display:flex; flex-direction:column; min-width:0; overflow:hidden; position:relative; }
-  /* Small, unobtrusive credit label pinned to the miller-wrap's bottom-right
-     corner — sits in .main-col (millerWrap's own innerHTML is fully replaced
-     on every render, so a child of it would keep getting wiped) with the
-     same footprint, and stays out of the way of clicks/drags underneath it. */
-  .app-credit{
-    position:absolute; right:12px; bottom:8px;
-    font-size:10.5px; color: var(--paper-faint); opacity:0.55;
-    pointer-events:none; user-select:none; z-index:1; white-space:nowrap;
-  }
-
