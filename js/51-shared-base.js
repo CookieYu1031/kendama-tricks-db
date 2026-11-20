@@ -23,7 +23,7 @@
      — the merge logic in mergeSpaceData/computeSpaceDiff doesn't change at
      all for this space, only where its "base" argument comes from does.
   ------------------------------------------------------------ */
-  function sharedBaseRef(){ return fbStore.collection("sharedBase").doc(SHARED_BASE_SPACE_ID); }
+  function sharedBaseRef(){ return fbStore.collection("sharedBase").doc(SHARED_BASE_DOC_ID); }
 
   function fetchSharedBasePointer(){
     return sharedBaseRef().get().then(function(snap){
@@ -40,7 +40,7 @@
   }
 
   function fetchSharedBaseVersion(version){
-    var cacheKey = SHARED_BASE_SPACE_ID + "@" + version;
+    var cacheKey = SHARED_BASE_TABLE_ID + "@" + version;
     if(baseDataCache[cacheKey]) return Promise.resolve(baseDataCache[cacheKey]);
     if(!version){
       // Nothing published yet (version 0) — base is just empty, same as any
@@ -121,9 +121,9 @@
       _lastSeenPointer = pointer;
       if(!pointer.latestVersion) return;
       return fetchSharedBaseVersion(pointer.latestVersion).then(function(base){
-        var otherCats = db.categories.filter(function(c){ return c.spaceId !== SHARED_BASE_SPACE_ID; });
+        var otherCats = db.categories.filter(function(c){ return c.spaceId !== SHARED_BASE_TABLE_ID; });
         var priorTrickIds = {};
-        tricksForSpace(SHARED_BASE_SPACE_ID).forEach(function(tr){ priorTrickIds[tr.id] = true; });
+        tricksForSpace(SHARED_BASE_TABLE_ID).forEach(function(tr){ priorTrickIds[tr.id] = true; });
         var otherTricks = db.tricks.filter(function(tr){ return !priorTrickIds[tr.id]; });
         db.categories = otherCats.concat(base.categories);
         db.tricks = otherTricks.concat(base.tricks);
@@ -150,8 +150,8 @@
       // into everyone else's shared base.
       var snapshot = {
         version: newVersion,
-        categories: categoriesForSpace(SHARED_BASE_SPACE_ID),
-        tricks: tricksForSpace(SHARED_BASE_SPACE_ID),
+        categories: categoriesForSpace(SHARED_BASE_TABLE_ID),
+        tricks: tricksForSpace(SHARED_BASE_TABLE_ID),
         note: note,
         publishedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
@@ -166,7 +166,7 @@
         // Prime the cache with exactly what was just written so the diff
         // save below (which needs this version's base) doesn't need a
         // network round-trip to read back what we just sent.
-        baseDataCache[SHARED_BASE_SPACE_ID + "@" + newVersion] = {
+        baseDataCache[SHARED_BASE_TABLE_ID + "@" + newVersion] = {
           version: newVersion, categories: snapshot.categories, tricks: snapshot.tricks
         };
         _lastSeenPointer = { latestVersion: newVersion, latestNote: note, publishedAt: null };

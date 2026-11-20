@@ -5,7 +5,7 @@ const { load } = require("./_load");
 
 function setup(){
   // 01-data-model builds db via loadDB(); override after load for determinism.
-  const ctx = load(["js/01-data-model.js", "js/05-data-helpers.js"], { state: { activeSpace: "s1" } });
+  const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/05-data-helpers.js"], { state: { activeSpace: "s1" } });
   ctx.db = {
     categories: [
       { id: "a", parentId: null, spaceId: "s1" }, { id: "b", parentId: null, spaceId: "s2" },

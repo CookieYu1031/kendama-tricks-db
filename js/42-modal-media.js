@@ -2,7 +2,7 @@
 
   /* ============================================================
      MEDIA MODAL (Add / Edit a video under a trick — notes are edited
-     directly in the drawer now, this modal is video-only)
+     directly in the drawer, this modal is video-only; max MAX_VIDEOS per trick)
   ============================================================ */
   function openMediaModal(trickId, mediaId){
     state.editingMediaTrickId = trickId;
@@ -11,6 +11,7 @@
     if(!tr) return;
     document.getElementById("mediaFormError").classList.remove("show");
     document.getElementById("mediaDeleteBtn").hidden = !mediaId;
+    if(!mediaId && (tr.media||[]).length >= MAX_VIDEOS) return; // B9: at most MAX_VIDEOS videos
     var item = mediaId ? (tr.media||[]).find(function(m){ return m.id===mediaId; }) : null;
     document.getElementById("mediaModalTitle").textContent = mediaId ? t("editMedia") : t("addMedia");
     document.getElementById("mediaName").value = item ? (item.title||"") : "";
@@ -45,12 +46,11 @@
       var existing = tr.media.find(function(m){ return m.id===state.editingMediaId; });
       if(existing){
         existing.title = name;
-        existing.type = "video";
         existing.url = url; existing.platform = detectPlatform(url);
-        delete existing.content;
       }
     } else {
-      tr.media.push({ id: uid("media"), type: "video", title: name, url: url, platform: detectPlatform(url) });
+      if(tr.media.length >= MAX_VIDEOS) return closeMediaModal();
+      tr.media.push({ id: newItemId(), type: "video", title: name, url: url, platform: detectPlatform(url) });
     }
     saveDB();
     closeMediaModal();

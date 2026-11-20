@@ -3,13 +3,25 @@
   /* ============================================================
      SPACE MODAL (Add / Edit / Delete a leftmost-rail shelf)
   ============================================================ */
+  addStrings({
+    zh:{ spaceLimitReached:"自訂表格已達 26 個上限", spaceCodeLabel:"表格代碼", confirmDeleteSpaceBody:"此表格內的所有分類、資訊與僅存在於此的招式都會被刪除，此動作無法復原。" },
+    jp:{ spaceLimitReached:"カスタム表は26個までです", spaceCodeLabel:"表コード", confirmDeleteSpaceBody:"この表内のカテゴリ・情報・ここにだけある技はすべて削除されます。元に戻せません。" },
+    en:{ spaceLimitReached:"Custom tables are limited to 26", spaceCodeLabel:"Table code", confirmDeleteSpaceBody:"Every folder, info item and trick that exists only in this table will be deleted. This cannot be undone." }
+  });
+
   function openSpaceModal(spaceId){
     state.editingSpaceId = spaceId || null;
     document.getElementById("spaceFormError").classList.remove("show");
     document.getElementById("spaceModalTitle").textContent = spaceId ? t("editSpace") : t("newSpace");
     document.getElementById("spaceDeleteBtn").hidden = !spaceId || db.spaces.length <= 1 || isUndeletableSpace(spaceId);
+    var codeField = document.getElementById("spaceCodeField");
+    var codeInput = document.getElementById("spaceCode");
+    var shownSpace = spaceId ? getSpace(spaceId) : null;
+    var shownCode = shownSpace ? shownSpace.code : allocSpaceCode();
+    codeField.hidden = !shownCode;
+    codeInput.value = shownCode || "";
     if(spaceId){
-      var sp = getSpace(spaceId);
+      var sp = shownSpace;
       document.getElementById("spaceZh").value = sp.name.zh || "";
       document.getElementById("spaceJp").value = sp.name.jp || "";
       document.getElementById("spaceEn").value = sp.name.en || "";
@@ -43,8 +55,12 @@
       sp.name = { zh:zh, jp:jp, en:en };
       sp.icon = state.spaceDraftIcon || "🗂️";
     } else {
-      var newSpace = { id: uid("space"), icon: state.spaceDraftIcon || "🗂️", name:{ zh:zh, jp:jp, en:en }, order: db.spaces.length, viewMode: "tree" };
-      db.spaces.push(newSpace);
+      var newSpace = createSpace({ icon: state.spaceDraftIcon || "🗂️", name:{ zh:zh, jp:jp, en:en } });
+      if(!newSpace){
+        closeSpaceModal();
+        showToast(t("spaceLimitReached"), "error");
+        return;
+      }
       state.activeSpace = newSpace.id;
       localStorage.setItem(SPACE_KEY, newSpace.id);
     }
@@ -57,8 +73,15 @@
     if(db.spaces.length <= 1 || isUndeletableSpace(spaceId)) return;
     openConfirm(t("confirmDeleteSpaceTitle"), t("confirmDeleteSpaceBody"), function(){
       db.spaces = db.spaces.filter(function(s){ return s.id !== spaceId; });
-      var fallbackId = db.spaces[0].id;
-      db.categories.forEach(function(c){ if(c.spaceId === spaceId) c.spaceId = fallbackId; });
+      var fallbackId = "t00";
+      // Everything inside the deleted table goes with it (tricks lose that placement).
+      var gone = db.categories.filter(function(c){ return c.spaceId === spaceId; }).map(function(c){ return c.id; });
+      db.categories = db.categories.filter(function(c){ return c.spaceId !== spaceId; });
+      db.infos = (db.infos || []).filter(function(n){ return n.spaceId !== spaceId; });
+      var rootIds = gone.concat([spaceId]);
+      db.tricks.slice().forEach(function(tr){
+        rootIds.forEach(function(cid){ if(tr.categoryIds.indexOf(cid) !== -1) removeTrickPlacement(tr.id, cid); });
+      });
       if(state.activeSpace === spaceId){
         state.activeSpace = fallbackId;
         localStorage.setItem(SPACE_KEY, fallbackId);

@@ -68,36 +68,34 @@
   // column's live contents mid-drag, since drag can land on a column that
   // isn't the one the drag started in.
   function buildColumnItems(parentId){
-    var cats = getChildren(parentId).map(function(c){ return { type:"category", id:c.id, name:c.name, ref:c }; });
-    var trs = getTricksInCategory(parentId===null ? "__none__" : parentId).map(function(tr){ return { type:"trick", id:tr.id, name:tr.name, ref:tr }; });
-    return sortColumnItems(cats.concat(trs), parentId);
+    return sortColumnItems(buildRawColumnItems(parentId), parentId);
   }
 
-  // Whether `it` may be reparented from sourceParentId to targetParentId:
-  // categories can nest under another category OR a trick-folder (a trick-folder
-  // can hold sub-categories directly, same as it can hold extension tricks), never
-  // under themselves or their own descendants, and never past the depth limit;
-  // tricks just can't nest under themselves or their own variants.
+  // Whether `it` may be reparented from sourceParentId to targetParentId: never
+  // under itself / its own descendants, never into a computed/virtual container,
+  // the favorites root, an info item, or past the level limits (folders <= level 3,
+  // tricks/infos <= level 4, counting the moved item's own subtree).
   function canReparent(it, sourceParentId, targetParentId){
     if(targetParentId === sourceParentId) return true;
-    if(it.type === "category"){
-      if(targetParentId !== null && !getCategory(targetParentId) && !getTrick(targetParentId)) return false;
-      if(getDescendantCategoryIds(it.id).indexOf(targetParentId) !== -1) return false;
-      var newDepth = targetParentId ? categoryDepth(targetParentId) + 1 : 1;
-      if(newDepth > MAX_CATEGORY_DEPTH) return false;
-      return true;
+    if(targetParentId === null){
+      if(state.activeSpace === FAV_TABLE_ID) return false;
+    } else {
+      if(targetParentId === FAV_STARRED_ID || targetParentId === FAV_CUSTOM_ID) return false;
+      if(!getCategory(targetParentId) && !getTrick(targetParentId)) return false;
     }
-    if(targetParentId !== null && getDescendantContainerIds(it.id).indexOf(targetParentId) !== -1) return false;
-    return true;
+    if(it.type !== "info" && targetParentId !== null && getDescendantContainerIds(it.id).indexOf(targetParentId) !== -1) return false;
+    var type = it.type === "category" ? "folder" : it.type;
+    if(!canAddChild(targetParentId, type)) return false;
+    return subtreeFits(it.id, it.type, levelOf(targetParentId) + 1);
   }
 
   function reparentItem(it, sourceParentId, targetParentId){
-    if(it.type === "category"){
+    if(it.type === "category" || it.type === "info"){
       it.ref.parentId = targetParentId;
       return;
     }
-    var sourceKey = sourceParentId===null ? "__none__" : sourceParentId;
-    var targetKey = targetParentId===null ? "__none__" : targetParentId;
+    var sourceKey = sourceParentId===null ? state.activeSpace : sourceParentId;
+    var targetKey = targetParentId===null ? state.activeSpace : targetParentId;
     var idx = it.ref.categoryIds.indexOf(sourceKey);
     if(idx !== -1) it.ref.categoryIds.splice(idx, 1);
     if(it.ref.categoryIds.indexOf(targetKey) === -1) it.ref.categoryIds.push(targetKey);

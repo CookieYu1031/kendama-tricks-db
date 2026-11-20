@@ -99,7 +99,8 @@
       // column happens to be deepest. Pinned to the bottom of the column via the
       // col-items flex-grow above, regardless of how many rows are in the list.
       if(state.editMode){
-        colEl.appendChild(renderColAddRow(col));
+        var addRow = renderColAddRow(col);
+        if(addRow) colEl.appendChild(addRow);
       }
     });
 
@@ -164,13 +165,13 @@
     var isCurrentTrick = state.detailTrickId === tr.id;
 
     var row = document.createElement("div");
-    row.className = "item grid-item" + (isCurrentTrick ? " selected" : "");
+    row.className = "item grid-item" + (tr.custom ? " custom" : "") + (isCurrentTrick ? " selected" : "");
     row.title = localize(tr.name);
     row.dataset.itemId = tr.id; row.dataset.itemType = "trick";
     row.appendChild(visual.icon);
     row.appendChild(visual.textWrap);
 
-    if(state.editMode) appendBucketEditActions(row, tr, spaceId, function(){ openTrickModal(tr.id, null); });
+    if(state.editMode && canModifyItem(it, null, isAdminNow())) appendBucketEditActions(row, tr, spaceId, function(){ openTrickModal(tr.id, null); });
 
     row.addEventListener("click", function(){ openDrawerFor(tr.id); });
     return row;
@@ -200,7 +201,7 @@
         renderColumns();
         closeDrawerIfLeftActiveBucket(tr.id, spaceId);
       } else {
-        requestDeleteTrick(tr.id);
+        requestDeleteTrick(tr.id, null);
       }
     });
     actions.appendChild(editBtn); actions.appendChild(removeBtn);
@@ -208,26 +209,23 @@
   }
 
   function renderColAddRow(col){
+    var allow = allowedAddButtons(col.parentId, state.activeSpace, isAdminNow());
+    if(!allow.folder && !allow.trick && !allow.info) return null;
     var row = document.createElement("div");
     row.className = "col-add-row";
     var parentIsTrick = col.parentId && !!getTrick(col.parentId);
 
-    // A trick-folder can hold sub-categories directly now (same as any other
-    // container), so "add category" is always offered here, not just under
-    // plain categories — this is how a trick with too many flat extension
-    // tricks gets to group them into sub-categories of their own.
-    var addCat = document.createElement("button");
-    addCat.className = "col-add-btn";
-    addCat.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addCategoryShort")) + "</span>";
-    addCat.addEventListener("click", function(){ openCategoryModal(null, col.parentId); });
-    row.appendChild(addCat);
-
-    var addTrick = document.createElement("button");
-    addTrick.className = "col-add-btn";
-    addTrick.innerHTML = ICON_PLUS + "<span>" + escapeHtml(parentIsTrick ? t("addVariantShort") : t("addTrickShort")) + "</span>";
-    addTrick.addEventListener("click", function(){ openTrickModal(null, col.parentId); });
-    row.appendChild(addTrick);
-
+    function addBtn(label, onClick){
+      var b = document.createElement("button");
+      b.className = "col-add-btn";
+      b.innerHTML = ICON_PLUS + "<span>" + escapeHtml(label) + "</span>";
+      b.addEventListener("click", onClick);
+      row.appendChild(b);
+    }
+    // A trick-folder can hold sub-categories directly (same as any container).
+    if(allow.folder) addBtn(t("addCategoryShort"), function(){ openCategoryModal(null, col.parentId); });
+    if(allow.trick) addBtn(parentIsTrick ? t("addVariantShort") : t("addTrickShort"), function(){ openTrickModal(null, col.parentId, { custom: allow.customTrick }); });
+    if(allow.info) addBtn(t("addInfoShort"), function(){ openInfoModal(null, col.parentId); });
     return row;
   }
 
@@ -235,12 +233,16 @@
   // the miller-column tree (renderItemRow) and the flat "columns" grid
   // (renderGridItemRow) both use this, so a trick or category looks
   // exactly the same wherever it's presented.
+  var ICON_INFO_ROW = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>';
+
   function buildItemVisual(it){
     var hasChildren = it.type==="trick" && trickHasChildren(it.id);
 
     var icon = document.createElement("div");
     icon.className = "item-icon" + (it.type==="trick" ? " trick" : "") + (hasChildren ? " has-children" : "");
-    if(it.type==="category"){
+    if(it.type==="info"){
+      icon.innerHTML = ICON_INFO_ROW;
+    } else if(it.type==="category"){
       var cHex = colorHex(it.ref.color);
       icon.style.background = hexToRgba(cHex, 0.22);
       icon.style.color = cHex;
@@ -279,14 +281,14 @@
       if(subCount) bits.push(subCount + " " + t("subCats"));
       if(trickCount) bits.push(trickCount + " " + t("tricksCount"));
       metaEl.textContent = bits.join(" · ");
-    } else {
+    } else if(it.type==="trick"){
       var metaBits = [];
       // Being filed into 收藏 is a bucket membership, not a real "this
       // trick also lives under another category" cross-reference — exclude
       // that bucket category from this line so toggling a trick into 收藏
       // doesn't add unrelated-looking text here.
       var realCategoryIds = it.ref.categoryIds.filter(function(cid){
-        return cid !== GOAL_BUCKET_CAT_ID;
+        return !getSpace(cid) && cid !== FAV_CUSTOM_ID && cid !== FAV_STARRED_ID;
       });
       if(realCategoryIds.length > 1){
         metaBits.push(realCategoryIds.map(function(cid){ var cc=getCategory(cid)||getTrick(cid); return cc?localize(cc.name):""; }).filter(Boolean).join(" · "));
@@ -320,7 +322,7 @@
 
     var row = document.createElement("div");
     var isCurrentTrick = it.type==="trick" && state.detailTrickId===it.id;
-    row.className = "item" + ((isDrillable && state.path[colIndex]===it.id) || isCurrentTrick ? " selected" : "");
+    row.className = "item" + (it.type==="trick" && it.ref.custom ? " custom" : "") + ((isDrillable && state.path[colIndex]===it.id) || isCurrentTrick ? " selected" : "");
     row.title = localize(it.name);
     row.dataset.itemId = it.id;
     row.dataset.itemType = it.type;
@@ -328,20 +330,25 @@
     row.appendChild(visual.icon);
     row.appendChild(visual.textWrap);
 
-    if(state.editMode){
+    var admin = isAdminNow();
+    if(state.editMode && canModifyItem(it, parentId, admin)){
       var actions = document.createElement("div");
       actions.className = "item-edit-actions";
       var editBtn = document.createElement("button");
       editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
       editBtn.addEventListener("click", function(ev){
         ev.stopPropagation();
-        if(it.type==="category") openCategoryModal(it.id, parentId); else openTrickModal(it.id, null);
+        if(it.type==="category") openCategoryModal(it.id, parentId);
+        else if(it.type==="info") openInfoModal(it.id, parentId, true);
+        else openTrickModal(it.id, null);
       });
       var delBtn = document.createElement("button");
       delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
       delBtn.addEventListener("click", function(ev){
         ev.stopPropagation();
-        if(it.type==="category") requestDeleteCategory(it.id); else requestDeleteTrick(it.id);
+        if(it.type==="category") requestDeleteCategory(it.id);
+        else if(it.type==="info") requestDeleteInfo(it.id);
+        else requestDeleteTrick(it.id, parentId);
       });
       actions.appendChild(editBtn); actions.appendChild(delBtn);
       row.appendChild(actions);
@@ -349,7 +356,7 @@
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the
       // item onto that column's container instead of just resorting siblings.
-      attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
+      if(canDragItem(it, parentId, admin)) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
     }
 
     if(isDrillable){
@@ -372,6 +379,10 @@
       row.addEventListener("click", function(){
         state.path = state.path.slice(0, colIndex).concat(it.id);
         render(RENDER_COLUMNS_ONLY);
+      });
+    } else if(it.type==="info"){
+      row.addEventListener("click", function(){
+        openInfoModal(it.id, parentId, false);
       });
     } else {
       row.addEventListener("click", function(){

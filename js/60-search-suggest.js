@@ -3,14 +3,17 @@
   /* ============================================================
      SEARCH — matching + live suggestion dropdown
   ============================================================ */
+  // Matches the typed text against every filled name plus the shown (fallback / romaji) name.
+  function trickNameMatches(tr, q){
+    var shown = typeof resolveDisplayName === "function" ? resolveDisplayName(tr.name).text : localize(tr.name);
+    return [tr.name.zh, tr.name.jp, tr.name.en, shown].some(function(n){
+      return (n || "").toLowerCase().indexOf(q) !== -1;
+    });
+  }
   function getSearchMatches(q){
     q = (q||"").trim().toLowerCase();
     if(!q) return [];
-    return db.tricks.filter(function(tr){
-      return (tr.name.zh||"").toLowerCase().indexOf(q) !== -1 ||
-             (tr.name.jp||"").toLowerCase().indexOf(q) !== -1 ||
-             (tr.name.en||"").toLowerCase().indexOf(q) !== -1;
-    });
+    return db.tricks.filter(function(tr){ return trickNameMatches(tr, q); });
   }
 
   // Inline "N results for X" label removed — the search-results-inline slot next
@@ -24,7 +27,13 @@
   function goToTrickLocation(trickId){
     var tr = getTrick(trickId);
     if(!tr) return;
-    state.path = tr.categoryIds.length ? pathToContainer(tr.categoryIds[0]) : [];
+    var place = tr.categoryIds.length ? tr.categoryIds[0] : null;
+    var sid = place ? containerSpaceId(place) : null;
+    if(sid && sid !== state.activeSpace){
+      state.activeSpace = sid;
+      localStorage.setItem(SPACE_KEY, sid);
+    }
+    state.path = place ? pathToContainer(place) : [];
     state.searchQuery = "";
     document.getElementById("searchInput").value = "";
     document.getElementById("searchClear").classList.remove("show");

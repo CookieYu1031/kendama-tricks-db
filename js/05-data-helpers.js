@@ -10,32 +10,50 @@
   var MOBILE_BREAKPOINT = 860;
   function isNarrowViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT; }
 
-  // Lazily-built lookup index (id -> record, parentId -> categories,
+  // Lazily-built lookup index (id -> record, parentId -> categories/infos,
   // containerId -> tricks) so lookups don't linearly scan db on every call.
   // Stale when db was reassigned, its arrays changed length, or dbIndexVersion
   // was bumped (saveDB() and render() both bump it).
+  // The two virtual folders of the favorites table (FAV_STARRED_ID / FAV_CUSTOM_ID)
+  // are fixed records, indexed in catById like real categories (virtual:true).
+  var FAV_VIRTUAL_FOLDERS = [
+    { id: FAV_STARRED_ID, parentId: null, name:{ zh:"收藏", jp:"お気に入り", en:"Starred" }, order: 0, icon:"⭐", color:"default", spaceId: FAV_TABLE_ID, virtual: true },
+    { id: FAV_CUSTOM_ID,  parentId: null, name:{ zh:"自訂義", jp:"カスタム", en:"Custom" }, order: 1, icon:"✏️", color:"default", spaceId: FAV_TABLE_ID, virtual: true }
+  ];
   var dbIndexVersion = 0;
   var dbIndex = null;
   function invalidateDbIndex(){ dbIndexVersion++; }
   function ensureDbIndex(){
+    var nInfos = (db.infos || []).length;
     if(dbIndex && dbIndex.db === db && dbIndex.version === dbIndexVersion &&
-       dbIndex.nCats === db.categories.length && dbIndex.nTricks === db.tricks.length) return dbIndex;
-    var ix = { db: db, version: dbIndexVersion, nCats: db.categories.length, nTricks: db.tricks.length,
-      catById: Object.create(null), trickById: Object.create(null),
-      catsByParent: Object.create(null), rootCats: [], tricksByContainer: Object.create(null) };
+       dbIndex.nCats === db.categories.length && dbIndex.nTricks === db.tricks.length && dbIndex.nInfos === nInfos) return dbIndex;
+    var ix = { db: db, version: dbIndexVersion, nCats: db.categories.length, nTricks: db.tricks.length, nInfos: nInfos,
+      catById: Object.create(null), trickById: Object.create(null), infoById: Object.create(null),
+      catsByParent: Object.create(null), rootCats: [], tricksByContainer: Object.create(null),
+      infosByParent: Object.create(null), rootInfos: [] };
+    FAV_VIRTUAL_FOLDERS.forEach(function(c){ ix.catById[c.id] = c; });
     db.categories.forEach(function(c){
       if(!(c.id in ix.catById)) ix.catById[c.id] = c;
       if(c.parentId === null) ix.rootCats.push(c);
       else (ix.catsByParent[c.parentId] || (ix.catsByParent[c.parentId] = [])).push(c);
     });
+    (db.infos || []).forEach(function(n){
+      if(!(n.id in ix.infoById)) ix.infoById[n.id] = n;
+      if(n.parentId === null) ix.rootInfos.push(n);
+      else (ix.infosByParent[n.parentId] || (ix.infosByParent[n.parentId] = [])).push(n);
+    });
+    function put(cid, t){ (ix.tricksByContainer[cid] || (ix.tricksByContainer[cid] = [])).push(t); }
     db.tricks.forEach(function(t){
       if(!(t.id in ix.trickById)) ix.trickById[t.id] = t;
-      var seen = null;
+      var seen = {};
       t.categoryIds.forEach(function(cid){
-        if(seen && seen[cid]) return;
-        (seen || (seen = {}))[cid] = true;
-        (ix.tricksByContainer[cid] || (ix.tricksByContainer[cid] = [])).push(t);
+        if(seen[cid]) return;
+        seen[cid] = true;
+        put(cid, t);
       });
+      // virtual favorites folders are computed from flags
+      if(t.favorite) put(FAV_STARRED_ID, t);
+      if(t.custom && !seen[FAV_CUSTOM_ID]) put(FAV_CUSTOM_ID, t);
     });
     dbIndex = ix;
     return ix;
@@ -43,168 +61,189 @@
 
   function getCategory(id){ return ensureDbIndex().catById[id]; }
   function getTrick(id){ return ensureDbIndex().trickById[id]; }
+  function getInfo(id){ return ensureDbIndex().infoById[id]; }
+  // parentId null = root of the active table. The favorites table root is its two virtual folders.
   function getChildren(parentId){
     var ix = ensureDbIndex();
     if(parentId === null){
+      if(state.activeSpace === FAV_TABLE_ID) return FAV_VIRTUAL_FOLDERS.slice();
       return ix.rootCats.filter(function(c){ return c.spaceId===state.activeSpace; });
     }
     var l = ix.catsByParent[parentId];
     return l ? l.slice() : [];
   }
+  // Tricks directly inside a container. null = tricks placed at the active table root
+  // (their categoryIds holds the table id).
   function getTricksInCategory(catId){
-    var l = ensureDbIndex().tricksByContainer[catId];
+    var l = ensureDbIndex().tricksByContainer[catId === null ? state.activeSpace : catId];
+    return l ? l.slice() : [];
+  }
+  // Info items directly inside a container (null = root of the active table).
+  function getInfosIn(parentId){
+    var ix = ensureDbIndex();
+    if(parentId === null) return ix.rootInfos.filter(function(n){ return n.spaceId === state.activeSpace; });
+    var l = ix.infosByParent[parentId];
     return l ? l.slice() : [];
   }
 
-  // A trick "belongs to" a space if any of its containers' root ancestor
-  // (walking up through pathToContainer) is a root category filed under that
-  // space. Used by the flat "columns" view mode, which shows every trick in
-  // a space regardless of how deep it's nested.
+  // Which table a container id (table id / folder / trick-as-folder) lives in.
+  function containerSpaceId(cid, depth){
+    depth = depth || 0;
+    if(cid == null || depth > 60) return null;
+    if(getSpace(cid)) return cid;
+    var cat = getCategory(cid);
+    if(cat) return cat.spaceId;
+    var tr = getTrick(cid);
+    if(tr && tr.categoryIds.length) return containerSpaceId(tr.categoryIds[0], depth + 1);
+    return null;
+  }
+  // A trick "belongs to" a table if any of its containers resolves to it. Favorites
+  // additionally holds every starred / custom trick.
   function trickBelongsToSpace(tr, spaceId){
-    if(!tr.categoryIds || !tr.categoryIds.length) return false;
-    return tr.categoryIds.some(function(cid){
-      var path = pathToContainer(cid);
-      if(!path.length) return false;
-      var rootCat = getCategory(path[0]);
-      return rootCat && rootCat.parentId === null && rootCat.spaceId === spaceId;
-    });
+    if(spaceId === FAV_TABLE_ID && (tr.favorite || tr.custom)) return true;
+    return (tr.categoryIds || []).some(function(cid){ return containerSpaceId(cid) === spaceId; });
   }
   function getAllTricksInSpace(spaceId){
     return db.tricks.filter(function(tr){ return trickBelongsToSpace(tr, spaceId); });
   }
 
   // Direct-membership version used by the flat "columns" (Grid List) view:
-  // a trick counts only when one of its categoryIds is a REAL category (not
-  // another trick acting as a folder) whose root ancestor belongs to this
-  // space. This intentionally excludes extension/variant tricks that only
-  // sit inside a trick-folder — they're variants of their parent trick, not
-  // independent members of this list — and the result is a flat list with
-  // no category/hierarchy nodes at all.
+  // a trick counts only when one of its categoryIds is the table itself or a folder
+  // (not another trick acting as a folder) of this table. Variants are excluded.
   function getFlatSpaceTricks(spaceId){
+    if(spaceId === FAV_TABLE_ID){
+      return db.tricks.filter(function(tr){ return tr.favorite || tr.custom || tr.categoryIds.indexOf(FAV_CUSTOM_ID) !== -1; });
+    }
     return db.tricks.filter(function(tr){
       return (tr.categoryIds||[]).some(function(cid){
+        if(cid === spaceId) return true;
         var cat = getCategory(cid);
-        if(!cat) return false; // cid points at a trick-folder, not a real category — skip
-        var path = pathToContainer(cid);
-        if(!path.length) return false;
-        var rootCat = getCategory(path[0]);
-        return rootCat && rootCat.parentId === null && rootCat.spaceId === spaceId;
+        return !!cat && cat.spaceId === spaceId;
       });
     });
   }
 
-  // Whether spaceId is one of the built-in shelves that can't be deleted
+  // Whether spaceId is one of the built-in tables that can't be deleted
   // (see UNDELETABLE_SPACE_IDS in 01-data-model.js).
   function isUndeletableSpace(spaceId){
     return UNDELETABLE_SPACE_IDS.indexOf(spaceId) !== -1;
   }
 
-  // Lazily creates (once) the fixed-id root category that the drawer's ⭐
-  // quick-toggle button files a trick into for a given space — see
-  // GOAL_BUCKET_CAT_ID in 01-data-model.js.
-  function ensureSpaceBucketCategory(spaceId, bucketId, icon, name){
-    var cat = getCategory(bucketId);
-    if(!cat){
-      cat = { id: bucketId, parentId: null, name: name, order: 0, icon: icon, color: "default", spaceId: spaceId };
-      db.categories.push(cat);
-    }
-    return cat;
-  }
-  function spaceBucketFor(spaceId){
-    if(spaceId === "space-goal") return { bucketId: GOAL_BUCKET_CAT_ID, icon:"⭐", name:{ zh:"收藏招式", jp:"お気に入りの技", en:"Favorite Tricks" } };
-    return null;
-  }
-  // Whether trickId is currently filed into spaceId's bucket category.
-  function trickInSpaceBucket(trickId, spaceId){
-    var bucket = spaceBucketFor(spaceId);
+  /* ---------------- Favorites ---------------- */
+  function isFavorite(trickId){
     var tr = getTrick(trickId);
-    if(!bucket || !tr) return false;
-    return tr.categoryIds.indexOf(bucket.bucketId) !== -1;
+    return !!(tr && tr.favorite);
   }
-  // Adds/removes trickId from spaceId's bucket category (creating the bucket
-  // the first time it's needed) — this is the single source of truth the
-  // drawer's quick-toggle buttons and the space's flat views both read from,
-  // so toggling in one place is immediately reflected everywhere else.
-  function toggleTrickInSpaceBucket(trickId, spaceId){
-    var bucket = spaceBucketFor(spaceId);
+  function toggleFavorite(trickId){
     var tr = getTrick(trickId);
-    if(!bucket || !tr) return;
-    ensureSpaceBucketCategory(spaceId, bucket.bucketId, bucket.icon, bucket.name);
-    var idx = tr.categoryIds.indexOf(bucket.bucketId);
-    if(idx === -1) tr.categoryIds.push(bucket.bucketId); else tr.categoryIds.splice(idx, 1);
+    if(!tr) return false;
+    tr.favorite = !tr.favorite;
     saveDB();
+    return tr.favorite;
   }
-
-  // Whenever a trick drops out of spaceId's bucket (⭐ quick-toggle turned
-  // off, removed via a list's own remove button, etc.) while that trick's
-  // detail drawer is open AND
-  // spaceId is the space currently being browsed, the drawer is left
-  // pointing at an item no longer in the list behind it — so close it. If
-  // that was the bucket's last trick, its space tab disappears from the
-  // rail too, so fall back to 總表 rather than leaving the view stuck on a
-  // now-empty/hidden section. Callers should call this right after any
-  // toggle-off that might remove trickId from spaceId's bucket; it's a
-  // no-op whenever the drawer wasn't showing that exact trick in that exact
-  // space, or the trick is still in the bucket. Returns true when it closed
-  // the drawer, so callers can skip a redundant renderDrawer() call.
-  function closeDrawerIfLeftActiveBucket(trickId, spaceId){
-    if(state.activeSpace !== spaceId) return false;
+  // --- Compat wrappers for the old GOAL bucket API (UI still calls these; maps to favorite).
+  // The spaceId arguments are ignored.
+  var GOAL_BUCKET_CAT_ID = FAV_STARRED_ID;
+  function spaceBucketFor(spaceId){ return spaceId === FAV_TABLE_ID ? { bucketId: FAV_STARRED_ID } : null; }
+  function trickInSpaceBucket(trickId){ return isFavorite(trickId); }
+  function toggleTrickInSpaceBucket(trickId){ toggleFavorite(trickId); }
+  // Closes the drawer when the open trick was just un-starred while browsing the favorites table.
+  // Returns true when it closed the drawer.
+  function closeDrawerIfLeftActiveBucket(trickId){
+    if(state.activeSpace !== FAV_TABLE_ID) return false;
     if(state.detailTrickId !== trickId) return false;
-    if(trickInSpaceBucket(trickId, spaceId)) return false; // still filed in the bucket
-    closeDrawer();
-    if(getAllTricksInSpace(spaceId).length === 0){
-      var indexSpace = getSpace("space-index");
-      if(indexSpace){
-        state.activeSpace = indexSpace.id;
-        localStorage.setItem(SPACE_KEY, indexSpace.id);
-        state.path = [];
-        renderSpaceRail();
-        renderColumns();
-      }
-    }
+    if(isFavorite(trickId)) return false;
+    if(typeof closeDrawer === "function") closeDrawer();
     return true;
   }
 
-  // A trick's note is a single free-text field (tr.note). Older data stored notes
-  // as one-or-more items inside tr.media instead — this migrates that legacy shape
-  // into tr.note (joining multiple legacy notes) the first time the trick is opened.
-  function getTrickNote(tr){
-    if(typeof tr.note === "string") return tr.note;
-    var legacyNotes = (tr.media||[]).filter(function(m){ return m.type==="note"; });
-    tr.note = legacyNotes.map(function(m){ return m.content||""; }).filter(Boolean).join("\n\n");
-    if(legacyNotes.length){
-      tr.media = tr.media.filter(function(m){ return m.type!=="note"; });
+  /* ---------------- Global tags (B8) ---------------- */
+  function getTag(id){ return (db.tags || []).find(function(g){ return g.id === id; }); }
+  function addTag(name){
+    if(!db.tags) db.tags = [];
+    var nm = name || {};
+    var tag = { id: newItemId(), name:{ zh:nm.zh||"", jp:nm.jp||"", en:nm.en||"" } };
+    db.tags.push(tag);
+    saveDB();
+    return tag;
+  }
+  function removeTag(id){
+    db.tags = (db.tags || []).filter(function(g){ return g.id !== id; });
+    db.tricks.forEach(function(tr){
+      if(tr.tagIds && tr.tagIds.indexOf(id) !== -1) tr.tagIds = tr.tagIds.filter(function(x){ return x !== id; });
+    });
+    saveDB();
+  }
+
+  /* ---------------- Delete semantics (B5-a) ---------------- */
+  // Removes only the placement of a trick in one container; the trick entity is deleted
+  // when its last placement is gone. Virtual folder "fav-starred" just un-stars.
+  // Deleting a trick cascades to its variants' placement in it and to its info items.
+  function removeTrickPlacement(trickId, containerId){
+    var tr = getTrick(trickId);
+    if(!tr) return;
+    if(containerId === FAV_STARRED_ID){
+      tr.favorite = false;
       saveDB();
+      return;
     }
-    return tr.note;
+    var idx = tr.categoryIds.indexOf(containerId);
+    if(idx !== -1) tr.categoryIds.splice(idx, 1);
+    delete tr.orderByCategory[containerId];
+    if(tr.categoryIds.length){ saveDB(); return; }
+    // last placement gone -> delete the entity
+    var pos = db.tricks.indexOf(tr);
+    if(pos !== -1) db.tricks.splice(pos, 1);
+    saveDB(); // refresh the index before cascading
+    db.tricks.filter(function(v){ return v.categoryIds.indexOf(trickId) !== -1; }).forEach(function(v){
+      removeTrickPlacement(v.id, trickId);
+    });
+    if(db.infos) db.infos = db.infos.filter(function(n){ return n.parentId !== trickId; });
+    saveDB();
   }
-  function getTrickProficiency(tr){
-    return PROFICIENCY_LEVELS.indexOf(tr.proficiency) !== -1 ? tr.proficiency : "none";
+
+  /* ---------------- Levels (B3) ---------------- */
+  // Table root items are level 1. levelOf(container) = the container's own level
+  // (0 for null / a table id, i.e. "the root").
+  function levelOf(containerId){
+    if(containerId == null) return 0;
+    return pathToContainer(containerId).length;
   }
+  // type: "folder"/"category" -> new item's level must be <= 3; "trick"/"info" -> <= 4.
+  // A trick used as a folder (variants) counts as a level like any other container.
+  function canAddChild(parentId, type){
+    if(parentId != null){
+      if(getInfo(parentId)) return false;                         // info items hold nothing
+      if(parentId === FAV_STARRED_ID) return false;               // computed list
+      if(getSpace(parentId)) parentId = null;
+    }
+    var newLevel = levelOf(parentId) + 1;
+    var max = (type === "folder" || type === "category") ? MAX_FOLDER_LEVEL : MAX_ITEM_LEVEL;
+    return newLevel <= max;
+  }
+
+  // A trick's personal note is a single free-text field (tr.note); officialNote is the
+  // admin's text shown before it.
+  function getTrickNote(tr){ return typeof tr.note === "string" ? tr.note : ""; }
   // Adds a soft colored halo around a trick's icon element, colored by its
-  // practice proficiency (see PROFICIENCY_COLORS) — no glow at all while
-  // proficiency is "none". Layered on top of the icon's usual glass highlight
-  // rather than replacing it, since setting box-shadow inline overrides the
-  // CSS class's own box-shadow declaration. Always assigns (rather than only
-  // assigning when there's a glow) so dropping proficiency back to "none"
-  // actually clears a previously-applied glow instead of leaving it stale.
+  // landing rate (see RATE_COLORS) — no glow while rate is null. Layered on top of the
+  // icon's usual glass highlight rather than replacing it, since setting box-shadow
+  // inline overrides the CSS class's own box-shadow declaration. Always assigns
+  // (rather than only assigning when there's a glow) so clearing the rate actually
+  // clears a previously-applied glow instead of leaving it stale.
   function applyTrickGlow(iconEl, trickRef){
-    var prof = getTrickProficiency(trickRef);
-    if(prof === "none"){
+    var rate = trickRef.rate;
+    if(!rate || !RATE_COLORS[rate]){
       iconEl.style.boxShadow = "var(--glass-highlight)";
       return;
     }
-    var glowHex = PROFICIENCY_COLORS[prof];
+    var glowHex = RATE_COLORS[rate];
     iconEl.style.boxShadow = "var(--glass-highlight), 0 0 0 1px " + hexToRgba(glowHex, 0.4) + ", 0 0 14px 2px " + hexToRgba(glowHex, 0.55);
   }
 
-  // Re-applies the proficiency glow on every currently-rendered icon for one
-  // trick — its row in the miller columns, and its row in a parent trick's
-  // "extension tricks" list inside the detail drawer — without a full
-  // re-render. Called right after a proficiency change so the glow updates in
-  // the same frame as the click, instead of lagging one render behind (the
-  // miller-column rows are persistent DOM nodes that otherwise only get
-  // touched again on the next full render()).
+  // Re-applies the rate glow on every currently-rendered icon for one trick without a
+  // full re-render (the miller-column rows are persistent DOM nodes that otherwise
+  // only get touched again on the next full render()).
   function refreshTrickIconGlow(trickId){
     var tr = getTrick(trickId);
     if(!tr) return;
@@ -213,6 +252,28 @@
       var iconEl = row.querySelector(".item-icon");
       if(iconEl) applyTrickGlow(iconEl, tr);
     });
+  }
+  /* ---------------- Video platforms ---------------- */
+  var PLATFORM_ICONS = {
+    youtube: '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.7"/><path d="M10 9l6 3-6 3V9z" fill="currentColor"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="sans-serif">f</text></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M13 7v7.2a2.3 2.3 0 11-2-2.28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 7c.3 1.6 1.5 2.8 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    vimeo: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">V</text></svg>',
+    twitter: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">X</text></svg>',
+    other: '<svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 015.7 5.7l-1.4 1.4M14 18l-1 1A4 4 0 016 13.3l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
+  };
+  function detectPlatform(url){
+    if(!url) return "other";
+    var host;
+    try{ host = new URL(url).hostname.replace(/^www\./,"").replace(/^m\./,""); }catch(e){ return "other"; }
+    if(host==="youtube.com" || host==="youtu.be") return "youtube";
+    if(host==="instagram.com") return "instagram";
+    if(host==="facebook.com" || host==="fb.watch") return "facebook";
+    if(host==="tiktok.com") return "tiktok";
+    if(host==="vimeo.com" || host==="player.vimeo.com") return "vimeo";
+    if(host==="twitter.com" || host==="x.com") return "twitter";
+    return "other";
   }
   // Only plain web links may be stored/opened as video URLs — blocks
   // javascript:, data: and other schemes that could run code on click.
@@ -274,7 +335,7 @@
   // already-generic getChildren(), which doesn't care whether parentId is a category or
   // a trick id.
   function trickHasChildren(trickId){
-    return getChildren(trickId).length > 0 || db.tricks.some(function(tr){ return tr.categoryIds.indexOf(trickId) !== -1; });
+    return getChildren(trickId).length > 0 || getInfosIn(trickId).length > 0 || db.tricks.some(function(tr){ return tr.categoryIds.indexOf(trickId) !== -1; });
   }
 
   // Cycle-safe: walks category-children (always a clean tree) and trick-children
@@ -308,16 +369,16 @@
       var upstream = cat.parentId == null ? [] : pathToContainer(cat.parentId, depth+1);
       return upstream.concat(containerId);
     }
+    if(getSpace(containerId)) return []; // a table id = the root (items directly in a table are level 1)
     var tr = getTrick(containerId);
     if(!tr || !tr.categoryIds.length) return [containerId];
     return pathToContainer(tr.categoryIds[0], depth+1).concat(containerId);
   }
   function pathToCategory(catId){ return pathToContainer(catId); }
 
-  // Categories and trick-folders together may nest at most this many levels deep —
-  // keeps the miller-column chain short enough that the detail drawer never has to
-  // fight the browse columns for room even when several are expanded at once.
-  var MAX_CATEGORY_DEPTH = 5;
+  // Compat: folders may sit at level <= MAX_CATEGORY_DEPTH (see MAX_FOLDER_LEVEL / canAddChild);
+  // categoryDepth() is the container's level (see levelOf).
+  var MAX_CATEGORY_DEPTH = MAX_FOLDER_LEVEL;
   function categoryDepth(catId){ return pathToContainer(catId).length; }
 
   // Combined categories + tricks tree, flattened with depth, for the trick modal's

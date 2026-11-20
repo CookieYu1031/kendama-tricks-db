@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { load } = require("./_load");
 
-const ctx = load(["js/05-data-helpers.js"], { URL });
+const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/05-data-helpers.js"], { URL });
 
 test("accepts http(s) links", () => {
   assert.ok(ctx.isSafeHttpUrl("https://youtu.be/abc"));

@@ -127,7 +127,16 @@
   document.getElementById("trickIconColorPreviewBtn").addEventListener("click", function(){ openIconPicker("trick"); });
   document.getElementById("trickCancelBtn").addEventListener("click", closeTrickModal);
   document.getElementById("trickSaveBtn").addEventListener("click", saveTrickFromModal);
-  document.getElementById("trickDeleteBtn").addEventListener("click", function(){ requestDeleteTrick(state.editingTrickId); });
+  document.getElementById("trickDeleteBtn").addEventListener("click", function(){ requestDeleteTrick(state.editingTrickId, "*"); });
+  // (No overlay-click-to-close — see the category modal comment above.)
+
+  // Info modal
+  document.getElementById("infoCancelBtn").addEventListener("click", closeInfoModal);
+  document.getElementById("infoSaveBtn").addEventListener("click", saveInfoFromModal);
+  document.getElementById("infoEditBtn").addEventListener("click", function(){
+    if(infoModalState.id) openInfoModal(infoModalState.id, infoModalState.parentId, true);
+  });
+  document.getElementById("infoDeleteBtn").addEventListener("click", function(){ requestDeleteInfo(infoModalState.id); });
   // (No overlay-click-to-close — see the category modal comment above.)
 
   // Confirm modal
@@ -175,6 +184,9 @@
   bindEnterToSave("trickModalOverlay", saveTrickFromModal);
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
+  bindEnterToSave("infoModalOverlay", function(){
+    if(!document.getElementById("infoEditBody").hidden) saveInfoFromModal();
+  });
   // Escape key closes topmost overlay
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
@@ -185,6 +197,7 @@
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
+    if(document.getElementById("infoModalOverlay").classList.contains("show")) return closeInfoModal();
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("trickModalOverlay").classList.contains("show")) return closeTrickModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
@@ -196,4 +209,5 @@
   /* ============================================================
      INIT
   ============================================================ */
+  if(typeof rebuildReadingDict === "function") rebuildReadingDict(db.tricks);
   render();

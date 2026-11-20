@@ -9,16 +9,11 @@
      unchanged. This file only concerns itself with how that shape gets
      serialized to/from Firestore once someone is logged in.
 
-     BASE DATA — data/base/{spaceId}.json (one file per *built-in* space
-     other than space-index — see DEFAULT_SPACES in 01-data-model.js), each
-     { version, categories, tricks }. Ships with the app and updates
-     whenever Cookie edits those files — see data/base/README.md.
-     space-index (總表/招式庫) is the one exception: its base isn't a static
-     file at all, but a live, versioned document tree in Firestore that only
-     ADMIN_UID can publish new versions of — see the SHARED BASE section
-     further down. Custom (user-created) spaces have no base at all; their
-     base is treated as empty. Custom (user-created) spaces have
-     no base file; their base is treated as empty.
+     BASE DATA — there are no static base files any more (data/base/ was removed
+     in v0.2). Every table's base is empty except the shared 總表 (t00), whose base
+     is a live, versioned document tree in Firestore that only ADMIN_UID can publish
+     new versions of — see the SHARED BASE section in 51-shared-base.js. Official
+     publishing for 01/02 comes in v0.6.
 
      USER DIFF — Firestore, split by space (not one big document):
        users/{uid}/spaceData/{spaceId} -> {
@@ -47,19 +42,19 @@
      all come from the same in-memory trick object.
   ============================================================ */
 
-  var BASE_DATA_DIR = "data/base/";
   var DEFAULT_SPACE_IDS = DEFAULT_SPACES.map(function(s){ return s.id; });
-  // The one built-in space (招式庫/總表) whose "base" isn't a static file
-  // shipped with the app, but a live document tree in Firestore that only
-  // ADMIN_UID can publish new versions of — see the SHARED BASE section
-  // further down for the full design.
-  var SHARED_BASE_SPACE_ID = "space-index";
+  // The one table (總表, t00) whose "base" is a live document tree in Firestore that
+  // only ADMIN_UID can publish new versions of — see the SHARED BASE section in
+  // 51-shared-base.js. The Firestore doc path stays sharedBase/space-index (rules
+  // depend on it), but it maps to table t00.
+  var SHARED_BASE_DOC_ID = "space-index";
+  var SHARED_BASE_TABLE_ID = "t00";
 
   var authCurrentUser = null;
   var _authFirstStateSeen = false; // avoids reloading local data before we know anything, on the very first (logged-out) check at page load
   var _cloudSaveTimer = null;
   var CLOUD_SAVE_DEBOUNCE_MS = 600;
-  var baseDataCache = {}; // spaceId -> {version, categories, tricks} (static-file spaces); "space-index@N" -> same shape (shared-base versions)
+  var baseDataCache = {}; // spaceId -> empty base; "t00@N" -> {version, categories, tricks} (shared-base versions)
   // This session's resolved view of the shared 總表: which version this
   // account is currently pinned to (its diff is computed against this
   // exact snapshot, not whatever the latest published version happens to
@@ -76,27 +71,9 @@
      Base data loading (cached per space id for the page's lifetime)
   ------------------------------------------------------------ */
   function fetchBaseSpaceData(spaceId){
-    if(baseDataCache[spaceId]) return Promise.resolve(baseDataCache[spaceId]);
-    if(DEFAULT_SPACE_IDS.indexOf(spaceId) === -1 || spaceId === SHARED_BASE_SPACE_ID){
-      // Custom space (no shipped base file) OR the shared-base space, which
-      // is fetched through fetchSharedBaseVersion()/ensureViewingVersionResolved()
-      // instead — this function only ever serves the *other* built-in spaces.
-      var empty = { version: 0, categories: [], tricks: [] };
-      if(spaceId !== SHARED_BASE_SPACE_ID) baseDataCache[spaceId] = empty;
-      return Promise.resolve(empty);
-    }
-    return fetch(BASE_DATA_DIR + spaceId + ".json")
-      .then(function(res){ return res.ok ? res.json() : { version: 0, categories: [], tricks: [] }; })
-      .catch(function(){ return { version: 0, categories: [], tricks: [] }; })
-      .then(function(data){
-        var normalized = {
-          version: data.version || 0,
-          categories: Array.isArray(data.categories) ? data.categories : [],
-          tricks: Array.isArray(data.tricks) ? data.tricks : []
-        };
-        baseDataCache[spaceId] = normalized;
-        return normalized;
-      });
+    // No static base files: every table except the shared 總表 (served by
+    // fetchSharedBaseVersion) has an empty base.
+    return Promise.resolve({ version: 0, categories: [], tricks: [] });
   }
 
   /* ------------------------------------------------------------
@@ -112,6 +89,8 @@
   }
   function tricksForSpace(spaceId){
     var catIds = {};
+    catIds[spaceId] = true; // tricks placed directly at the table root
+    if(spaceId === FAV_TABLE_ID) catIds[FAV_CUSTOM_ID] = true;
     categoriesForSpace(spaceId).forEach(function(c){ catIds[c.id] = true; });
     return db.tricks.filter(function(t){
       return t.categoryIds.some(function(cid){ return catIds[cid]; });
@@ -187,11 +166,11 @@
     var spaceIds = allKnownSpaceIds();
     var userRef = fbStore.collection("users").doc(uid);
     return ensureViewingVersionResolved(uid).then(function(viewingVersion){
-      var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_SPACE_ID; });
+      var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_TABLE_ID; });
       return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
         return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
           var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
-          baseMap[SHARED_BASE_SPACE_ID] = indexBase;
+          baseMap[SHARED_BASE_TABLE_ID] = indexBase;
           var batch = fbStore.batch();
           spaceIds.forEach(function(sid){
             var diff = computeSpaceDiff(sid, baseMap[sid]);
@@ -200,6 +179,7 @@
           });
           batch.set(userRef.collection("meta").doc("spaces"), {
             spaces: db.spaces,
+            schema: CLOUD_SCHEMA,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           return batch.commit();
@@ -222,6 +202,8 @@
   /* ------------------------------------------------------------
      Load: per-space diff docs + spaces meta doc -> merged db
   ------------------------------------------------------------ */
+  // Bumped when the cloud layout changes incompatibly; older docs are ignored.
+  var CLOUD_SCHEMA = 2;
   function loadMergedDBFromCloud(uid){
     var userRef = fbStore.collection("users").doc(uid);
     return userRef.collection("spaceData").get().then(function(snap){
@@ -231,16 +213,25 @@
       DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
 
       return userRef.collection("meta").doc("spaces").get().then(function(metaSnap){
-        var spacesList = (metaSnap.exists && Array.isArray(metaSnap.data().spaces) && metaSnap.data().spaces.length)
-          ? metaSnap.data().spaces
-          : DEFAULT_SPACES.map(function(s){ return { id:s.id, icon:s.icon, name:s.name, viewMode:s.viewMode }; });
+        var meta = metaSnap.exists ? metaSnap.data() : null;
+        // Pre-v0.2 cloud data (no schema marker) is dropped on purpose (B6/B7):
+        // start this account from empty tables; the next save writes schema 2.
+        if(!meta || meta.schema !== CLOUD_SCHEMA){ diffMap = {}; meta = null; }
+        var spacesList = (meta && Array.isArray(meta.spaces) && meta.spaces.length)
+          ? meta.spaces
+          : null; // normalizeDB fills in the default tables
+        // Only diffs of tables that still exist (old space-* docs are ignored).
+        var liveIds = DEFAULT_SPACE_IDS.concat((spacesList || []).map(function(sp){ return sp && sp.id; }));
+        Object.keys(diffMap).forEach(function(id){ if(liveIds.indexOf(id) === -1) delete diffMap[id]; });
+        spaceIds = Object.keys(diffMap);
+        DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
 
         return ensureViewingVersionResolved(uid).then(function(viewingVersion){
-          var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_SPACE_ID; });
+          var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_TABLE_ID; });
           return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
             return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
               var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
-              baseMap[SHARED_BASE_SPACE_ID] = indexBase;
+              baseMap[SHARED_BASE_TABLE_ID] = indexBase;
               var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
               return normalizeDB({ categories: merged.categories, tricks: merged.tricks, spaces: spacesList });
             });
