@@ -176,6 +176,15 @@
     return (UI[lang] && UI[lang][key]) || UI.zh[key] || key;
   }
 
+  // Feature files register their own strings at load time instead of all
+  // editing the UI table above: addStrings({ zh:{k:"…"}, jp:{…}, en:{…} }).
+  // Later registrations win on key clashes.
+  function addStrings(table){
+    ["zh","jp","en"].forEach(function(lang){
+      if(table && table[lang]) Object.assign(UI[lang], table[lang]);
+    });
+  }
+
   /* ------------------------------------------------------------
      Kana -> Romaji (best-effort Hepburn-style romanization).
      Used as a last-resort display name when a trick has neither a
