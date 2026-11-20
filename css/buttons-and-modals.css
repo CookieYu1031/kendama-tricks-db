@@ -89,6 +89,10 @@
   .color-swatch.selected{ border-color: var(--paper); }
   .color-swatch svg{ width:14px; height:14px; color:#fff; opacity:0; }
   .color-swatch.selected svg{ opacity:1; }
+  .emoji-input-row{ display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .emoji-input-row input[type=text]{ flex:1 1 auto; min-width:0; }
+  .emoji-input-row .btn{ flex:0 0 auto; white-space:nowrap; }
+  .emoji-input-row .btn[hidden]{ display:none; }
   .emoji-grid{
     display:flex; flex-direction:column; gap:10px; max-height: 220px; overflow-y:auto;
     border:1px solid var(--glass-border); border-radius:10px; padding:10px; background: var(--glass-1);

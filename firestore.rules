@@ -59,7 +59,10 @@ service cloud.firestore {
       match /spaceData/{sid} {
         // Read/delete stay open to the owner so old schema-2 docs can be
         // read and cleaned up.
-        allow read, delete: if isOwner(uid) && sid.matches('^[0-9A-Za-z_-]{1,40}$');
+        // list is separate: a collection query can't prove a condition on the doc id
+        // wildcard, so `sid.matches` on list denied every spaceData query (pull failed).
+        allow get, delete: if isOwner(uid) && sid.matches('^[0-9A-Za-z_-]{1,40}$');
+        allow list: if isOwner(uid);
         allow create, update: if isOwner(uid) &&
           sid.matches('^[0-9A-Za-z_-]{1,40}$') &&
           request.resource.data.keys().hasOnly(['schema', 'baseVersion', 'chunks', 'hash', 'updatedAt']) &&

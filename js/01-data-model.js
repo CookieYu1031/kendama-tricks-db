@@ -16,7 +16,13 @@
   // load time of this file, before 02 is loaded. Labels / colors live in 02.
   var MAX_VIDEOS = 3;                       // B9: videos per trick
   var GRIP_KEYS = ["ken", "tama", "ito"];  // 持劍 / 持球 / 持線 (single choice)
-  var PART_KEYS = ["kensaki","kensakiSide","sara","saraEdge","kenBody","suberidome","chuzara","chuzaraEdge","tamaTop","ana"]; // multi
+  // Parts (multi), grouped ken / ito / tama. Old key "kensakiSide" was dropped (normalization filters unknown keys).
+  var PART_GROUPS = [
+    { key:"ken",  parts:["kensaki","kenchou","saraDo","sara","saraEdge","kenBody","suberidome","chuzara","chuzaraEdge"] },
+    { key:"ito",  parts:["string"] },
+    { key:"tama", parts:["tamaTop","ana","stringHole"] }
+  ];
+  var PART_KEYS = PART_GROUPS.reduce(function(a, g){ return a.concat(g.parts); }, []);
   // Personal landing-rate levels (B7), shown left-to-right: rare=1/10, sometimes=3/10, most=5/10, mastered=8/10
   var RATE_LEVELS = ["rare", "sometimes", "most", "mastered"];
   // Levels (B3): table root items are level 1, max level 4. Folders only up to level 3.

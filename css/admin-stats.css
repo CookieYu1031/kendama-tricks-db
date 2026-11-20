@@ -1,5 +1,10 @@
 /* Admin stats + backup (js/75-admin-stats.js). Reuses .admin-card-subtitle / .btn. */
-  .stats-head{ display:flex; justify-content:flex-end; margin-bottom:8px; }
+  .stats-refresh{
+    border:0; background:none; color: var(--paper-dim); font-size:20px; line-height:1; padding:2px 6px; cursor:pointer;
+    border-radius:8px; font-family:inherit;
+  }
+  .stats-refresh:hover:not([disabled]){ color: var(--accent-text); }
+  .stats-refresh[disabled]{ opacity:0.4; cursor:default; }
   .stats-body{ font-size:13px; }
   .stats-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:3px 0; min-width:0; }
   .stats-row-label{ color: var(--paper-dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -12,5 +17,10 @@
   .stats-empty{ font-size:12px; color: var(--paper-dim); }
   .stats-ga{ border:1px dashed var(--glass-border); border-radius: var(--radius); padding:8px 10px; }
   .stats-ga-title{ font-size:13px; font-weight:600; }
-  .stats-backup-list{ font-size:13px; max-height:220px; overflow-y:auto; }
-  .stats-backup-list .stats-row .btn{ padding:3px 10px; font-size:12px; }
+  .stats-backup-list{ font-size:13px; }
+  .stats-backup-list .stats-row .btn{ padding:3px 10px; font-size:12px; flex-shrink:0; }
+  .bk-row{ padding:8px 0; border-bottom:1px solid var(--line); align-items:flex-start; }
+  .bk-info{ min-width:0; flex:1; }
+  .bk-label{ font-family: var(--font-mono); color: var(--paper); }
+  .bk-note{ font-size:12px; color: var(--paper-dim); margin-top:2px; overflow-wrap:anywhere; }
+  .admin-sub-modal{ width: 520px; }

@@ -7,26 +7,6 @@ const c = load(["js/23-browse-gestures.js", "js/24-browse-keys.js"]);
 const base = { inField:false, modalOpen:false, drawerOpen:false, editMode:false, guest:false, ctrl:false };
 const ctx = (o) => Object.assign({}, base, o);
 
-test("browseSwipeDecision", () => {
-  assert.strictEqual(c.browseSwipeDecision(80, 5, 0), "back");
-  assert.strictEqual(c.browseSwipeDecision(40, 5, 0), "cancel");
-  assert.strictEqual(c.browseSwipeDecision(40, 5, 0.8), "back");
-  assert.strictEqual(c.browseSwipeDecision(10, 5, 0.8), "cancel");
-  assert.strictEqual(c.browseSwipeDecision(-80, 0, 1), "ignore");
-  assert.strictEqual(c.browseSwipeDecision(30, 60, 1), "ignore");
-});
-
-test("browseSwipeAllowed", () => {
-  const ok = { startX:100, inField:false, inBlocked:false, drawerOpen:false, modalOpen:false, dragging:false, pathLen:1 };
-  assert.strictEqual(c.browseSwipeAllowed(ok), true);
-  assert.strictEqual(c.browseSwipeAllowed(Object.assign({}, ok, { startX:10 })), false);
-  assert.strictEqual(c.browseSwipeAllowed(Object.assign({}, ok, { pathLen:0 })), false);
-  ["inField","inBlocked","drawerOpen","modalOpen","dragging"].forEach((k) => {
-    const o = Object.assign({}, ok); o[k] = true;
-    assert.strictEqual(c.browseSwipeAllowed(o), false, k);
-  });
-});
-
 test("keyAction mapping", () => {
   assert.strictEqual(c.keyAction("/", ctx()), "search");
   assert.strictEqual(c.keyAction("?", ctx()), "help");

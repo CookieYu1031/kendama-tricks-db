@@ -114,3 +114,9 @@ test("catch-all deny stays last", function () {
     assert.ok(src.indexOf(p) < last, p);
   });
 });
+
+test("spaceData: list rule has no doc-id condition (collection query must pass)", function () {
+  var block = src.slice(src.indexOf("match /spaceData/{sid}"));
+  assert.match(block, /allow list: if isOwner\(uid\);/);
+  assert.ok(!/allow read, delete: if isOwner\(uid\) && sid\.matches/.test(block));
+});

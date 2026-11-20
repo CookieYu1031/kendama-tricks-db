@@ -22,10 +22,15 @@
   /* Image icons: icon value "img:assets/<file>.<png|jpg|jpeg|webp|gif|svg>" (relative, under
      assets/ only — never an arbitrary URL). Anything else is treated as emoji/text. */
   var IMAGE_ICON_RE = /^img:assets\/[A-Za-z0-9_\-]+(\/[A-Za-z0-9_\-]+)*\.(png|jpe?g|webp|gif|svg)$/i;
+  // Admin-picked images are stored inline: "img:data:image/(png|webp|jpeg);base64,<payload>" (<= 64 KB).
+  var IMAGE_ICON_DATA_RE = /^img:data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/;
+  var IMAGE_ICON_DATA_MAX = 65536;
   function isImageIcon(icon){
-    return typeof icon === "string" && IMAGE_ICON_RE.test(icon);
+    if(typeof icon !== "string") return false;
+    if(IMAGE_ICON_RE.test(icon)) return true;
+    return icon.length <= IMAGE_ICON_DATA_MAX && IMAGE_ICON_DATA_RE.test(icon);
   }
-  // Safe relative path of an image icon, or "" when invalid.
+  // Safe src of an image icon (relative assets path or data URL), or "" when invalid.
   function imageIconSrc(icon){ return isImageIcon(icon) ? icon.slice(4) : ""; }
   // HTML for an icon box: <img> for image icons, escaped text for emoji, `fallback` (svg) when empty.
   function iconHtml(icon, fallback){

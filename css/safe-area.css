@@ -1,0 +1,43 @@
+  /* ============================================================
+     SAFE AREA (v0.8.1) — notch / home indicator / rounded corners.
+     index.html has viewport-fit=cover and a black-translucent iOS status bar,
+     so content would run under the notch without these insets. Loaded last
+     so it only adds insets on top of each component's own sizing.
+     --topbar-h grows by the top inset, which moves everything placed
+     below the topbar (mobile drawer, search panel height) with it.
+  ============================================================ */
+  :root{
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --topbar-h: calc(64px + var(--safe-t));
+  }
+  .topbar{
+    padding-top: var(--safe-t);
+    padding-left: calc(20px + var(--safe-l));
+    padding-right: calc(20px + var(--safe-r));
+  }
+  @media (max-width: 860px){
+    .topbar{ padding-left: calc(12px + var(--safe-l)); padding-right: calc(12px + var(--safe-r)); }
+  }
+  .space-rail{
+    padding-bottom: calc(14px + var(--safe-b));
+    margin-left: var(--safe-l);
+  }
+  .main-col{ padding-right: var(--safe-r); }
+  .col-add-fab{ bottom: calc(14px + var(--safe-b)); }
+  .drawer-body{ padding-bottom: calc(20px + var(--safe-b)); }
+  .drawer-foot{ padding-bottom: calc(16px + var(--safe-b)); }
+  @media (max-width: 860px){
+    .detail-drawer{ padding-right: var(--safe-r); padding-left: var(--safe-l); }
+  }
+  .modal-overlay{
+    padding: max(20px, var(--safe-t)) max(20px, var(--safe-r)) max(20px, var(--safe-b)) max(20px, var(--safe-l));
+  }
+
+  /* Credit line under the settings modal (moved off the browse view in v0.8.1). */
+  #settingsOverlay{ flex-direction:column; gap:10px; }
+  .settings-credit{ font-size:11px; color: var(--paper-faint); text-align:center; }
+  .settings-credit a{ color: var(--paper-dim); text-decoration:none; }
+  .settings-credit a:hover{ color: var(--accent-text); text-decoration:underline; }

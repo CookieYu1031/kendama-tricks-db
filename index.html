@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="css/toast-and-utility.css">
 <link rel="stylesheet" href="css/pwa.css">
 <link rel="stylesheet" href="css/tour.css">
+<link rel="stylesheet" href="css/safe-area.css">
 </head>
 <body>
 <div id="app">
@@ -60,13 +61,9 @@
       </div>
       <div class="search-tag-suggest drawer-chip-row" id="searchTagSuggest"></div>
       <div class="search-section">
-        <div class="search-label" id="searchGripLabel"></div>
-        <div class="lang-switch search-seg" id="searchGripRow"></div>
-      </div>
-      <div class="search-section">
         <div class="search-label-row">
-          <div class="search-label" id="searchPartsLabel"></div>
-          <div class="lang-switch search-seg search-seg-sm" id="searchPartsMode"></div>
+          <div class="lang-switch search-seg-sm" id="searchGripRow"></div>
+          <div class="lang-switch search-seg-sm" id="searchPartsMode"></div>
         </div>
         <div class="drawer-chip-row" id="searchPartsRow"></div>
       </div>
@@ -104,7 +101,6 @@
     <nav class="space-rail" id="spaceRail"></nav>
     <div class="main-col">
       <main class="miller-wrap" id="millerWrap"></main>
-      <div class="app-credit" aria-hidden="true">Designed by @Cookie_Yu_1031</div>
     </div>
     <aside class="detail-drawer" id="detailDrawer"></aside>
   </div>
@@ -200,6 +196,7 @@
       <div class="settings-privacy" id="settingsPrivacyText" hidden></div>
     </div>
   </div>
+  <div class="settings-credit">Designed by <a href="https://www.instagram.com/cookie_yu_1031/" target="_blank" rel="noopener noreferrer">@cookie_yu_1031</a></div>
 </div>
 
 <!-- Updates page (js/16-shell-updates.js) -->
@@ -221,14 +218,19 @@
       <button type="button" class="icon-btn settings-close" id="adminCloseBtn"></button>
     </div>
     <div class="modal-scroll admin-grid">
-      <div class="admin-area-mail">
-        <button type="button" class="btn btn-ghost btn-sm admin-mailbox-btn" id="adminMailboxBtn">📫 郵件箱</button>
-      </div>
       <section class="admin-card admin-area-stats">
-        <div class="admin-card-title" id="adminStatsTitle">網站統計</div>
-        <div id="adminStatsBody"></div>
-        <div id="adminBackupBody"></div>
+        <div class="admin-card-head">
+          <div class="admin-card-title" id="adminStatsTitle">網站統計</div>
+          <button type="button" class="stats-refresh" id="adminStatsRefresh">↺</button>
+        </div>
+        <div class="admin-stats-body" id="adminStatsBody"></div>
       </section>
+      <div class="admin-right">
+      <div class="admin-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="adminMailboxBtn">📫 郵件箱</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="adminBackupBtn">過往版本與備份</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="adminHelpersBtn">管理協助者</button>
+      </div>
       <section class="admin-card admin-area-publish">
         <div class="admin-card-title" id="adminPublishTitle">更新與發布</div>
         <div class="admin-last"><span id="adminLastLabel">上次版本</span><span class="admin-last-value" id="adminLastValue"></span></div>
@@ -245,10 +247,7 @@
         <button type="button" class="btn btn-primary btn-block" id="adminPublishBtn">發布更新</button>
         <div class="field-hint admin-index-hint"><span id="adminIndexHint"></span><a id="adminIndexLink" href="https://github.com/CookieYu1031/kendama-tricks-db/actions/workflows/search-index.yml" target="_blank" rel="noopener">更新搜尋索引</a></div>
       </section>
-      <section class="admin-card admin-area-helpers">
-        <div class="admin-card-title" id="adminHelpersTitle">管理協助者</div>
-        <div class="admin-soon" data-soon>即將推出</div>
-      </section>
+      </div>
     </div>
   </div>
 </div>
@@ -277,10 +276,6 @@
         <label id="categoryNameEnLabel">英文名稱</label>
         <input type="text" id="catEn" placeholder="e.g. Cup Tricks" />
       </div>
-      <div class="field">
-        <label id="catParentLabel">父分類</label>
-        <select id="catParent"></select>
-      </div>
       <div class="form-error" id="categoryFormError">請至少輸入中文名稱</div>
     </div>
     <div class="modal-footer">
@@ -307,8 +302,10 @@
       <div class="field">
         <label id="emojiPickerLabel">圖示</label>
         <div class="emoji-grid" id="emojiGrid"></div>
-        <div class="field" style="margin-top:10px;">
+        <div class="field emoji-input-row">
           <input type="text" id="customEmojiInput" maxlength="6" placeholder="貼上任意 Emoji" />
+          <button type="button" class="btn btn-ghost" id="iconImageBtn" hidden>選擇圖片</button>
+          <input type="file" id="iconImageFile" accept="image/*" hidden />
         </div>
       </div>
     </div>
@@ -465,8 +462,8 @@
       <div id="addTrickSection" hidden>
         <div id="addTrickFields">
           <div class="field"><label id="addVideoLabel"></label><input type="url" id="addVideoUrl" placeholder="https://" /></div>
-          <div class="field"><label id="addGripLabel"></label><div class="drawer-chip-row" id="addGripRow"></div></div>
-          <div class="field"><label id="addPartsLabel"></label><div class="drawer-chip-row" id="addPartsRow"></div></div>
+          <div class="field"><div class="drawer-chip-row" id="addGripRow"></div></div>
+          <div class="field"><div class="drawer-chip-row" id="addPartsRow"></div></div>
           <div class="field" id="addTagField"><label id="addTagsLabel"></label><div class="drawer-chip-row" id="addTagsRow"></div></div>
           <div class="field" id="addOfficialField" hidden><label id="addOfficialLabel"></label><textarea id="addOfficialNote" rows="2"></textarea></div>
           <div class="field"><label id="addNoteLabel"></label><textarea id="addNote" rows="3"></textarea></div>
@@ -554,6 +551,9 @@
 <script src="js/22-browse-drag.js"></script>
 <script src="js/23-browse-gestures.js"></script>
 <script src="js/24-browse-keys.js"></script>
+<script src="js/25-browse-clipboard.js"></script>
+<script src="js/26-browse-fab.js"></script>
+<script src="js/27-browse-swipe-back.js"></script>
 <script src="js/30-drawer-logic.js"></script>
 <script src="js/31-drawer-sections.js"></script>
 <script src="js/32-trick-drawer.js"></script>

@@ -106,7 +106,11 @@
           if(op.ts) data[typeof op.ts === "string" ? op.ts : "updatedAt"] = firebase.firestore.FieldValue.serverTimestamp();
           batch.set(ref, data);
         });
-        return batch.commit();
+        return batch.commit().catch(function(err){
+          // Name the rejected batch so a rules denial can be traced to its paths.
+          console.error("Batch commit failed:", list.map(function(op){ return op.kind + " " + op.path; }));
+          throw err;
+        });
       });
     });
     return chain;

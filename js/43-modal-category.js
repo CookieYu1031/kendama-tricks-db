@@ -3,37 +3,16 @@
   /* ============================================================
      CATEGORY MODAL (Add / Edit)
   ============================================================ */
-  // Parent options now include trick-folders alongside categories (via the
-  // same generic flattenContainersForPicker() used for the trick "belongs to"
-  // picker) — a trick with too many flat extension tricks can now be given
-  // sub-categories of its own, so its id needs to be a valid parent choice
-  // here too. Trick-folder rows get a "▶" marker (matching the same marker
-  // used in the trick modal's own picker) so they read distinctly from plain
-  // categories in the dropdown.
+  // A folder's position is set by where it is created (the current column) and moved by
+  // drag / cut-paste (js/22, js/25) — the modal has no parent field.
   addStrings({
-    zh:{ categoryDepthLimitReached:"資料夾最多 3 層，請選擇較淺層的父層", confirmDeleteCategoryBody:"此分類及其子分類、資訊都會被刪除；其中的招式只會移除在此處的位置，最後一個位置被移除時招式才會刪除。" },
-    jp:{ categoryDepthLimitReached:"フォルダは最大3階層までです。より浅い親を選んでください", confirmDeleteCategoryBody:"このカテゴリとサブカテゴリ・情報を削除します。中の技はこの場所から外すだけで、最後の配置が消えたときに削除されます。" },
-    en:{ categoryDepthLimitReached:"Folders can go up to 3 levels deep. Pick a shallower parent.", confirmDeleteCategoryBody:"This folder, its sub-folders and info items are deleted. Tricks inside only lose this location; a trick is deleted when its last location is removed." }
+    zh:{ categoryDepthLimitReached:"資料夾最多 3 層，無法在這裡新增資料夾",
+         chooseImageBtn:"選擇圖片", iconImageTooBig:"圖片太大（上限 40 KB），請換一張較簡單的圖", iconImageFailed:"無法讀取這張圖片", confirmDeleteCategoryBody:"此分類及其子分類、資訊都會被刪除；其中的招式只會移除在此處的位置，最後一個位置被移除時招式才會刪除。" },
+    jp:{ categoryDepthLimitReached:"フォルダは最大3階層までです。ここには追加できません",
+         chooseImageBtn:"画像を選択", iconImageTooBig:"画像が大きすぎます（上限 40 KB）", iconImageFailed:"画像を読み込めません", confirmDeleteCategoryBody:"このカテゴリとサブカテゴリ・情報を削除します。中の技はこの場所から外すだけで、最後の配置が消えたときに削除されます。" },
+    en:{ categoryDepthLimitReached:"Folders can go up to 3 levels deep. Can't add one here.",
+         chooseImageBtn:"Choose image", iconImageTooBig:"Image too large (40 KB max). Try a simpler one.", iconImageFailed:"Couldn't read that image", confirmDeleteCategoryBody:"This folder, its sub-folders and info items are deleted. Tricks inside only lose this location; a trick is deleted when its last location is removed." }
   });
-
-  function fillParentSelect(selectEl, excludeIds, movingCatId){
-    selectEl.innerHTML = "";
-    var rootOpt = document.createElement("option");
-    rootOpt.value = ""; rootOpt.textContent = t("rootLevel");
-    selectEl.appendChild(rootOpt);
-    flattenContainersForPicker(excludeIds).forEach(function(row){
-      var opt = document.createElement("option");
-      opt.value = row.id;
-      // can't take a folder child (level limit; includes the moved folder's own subtree)
-      var atDepthLimit = !canAddChild(row.id, "folder") ||
-        (movingCatId && !subtreeFits(movingCatId, "category", levelOf(row.id) + 1));
-      var prefix = row.depth>0 ? "\u2003".repeat(row.depth) + "\u2514 " : "";
-      var marker = row.type === "trick" ? "\u25B6 " : "";
-      opt.textContent = prefix + marker + row.name + (atDepthLimit ? " " + t("maxDepthSuffix") : "");
-      if(atDepthLimit) opt.disabled = true;
-      selectEl.appendChild(opt);
-    });
-  }
 
   var TRICK_DEFAULT_HEX = "#5B8AA6"; // matches --string, the default (un-customized) trick tint
 
@@ -93,22 +72,19 @@
     document.getElementById("categoryModalTitle").textContent = categoryId ? t("editCategory") : t("newCategory");
     document.getElementById("catDeleteBtn").hidden = !categoryId;
 
-    var excludeIds = categoryId ? getDescendantCategoryIds(categoryId) : [];
-    fillParentSelect(document.getElementById("catParent"), excludeIds, categoryId);
+    state.editingCategoryParentHint = parentHint === undefined ? null : parentHint;
 
     if(categoryId){
       var cat = getCategory(categoryId);
       document.getElementById("catZh").value = cat.name.zh || "";
       document.getElementById("catJp").value = cat.name.jp || "";
       document.getElementById("catEn").value = cat.name.en || "";
-      document.getElementById("catParent").value = cat.parentId || "";
       state.categoryDraftIcon = cat.icon || "";
       state.categoryDraftColor = cat.color || "default";
     } else {
       document.getElementById("catZh").value = "";
       document.getElementById("catJp").value = "";
       document.getElementById("catEn").value = "";
-      document.getElementById("catParent").value = parentHint || "";
       state.categoryDraftIcon = "";
       state.categoryDraftColor = "default";
     }
@@ -123,6 +99,60 @@
   }
 
   /* ---- Icon & Color Picker ---- */
+  // Image icons are admin-only, offered for every icon target (folder, trick, table, add modal,
+  // drawer): all renderers print icons through iconHtml.
+  var ICON_IMAGE_MAX_PX = 128;
+  var ICON_IMAGE_MAX_CHARS = 40 * 1024;
+  function iconImageAllowed(target){
+    if(typeof isAdminAccount !== "function" || !isAdminAccount()) return false;
+    return true;
+  }
+  // Pure: scaled size keeping aspect so the longer side is at most max (never upscales).
+  function iconImageFit(w, h, max){
+    var k = Math.min(1, max / Math.max(w, h));
+    return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
+  }
+  // Draws img centered on a transparent square canvas; returns "img:data:image/..." or "" when too big.
+  function iconImageEncode(img){
+    var fit = iconImageFit(img.naturalWidth || img.width, img.naturalHeight || img.height, ICON_IMAGE_MAX_PX);
+    var side = Math.max(fit.w, fit.h);
+    var cv = document.createElement("canvas");
+    cv.width = side; cv.height = side;
+    cv.getContext("2d").drawImage(img, Math.round((side - fit.w) / 2), Math.round((side - fit.h) / 2), fit.w, fit.h);
+    var qualities = [0.85, 0.6, 0.4];
+    for(var i = 0; i < qualities.length; i++){
+      var url = cv.toDataURL("image/webp", qualities[i]);
+      if(url.indexOf("data:image/webp") !== 0) url = cv.toDataURL("image/png"); // no webp encoder
+      if(url.length <= ICON_IMAGE_MAX_CHARS) return "img:" + url;
+    }
+    return "";
+  }
+  function pickIconImage(file){
+    if(!file) return;
+    var target = state.iconPickerTarget || "category";
+    var reader = new FileReader();
+    reader.onerror = function(){ showToast(t("iconImageFailed")); };
+    reader.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ showToast(t("iconImageFailed")); };
+      img.onload = function(){
+        var val = iconImageEncode(img);
+        if(!val || !isImageIcon(val)){ showToast(t("iconImageTooBig")); return; }
+        setDraftIcon(target, val);
+        renderIconPicker();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  (function bindIconImagePick(){
+    var btn = document.getElementById("iconImageBtn");
+    var inp = document.getElementById("iconImageFile");
+    if(!btn || !inp) return;
+    btn.addEventListener("click", function(){ inp.value = ""; inp.click(); });
+    inp.addEventListener("change", function(){ pickIconImage(inp.files && inp.files[0]); });
+  })();
+
   function renderIconPicker(){
     document.getElementById("iconPickerTitle").textContent = t("chooseIconColor");
     document.getElementById("colorPickerLabel").textContent = t("colorLabel");
@@ -133,6 +163,8 @@
     document.getElementById("customEmojiInput").value = "";
 
     var target = state.iconPickerTarget || "category";
+    var imgBtn = document.getElementById("iconImageBtn");
+    if(imgBtn){ imgBtn.textContent = t("chooseImageBtn"); imgBtn.hidden = !iconImageAllowed(target); }
 
     var colorRow = document.getElementById("colorSwatchRow");
     colorRow.innerHTML = "";
@@ -187,7 +219,7 @@
     var zh = document.getElementById("catZh").value.trim();
     var jp = document.getElementById("catJp").value.trim();
     var en = document.getElementById("catEn").value.trim();
-    var parentVal = document.getElementById("catParent").value || null;
+    var parentVal = state.editingCategoryId ? getCategory(state.editingCategoryId).parentId : (state.editingCategoryParentHint || null);
 
     if(!zh){
       document.getElementById("categoryFormError").textContent = t("categoryNameRequired");
@@ -195,8 +227,7 @@
       return;
     }
 
-    if(!canAddChild(parentVal, "folder") ||
-       (state.editingCategoryId && !subtreeFits(state.editingCategoryId, "category", levelOf(parentVal) + 1))){
+    if(!state.editingCategoryId && !canAddChild(parentVal, "folder")){
       document.getElementById("categoryFormError").textContent = t("categoryDepthLimitReached");
       document.getElementById("categoryFormError").classList.add("show");
       return;
@@ -205,7 +236,6 @@
     if(state.editingCategoryId){
       var cat = getCategory(state.editingCategoryId);
       cat.name = { zh:zh, jp:jp, en:en };
-      cat.parentId = parentVal;
       cat.icon = state.categoryDraftIcon;
       cat.color = state.categoryDraftColor;
     } else {

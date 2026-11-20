@@ -77,7 +77,9 @@
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
-| 右滑返回上一層 | `js/23-browse-gestures.js` |
+| 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、資料夾深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
+| 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
+| 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp` 在 `js/23-browse-gestures.js` |
 | 快捷鍵 | `js/24-browse-keys.js` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |

@@ -6,15 +6,15 @@
   ============================================================ */
   addStrings({
     zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchGripLabel:"持法", searchPartsLabel:"部位",
-         searchModeAny:"任一符合", searchModeAll:"全部符合", searchReset:"清除條件", searchMore:"顯示更多",
+         searchModeAny:"其一", searchModeAll:"精確", searchReset:"清除條件", searchMore:"顯示更多",
          searchHint:"輸入招式名稱，或用 #標籤、持法、部位來篩選", searchEmpty:"找不到符合的招式",
          searchCountN:"{n} 個結果", searchNoTag:"（沒有符合的標籤）" },
     jp:{ searchPlaceholder:"技名、または #タグで検索…", searchGripLabel:"持ち方", searchPartsLabel:"部位",
-         searchModeAny:"いずれか", searchModeAll:"すべて", searchReset:"条件をクリア", searchMore:"もっと見る",
+         searchModeAny:"いずれか", searchModeAll:"完全一致", searchReset:"条件をクリア", searchMore:"もっと見る",
          searchHint:"技名を入力、または #タグ・持ち方・部位で絞り込み", searchEmpty:"該当する技がありません",
          searchCountN:"{n} 件", searchNoTag:"（該当するタグなし）" },
     en:{ searchPlaceholder:"Search trick names, or type #tag…", searchGripLabel:"Grip", searchPartsLabel:"Parts",
-         searchModeAny:"Match any", searchModeAll:"Match all", searchReset:"Clear filters", searchMore:"Show more",
+         searchModeAny:"Any", searchModeAll:"Exact", searchReset:"Clear filters", searchMore:"Show more",
          searchHint:"Type a trick name, or filter by #tag, grip and parts", searchEmpty:"No matching tricks",
          searchCountN:"{n} results", searchNoTag:"(no matching tags)" }
   });
@@ -47,8 +47,7 @@
       b.setAttribute("data-grip", k);
       gripRow.appendChild(b);
     });
-    var partsRow = spEl("searchPartsRow");
-    PART_KEYS.forEach(function(k){
+    fillPartGroups(spEl("searchPartsRow"), function(k){
       var b = spButton("drawer-chip", "", function(){
         var i = searchFilters.parts.indexOf(k);
         if(i === -1) searchFilters.parts.push(k); else searchFilters.parts.splice(i, 1);
@@ -56,7 +55,7 @@
         runSearchPanel();
       });
       b.setAttribute("data-part", k);
-      partsRow.appendChild(b);
+      return b;
     });
     var modeRow = spEl("searchPartsMode");
     ["any", "all"].forEach(function(m){
@@ -72,11 +71,9 @@
   }
 
   function updateSearchPanelTexts(){
-    spEl("searchGripLabel").textContent = t("searchGripLabel");
-    spEl("searchPartsLabel").textContent = t("searchPartsLabel");
     spEl("searchResetBtn").textContent = t("searchReset");
     Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){ b.textContent = t("grip_" + b.getAttribute("data-grip")); });
-    Array.prototype.forEach.call(spEl("searchPartsRow").children, function(b){ b.textContent = t("part_" + b.getAttribute("data-part")); });
+    Array.prototype.forEach.call(spEl("searchPartsRow").querySelectorAll("[data-part]"), function(b){ b.textContent = t("part_" + b.getAttribute("data-part")); });
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
       b.textContent = t(b.getAttribute("data-mode") === "all" ? "searchModeAll" : "searchModeAny");
     });
@@ -87,7 +84,7 @@
     Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){
       b.classList.toggle("active", searchFilters.grip === b.getAttribute("data-grip"));
     });
-    Array.prototype.forEach.call(spEl("searchPartsRow").children, function(b){
+    Array.prototype.forEach.call(spEl("searchPartsRow").querySelectorAll("[data-part]"), function(b){
       b.classList.toggle("active", searchFilters.parts.indexOf(b.getAttribute("data-part")) !== -1);
     });
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
@@ -198,7 +195,8 @@
     var hex = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
     icon.style.background = hexToRgba(hex, 0.22);
     icon.style.color = hex;
-    if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_PLAY; }
+    if(isImageIcon(tr.icon)){ icon.classList.add("img-icon"); icon.innerHTML = iconHtml(tr.icon); }
+    else if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_PLAY; }
     applyTrickGlow(icon, tr);
     var wrap = document.createElement("div");
     wrap.className = "item-text";

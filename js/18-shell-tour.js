@@ -14,7 +14,7 @@
       tourWelcomeTitle:"歡迎來到劍玉招式庫",
       tourWelcomeBody:"瀏覽各種劍玉招式、查看影片與標籤，並記錄自己的成招率。花一分鐘看看主要功能吧。",
       tourRailTitle:"左欄分區",
-      tourRailBody:"00 總表、01 檢定、02 賽事，以及收藏與自訂表。點選即可切換分區。",
+      tourRailBody:"總表、檢定、賽事，以及收藏與自訂表。點選即可切換分區。",
       tourMillerTitle:"逐層瀏覽",
       tourMillerBody:"點資料夾逐層展開，點招式會打開右側資訊抽屜：影片、標籤、握持部位、成招率。",
       tourSearchTitle:"搜尋",
@@ -32,14 +32,14 @@
       tourEditTitle:"編輯模式",
       tourEditBody:"點這顆按鈕進入編輯模式，可新增、改名、排序與刪除自己的項目。",
       tourCustomTitle:"自訂表",
-      tourCustomBody:"左欄的 0a–0z 是你的自訂表，可以建立自己的招式清單。"
+      tourCustomBody:"開啟編輯模式後，可以在左欄中間建立自訂表，整理自己的招式清單。"
     },
     jp:{
       tourPrev:"戻る", tourNext:"次へ", tourDone:"完了", tourSkip:"スキップ", tourCounter:"{n} / {total}",
       tourWelcomeTitle:"けん玉技データベースへようこそ",
       tourWelcomeBody:"けん玉の技を閲覧し、動画やタグを確認し、自分の成功率を記録できます。主な機能を1分で見てみましょう。",
       tourRailTitle:"左のレール",
-      tourRailBody:"00 総表、01 検定、02 大会、そしてお気に入りとカスタム表。タップで切り替えます。",
+      tourRailBody:"総表、検定、大会、そしてお気に入りとカスタム表。タップで切り替えます。",
       tourMillerTitle:"階層ブラウズ",
       tourMillerBody:"フォルダをタップして階層を開き、技をタップすると右の情報ドロワーが開きます：動画、タグ、持ち方、成功率。",
       tourSearchTitle:"検索",
@@ -57,14 +57,14 @@
       tourEditTitle:"編集モード",
       tourEditBody:"このボタンで編集モードに入り、自分の項目の追加・名前変更・並べ替え・削除ができます。",
       tourCustomTitle:"カスタム表",
-      tourCustomBody:"左レールの 0a–0z があなたのカスタム表です。自分の技リストを作れます。"
+      tourCustomBody:"編集モードにすると、左レールの中央でカスタム表を作成し、自分の技リストを整理できます。"
     },
     en:{
       tourPrev:"Back", tourNext:"Next", tourDone:"Done", tourSkip:"Skip", tourCounter:"{n} / {total}",
       tourWelcomeTitle:"Welcome to the Kendama Tricks DB",
       tourWelcomeBody:"Browse kendama tricks, watch videos and tags, and track your own success rates. Take a minute to see the main features.",
       tourRailTitle:"Left rail",
-      tourRailBody:"00 Master, 01 Certification, 02 Competitions, plus favourites and your own tables. Tap to switch.",
+      tourRailBody:"Master list, Certification, Competitions, plus favourites and your own tables. Tap to switch.",
       tourMillerTitle:"Browse level by level",
       tourMillerBody:"Tap a folder to open the next level. Tap a trick to open the info drawer: video, tags, grips, success rate.",
       tourSearchTitle:"Search",
@@ -82,7 +82,7 @@
       tourEditTitle:"Edit mode",
       tourEditBody:"Tap this button for edit mode: add, rename, reorder and delete your own items.",
       tourCustomTitle:"Custom tables",
-      tourCustomBody:"0a–0z in the left rail are your own tables. Build your own trick lists there."
+      tourCustomBody:"In edit mode, create your own tables in the middle of the left rail to organise your trick lists."
     }
   });
 

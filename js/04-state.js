@@ -17,7 +17,7 @@
     searchQuery: "",
     detailTrickId: null,
     editingCategoryId: null,   // set when category modal is in "edit" mode
-    editingCategoryParentHint: null, // parent to preselect when adding new
+    editingCategoryParentHint: null, // parent of a new folder (the column it is created in)
     confirmAction: null,
     categoryDraftIcon: "",
     categoryDraftColor: "default",

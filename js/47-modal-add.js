@@ -169,8 +169,8 @@
     GRIP_KEYS.forEach(function(k){
       gripRow.appendChild(chip(t("grip_" + k), fake.grip === k, function(){ addForm.grip = toggleGrip(fake, k); renderAddChips(); }));
     });
-    PART_KEYS.forEach(function(k){
-      partsRow.appendChild(chip(t("part_" + k), fake.parts.indexOf(k) !== -1, function(){ addForm.parts = togglePart(fake, k).slice(); renderAddChips(); }));
+    fillPartGroups(partsRow, function(k){
+      return chip(t("part_" + k), fake.parts.indexOf(k) !== -1, function(){ addForm.parts = togglePart(fake, k).slice(); renderAddChips(); });
     });
     if(!(db.tags || []).length){
       var none = document.createElement("span");
@@ -256,8 +256,6 @@
       ["addMainName", "addAlt1", "addAlt2"].forEach(function(id){ addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); }); });
     }
     addEl("addVideoLabel").textContent = t("addVideoLabel");
-    addEl("addGripLabel").textContent = t("gripLabel");
-    addEl("addPartsLabel").textContent = t("partsLabel");
     addEl("addTagsLabel").textContent = t("addTagsLabel");
     addEl("addOfficialLabel").textContent = t("addOfficialNoteLabel");
     addEl("addNoteLabel").textContent = t("personalNoteLabel");
