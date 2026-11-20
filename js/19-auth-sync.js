@@ -529,7 +529,7 @@
     fbAuth.signInWithPopup(provider).catch(function(err){
       console.error("Sign-in failed:", err);
       if(err && err.code === "auth/popup-closed-by-user") return;
-      showToast(t("authLoginError"), "error");
+      showToast(t("authLoginError") + (err && err.code ? " (" + err.code + ")" : ""), "error");
     });
   }
 

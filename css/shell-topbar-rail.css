@@ -181,17 +181,6 @@
     transition: background .14s var(--ease);
   }
   .search-suggest-item:hover{ background: var(--glass-2); }
-  .search-suggest-command{
-    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
-  }
-  .search-suggest-cmd{
-    font-family: var(--font-mono); font-weight:600; color: var(--lacquer-bright);
-    flex: 0 0 auto; white-space:nowrap;
-  }
-  .search-suggest-desc{
-    font-size:12px; color: var(--paper-dim);
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right;
-  }
 
   .topbar-actions{ flex: 0 0 auto; display:flex; align-items:center; gap:10px; margin-left:auto; }
 

@@ -916,12 +916,6 @@
     var box = document.getElementById("searchSuggest");
     var trimmed = (q||"").trim();
 
-    // Typing "/" previews the hidden power-user commands instead of trick matches.
-    if(trimmed.charAt(0) === "/"){
-      renderCommandSuggest(box, trimmed);
-      return;
-    }
-
     var matches = getSearchMatches(q);
 
     if(!trimmed || matches.length === 0){
@@ -939,45 +933,6 @@
         ev.preventDefault();
         closeSearchSuggest();
         goToTrickLocation(tr.id);
-      });
-      box.appendChild(row);
-    });
-
-    box.classList.add("show");
-  }
-
-  // Shows the list of available "/" commands (see HIDDEN_COMMANDS), each
-  // annotated with a description in the current UI language. Selecting a
-  // row fills the search box with that command; Enter still runs it.
-  function renderCommandSuggest(box, query){
-    var lower = query.toLowerCase();
-    var matches = HIDDEN_COMMANDS.filter(function(c){
-      return c.cmd.toLowerCase().indexOf(lower) === 0;
-    });
-
-    if(matches.length === 0){
-      closeSearchSuggest();
-      return;
-    }
-
-    box.innerHTML = "";
-    matches.forEach(function(c){
-      var row = document.createElement("div");
-      row.className = "search-suggest-item search-suggest-command";
-      var cmdSpan = document.createElement("span");
-      cmdSpan.className = "search-suggest-cmd";
-      cmdSpan.textContent = c.cmd;
-      var descSpan = document.createElement("span");
-      descSpan.className = "search-suggest-desc";
-      descSpan.textContent = t(c.descKey);
-      row.appendChild(cmdSpan);
-      row.appendChild(descSpan);
-      row.addEventListener("mousedown", function(ev){
-        ev.preventDefault();
-        var input = document.getElementById("searchInput");
-        input.value = c.cmd;
-        closeSearchSuggest();
-        input.focus();
       });
       box.appendChild(row);
     });

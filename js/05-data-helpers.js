@@ -178,6 +178,15 @@
       if(iconEl) applyTrickGlow(iconEl, tr);
     });
   }
+  // Only plain web links may be stored/opened as video URLs — blocks
+  // javascript:, data: and other schemes that could run code on click.
+  function isSafeHttpUrl(url){
+    if(typeof url !== "string" || !url.trim()) return false;
+    try{
+      var u = new URL(url.trim());
+      return u.protocol === "https:" || u.protocol === "http:";
+    }catch(e){ return false; }
+  }
   function escapeHtml(str){
     return String(str==null?"":str).replace(/[&<>"']/g, function(ch){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];

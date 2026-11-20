@@ -34,6 +34,11 @@
       document.getElementById("mediaFormError").classList.add("show");
       return;
     }
+    if(!isSafeHttpUrl(url)){
+      document.getElementById("mediaFormError").textContent = t("mediaUrlInvalid");
+      document.getElementById("mediaFormError").classList.add("show");
+      return;
+    }
 
     tr.media = tr.media || [];
     if(state.editingMediaId){
