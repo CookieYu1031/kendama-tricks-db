@@ -1,8 +1,8 @@
   /* ---------- Detail Drawer ---------- */
-  :root{ --drawer-custom-tint: rgba(201,160,99,0.13); } /* custom:true tricks: warm (--wood) tint on the head */
+  :root{ --drawer-custom-tint: var(--wood-tint-strong); } /* custom:true tricks: warm (--wood) tint on the head */
   .detail-drawer{
     flex: 0 0 0px; width:0; min-width:0; max-width:0; overflow:hidden;
-    background: linear-gradient(165deg, rgba(50,54,60,0.55), rgba(18,20,22,0.62));
+    background: linear-gradient(165deg, var(--surface-drawer-a), var(--surface-drawer-b));
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     border-left: 1px solid var(--glass-border-strong);
     display:flex; flex-direction:column;
@@ -13,15 +13,10 @@
     width: clamp(300px, 32vw, 420px);
     min-width:0; max-width:min(420px, 92vw);
   }
-  .drawer-head{
+  .drawer-head{ flex:0 0 auto;
     padding: 18px 20px; border-bottom: 1px solid var(--line); display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
   }
   .drawer-eyebrow{ font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color: var(--string); margin-bottom:6px; }
-  /* Pull-down-to-close handle — invisible on desktop, shown only on the mobile
-     bottom-sheet layout below. Wraps drawer-head so dragging from either the
-     handle or the head itself can drag-to-dismiss. */
-  .drawer-drag-zone{ display:flex; flex-direction:column; flex:0 0 auto; }
-  .drawer-drag-handle{ display:none; }
   .drawer-title{ font-family: var(--font-display); font-size:24px; font-weight:700; line-height:1.25; }
   .drawer-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
   .drawer-close{
@@ -93,7 +88,7 @@
   .proficiency-btn:hover{ background: var(--pf-bg-hover, var(--glass-3)); }
   .proficiency-btn.active{
     background: linear-gradient(165deg, var(--pf-active-a, rgba(var(--lacquer-rgb),0.95)), var(--pf-active-b, rgba(var(--lacquer-rgb),0.68)));
-    color: var(--ink);
+    color: var(--on-accent);
   }
 
   /* ---------- v0.2 drawer additions ---------- */
@@ -158,51 +153,25 @@
   }
   .drawer-rate-hint[hidden]{ display:none; }
 
+  /* Mobile: full-width panel under the top bar, slides in from the right
+     (spec 3.4). Body scrolls; the proficiency / guest foot stays pinned. */
   @media (max-width: 860px){
     .detail-drawer{
-      position:fixed; left:0; right:0; bottom:0; top:auto; height:92%;
-      flex:none; width:100%; max-width:100%;
-      border-left:none; border-top:1px solid var(--line-strong); border-radius: 18px 18px 0 0;
-      transform: translateY(100%);
-      transition: transform .32s var(--ease), height .32s var(--ease);
+      position:fixed; left:0; right:0; top: var(--topbar-h); bottom:0; height:auto;
+      flex:none; width:100%; min-width:0; max-width:100%;
+      border-left:none; border-top:1px solid var(--line-strong); border-radius:0;
+      transform: translateX(100%);
+      transition: transform .3s var(--ease);
       z-index: 41; box-shadow: var(--shadow-lg);
+      touch-action: pan-y;
     }
-    /* The base ".detail-drawer.show" rule above has the same specificity as this
-       one and also sets flex/width/max-width — without redeclaring them here
-       (equal specificity, but that rule keeps applying since it isn't
-       overridden by property) the drawer stayed clamped to ~420px wide as a
-       left-hand panel on mobile instead of a full-width sheet. Restating the
-       full-width values here fixes that. */
+    /* Same specificity as the base ".detail-drawer.show" (which sets flex/width),
+       so restate the full-width values here. */
     .detail-drawer.show{
-      transform: translateY(0);
+      transform: translateX(0);
       flex:none; width:100%; min-width:0; max-width:100%;
     }
-    .drawer-drag-handle{
-      display:flex; align-items:center; justify-content:center;
-      padding: 10px 0 2px; touch-action:none; cursor:grab;
-    }
-    .drawer-drag-handle span{ width:36px; height:4px; border-radius:999px; background: var(--glass-border-strong); }
-
-    /* The "×" close button is redundant with the swipe-down-to-close gesture
-       on mobile (see attachDrawerDragToClose in 09-render-detail-drawer.js) —
-       hidden here rather than removed from the DOM, matching how
-       .drawer-drag-handle itself is desktop-hidden/mobile-shown above. */
-    .drawer-close{ display:none; }
-
-    /* Two-stage bottom sheet: tapping a trick opens it "peeked" (drag handle
-       + title + other-language name rows only). The exact height is set
-       inline by JS (applyDrawerModeClass in 09-render-detail-drawer.js) —
-       measured from the actual rendered content so peek is exactly as tall
-       as those rows and no taller, while still being a concrete pixel value
-       (not "auto") so the `height` transition above can animate it smoothly.
-       max-height here is just a safety cap for unusually long multi-line
-       names; drawer-body's own overflow-y:auto handles the rest. Swiping
-       down always closes outright, from either state — see
-       setDrawerExpanded / attachDrawerDragToClose in
-       09-render-detail-drawer.js. */
-    .detail-drawer.peek-mode{
-      max-height: min(60vh, 460px);
-    }
-    .detail-drawer.peek-mode .drawer-expand-content{ display:none; }
   }
-
+  @media (prefers-reduced-motion: reduce){
+    .detail-drawer{ transition: none; }
+  }

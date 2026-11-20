@@ -75,20 +75,28 @@
   ============================================================ */
   function isAdminNow(){ return typeof isAdminAccount === "function" && !!isAdminAccount(); }
 
-  // Rail layout: t00, t01, t02, divider, fav, custom tables (by order).
-  // Returns spaces plus the string "divider".
-  function railLayout(spaces){
+  // Rail zones (E2): top = view-only tables 00/01/02, middle = 收藏 + custom
+  // tables (by order), bottom = function buttons (edit toggle; rendered by
+  // 12-shell-rail.js). Guests (D8) get only the top zone; the middle and
+  // bottom zones are not shown at all.
+  function railZones(spaces){
     var byId = {};
     spaces.forEach(function(s){ byId[s.id] = s; });
-    var out = [];
-    ["t00", "t01", "t02"].forEach(function(id){ if(byId[id]) out.push(byId[id]); });
-    if(isGuest()) return out; // D8: guests see only the public tables
-    out.push("divider");
-    if(byId[FAV_TABLE_ID]) out.push(byId[FAV_TABLE_ID]);
+    var top = [], middle = [];
+    ["t00", "t01", "t02"].forEach(function(id){ if(byId[id]) top.push(byId[id]); });
+    if(isGuest()) return { top: top, middle: middle, showMiddle: false, showBottom: false };
+    if(byId[FAV_TABLE_ID]) middle.push(byId[FAV_TABLE_ID]);
     spaces.filter(function(s){ return !isDefaultSpaceId(s.id); })
       .sort(function(a, b){ return (a.order || 0) - (b.order || 0); })
-      .forEach(function(s){ out.push(s); });
-    return out;
+      .forEach(function(s){ middle.push(s); });
+    return { top: top, middle: middle, showMiddle: true, showBottom: true };
+  }
+
+  // Flat form: top spaces, "divider", middle spaces (guests: top only).
+  function railLayout(spaces){
+    var z = railZones(spaces);
+    if(!z.showMiddle) return z.top;
+    return z.top.concat(["divider"], z.middle);
   }
 
   // Whether an existing row may be edited / deleted / dragged. Virtual favorites

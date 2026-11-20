@@ -65,6 +65,8 @@
 | SVG icons | `js/06-icons-svg.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
+| 設定頁（齒輪、帳號列、語言、即將推出項目） | `js/14-shell-settings.js` |
+| 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |

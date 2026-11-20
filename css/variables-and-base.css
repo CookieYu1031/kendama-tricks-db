@@ -33,8 +33,53 @@
     --glass-border: rgba(255,255,255,0.16);
     --glass-border-strong: rgba(255,255,255,0.30);
     --glass-highlight: inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.30), inset 1px 0 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.12);
+    --accent-text:#7DD8FF; /* --lacquer-bright when used as TEXT */
+    --on-accent:#121212; /* text on lacquer buttons */
+    --on-accent-2:#0b0b0b;
+    --overlay-bg: rgba(8,9,10,0.5);
+    --surface-modal-a: rgba(40,40,40,0.55);
+    --surface-modal-b: rgba(20,20,20,0.55);
+    --surface-drawer-a: rgba(50,54,60,0.55);
+    --surface-drawer-b: rgba(18,20,22,0.62);
+    --surface-search: rgba(28,28,30,0.96);
+    --surface-suggest: rgba(78,79,79,0.9);
+    --wood-tint: rgba(201,160,99,0.08);
+    --wood-tint-strong: rgba(201,160,99,0.13);
+    --wood-tint-cell: rgba(201,160,99,0.14);
+    --body-glow-1: rgba(62,155,224,0.16);
+    --body-glow-2: rgba(91,138,166,0.10);
+    --body-glow-3: rgba(201,160,99,0.10);
+    --body-glow-4: rgba(62,155,224,0.09);
+    color-scheme: dark;
     --glass-blur: blur(30px) saturate(190%);
     --glass-blur-soft: blur(18px) saturate(165%);
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --ink:#F4F1EA; --ink-2:#ECE8DF; --ink-3:#E3DED3; --ink-4:#D8D2C5;
+    --paper:#1E1E1E; --paper-dim: rgba(30,30,30,0.68); --paper-faint: rgba(30,30,30,0.46);
+    --line: rgba(30,30,30,0.10); --line-strong: rgba(30,30,30,0.18);
+    --lacquer:#2F86CC; --lacquer-bright:#5BB8F0; --lacquer-rgb: 47,134,204;
+    --wood:#A87B3C; --string:#4A7590;
+    --shadow-lg: 0 24px 60px -20px rgba(70,55,30,0.28);
+    --shadow-sm: 0 8px 20px -12px rgba(70,55,30,0.22);
+    --glass-1: rgba(255,255,255,0.55); --glass-2: rgba(255,255,255,0.72); --glass-3: rgba(255,255,255,0.88);
+    --glass-border: rgba(30,30,30,0.10); --glass-border-strong: rgba(30,30,30,0.18);
+    --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.05);
+    --accent-text:#1F6FB0;
+    --on-accent:#fff; --on-accent-2:#fff;
+    --overlay-bg: rgba(40,35,25,0.28);
+    --surface-modal-a: rgba(255,255,255,0.78); --surface-modal-b: rgba(250,247,240,0.86);
+    --surface-drawer-a: rgba(255,255,255,0.78); --surface-drawer-b: rgba(250,247,240,0.86);
+    --surface-search: rgba(252,250,245,0.97);
+    --surface-suggest: rgba(255,255,255,0.95);
+    --wood-tint: rgba(168,123,60,0.10);
+    --wood-tint-strong: rgba(168,123,60,0.14);
+    --wood-tint-cell: rgba(168,123,60,0.16);
+    --body-glow-1: rgba(47,134,204,0.08);
+    --body-glow-2: rgba(74,117,144,0.05);
+    --body-glow-3: rgba(168,123,60,0.06);
+    --body-glow-4: rgba(47,134,204,0.045);
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   html,body{ height:100%; }
@@ -42,10 +87,10 @@
     margin:0;
     background: var(--ink);
     background-image:
-      radial-gradient(circle at 10% 6%, rgba(62,155,224,0.16), transparent 40%),
-      radial-gradient(circle at 92% 12%, rgba(91,138,166,0.10), transparent 38%),
-      radial-gradient(circle at 20% 92%, rgba(201,160,99,0.10), transparent 42%),
-      radial-gradient(circle at 96% 88%, rgba(62,155,224,0.09), transparent 40%);
+      radial-gradient(circle at 10% 6%, var(--body-glow-1), transparent 40%),
+      radial-gradient(circle at 92% 12%, var(--body-glow-2), transparent 38%),
+      radial-gradient(circle at 20% 92%, var(--body-glow-3), transparent 42%),
+      radial-gradient(circle at 96% 88%, var(--body-glow-4), transparent 40%);
     background-attachment: fixed;
     color: var(--paper);
     font-family: var(--font-body);

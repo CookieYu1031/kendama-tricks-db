@@ -20,99 +20,93 @@
   ============================================================ */
   function openDrawerFor(trickId){
     state.detailTrickId = trickId;
-    state.detailDrawerExpanded = false; // always reopen collapsed to the mobile peek state
     drawerUi.tagPicker = false; drawerUi.rateHint = false;
+    attachDrawerSwipeClose(document.getElementById("detailDrawer"));
     renderColumns();
     renderDrawer();
     document.getElementById("detailDrawer").classList.add("show");
   }
   function closeDrawer(){
     state.detailTrickId = null;
-    state.detailDrawerExpanded = false;
     document.getElementById("detailDrawer").classList.remove("show");
     renderColumns();
   }
 
-  // Mobile bottom-sheet has two heights: "peek" (drag handle + head + name
-  // table only — set via the .peek-mode class, see detail-drawer.css) and
-  // full ("expanded", CSS's 92%). Desktop ignores this entirely since
-  // .peek-mode only has an effect inside the mobile media query.
-  function setDrawerExpanded(expanded){
-    state.detailDrawerExpanded = expanded;
-    applyDrawerModeClass(document.getElementById("detailDrawer"));
+  // Swipe-right-to-close decision (mobile slide-in panel). Pure, unit-tested in
+  // tests/drawer-slide.test.js.
+  //   dx / dy: finger travel since touchstart (px, +dx = rightward)
+  //   velocityX: rightward speed at release (px/ms)
+  //   width: panel width (px)
+  // "ignore": mostly vertical or leftward (let the body scroll / nothing to do)
+  // "close": dragged past 30% of the width, or a fast rightward flick
+  // "back": otherwise, spring back to open
+  var DRAWER_SWIPE_RATIO = 0.3, DRAWER_FLICK_VELOCITY = 0.5, DRAWER_FLICK_MIN_DX = 24;
+  function drawerSwipeDecision(dx, dy, velocityX, width){
+    if(!(dx > 0) || Math.abs(dy) > Math.abs(dx)) return "ignore";
+    if(width > 0 && dx >= width * DRAWER_SWIPE_RATIO) return "close";
+    if(velocityX >= DRAWER_FLICK_VELOCITY && dx >= DRAWER_FLICK_MIN_DX) return "close";
+    return "back";
   }
 
-  // Toggles .peek-mode and (for peek) sets an inline pixel height measured
-  // from the actual rendered content, so the sheet is exactly as tall as
-  // the drag handle + head + name table and no taller — a fixed vh/px guess
-  // would either clip long multi-language names or leave dead space for
-  // short ones. Measured via a synchronous height:auto -> scrollHeight ->
-  // fixed-px swap: auto is needed to get the content's natural height (any
-  // leftover inline height from a previous trick would otherwise constrain
-  // the layout during measurement), but the final value must still be a
-  // concrete number for the CSS `height` transition to animate between
-  // states. Expanded state clears the inline height so CSS's own `height:
-  // 92%` (detail-drawer.css) takes back over.
-  function applyDrawerModeClass(drawer){
-    var peek = isNarrowViewport() && !state.detailDrawerExpanded;
-    drawer.classList.toggle("peek-mode", peek);
-    if(peek){
-      drawer.style.height = "auto";
-      drawer.style.height = drawer.scrollHeight + "px";
-    } else {
-      drawer.style.height = "";
-    }
-  }
-
-  // Swipe gestures on the drag handle / head, mobile only (checked live at
-  // drag-start, not cached). Ignores presses starting on the close button so
-  // its normal click still works. A downward swipe always closes the drawer
-  // outright, from either the peek or expanded state. An upward swipe from
-  // the peek state expands to the full detail view — this always resolves as
-  // a discrete class swap on release rather than tracking the drag live,
-  // but with an explicit (non-"auto") height on both states plus the
-  // `height` transition in detail-drawer.css, the swap itself now animates
-  // smoothly instead of snapping.
-  function attachDrawerDragToClose(dragZone, drawerEl){
-    var dragging = false, startY = 0, currentY = 0;
-    dragZone.addEventListener("pointerdown", function(ev){
-      if(!isNarrowViewport()) return;
-      // Any button in the head (goal quick-toggle, close) needs its own
-      // click to fire normally — starting the drag here would call
-      // setPointerCapture, which re-targets the eventual click to dragZone
-      // itself instead of the button that was actually pressed.
-      if(ev.target.closest("button")) return;
-      dragging = true; startY = ev.clientY; currentY = 0;
-      drawerEl.style.transition = "none";
-      try{ dragZone.setPointerCapture(ev.pointerId); }catch(e){}
-    });
-    dragZone.addEventListener("pointermove", function(ev){
-      if(!dragging) return;
-      currentY = ev.clientY - startY;
-      if(currentY > 0) drawerEl.style.transform = "translateY(" + currentY + "px)";
-    });
-    function endDrag(){
-      if(!dragging) return;
-      dragging = false;
+  // Mobile only (checked live per gesture). The panel follows the finger
+  // horizontally (rightward only) once the gesture is clearly horizontal;
+  // vertical motion is left to the scrolling body. Attached once per element.
+  function attachDrawerSwipeClose(drawerEl){
+    if(!drawerEl || drawerEl._swipeAttached) return;
+    drawerEl._swipeAttached = true;
+    var startX = 0, startY = 0, lastX = 0, lastT = 0, vx = 0, mode = null; // mode: null | "pending" | "drag" | "skip"
+    function reset(){ mode = null; }
+    drawerEl.addEventListener("touchstart", function(ev){
+      mode = null;
+      if(!isNarrowViewport() || ev.touches.length !== 1) return;
+      var tg = ev.target;
+      if(tg && tg.closest && tg.closest("input, textarea, select, [contenteditable]")){ mode = "skip"; return; }
+      var t0 = ev.touches[0];
+      startX = lastX = t0.clientX; startY = t0.clientY; lastT = Date.now(); vx = 0;
+      mode = "pending";
+    }, { passive: true });
+    drawerEl.addEventListener("touchmove", function(ev){
+      if(mode !== "pending" && mode !== "drag") return;
+      var t1 = ev.touches[0];
+      var dx = t1.clientX - startX, dy = t1.clientY - startY;
+      if(mode === "pending"){
+        if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if(drawerSwipeDecision(dx, dy, 0, 1) === "ignore"){ mode = "skip"; return; }
+        mode = "drag";
+        drawerEl.style.transition = "none";
+      }
+      var now = Date.now();
+      if(now > lastT) vx = (t1.clientX - lastX) / (now - lastT);
+      lastX = t1.clientX; lastT = now;
+      drawerEl.style.transform = "translateX(" + Math.max(0, dx) + "px)";
+      if(ev.cancelable) ev.preventDefault();
+    }, { passive: false });
+    function end(cancelled){
+      if(mode !== "drag"){ reset(); return; }
+      reset();
+      var w = drawerEl.getBoundingClientRect().width;
+      var m = /translateX\(([\d.]+)px\)/.exec(drawerEl.style.transform || "");
+      var dx = m ? parseFloat(m[1]) : 0;
       drawerEl.style.transition = "";
-      drawerEl.style.transform = "";
-      var wasExpanded = !drawerEl.classList.contains("peek-mode");
-      var downThreshold = Math.min(140, drawerEl.getBoundingClientRect().height * 0.28);
-      var upThreshold = 44;
-      if(currentY > downThreshold){
+      if(!cancelled && drawerSwipeDecision(dx, 0, vx, w) === "close"){
+        drawerEl.style.transform = "translateX(100%)";
         closeDrawer();
-      } else if(currentY < -upThreshold && !wasExpanded){
-        setDrawerExpanded(true);
+        setTimeout(function(){
+          if(!drawerEl.classList.contains("show")) drawerEl.style.transform = "";
+        }, 400);
+      } else {
+        drawerEl.style.transform = "";
       }
     }
-    dragZone.addEventListener("pointerup", endDrag);
-    dragZone.addEventListener("pointercancel", endDrag);
+    drawerEl.addEventListener("touchend", function(){ end(false); });
+    drawerEl.addEventListener("touchcancel", function(){ end(true); });
   }
 
   /* ---------- Pure helpers (unit-tested in tests/drawer-logic.test.js) ---------- */
   // Tap an already-active level again to clear it.
   function toggleRate(tr, level){
     tr.rate = (tr.rate === level || RATE_LEVELS.indexOf(level) === -1) ? null : level;
+    if(tr.rate) tr.landed = true; // any landing rate implies the trick has been landed
     return tr.rate;
   }
   // Single-select grip chip (tap again clears).
@@ -222,7 +216,7 @@
   // D8: guests can't record landed / rate / favorites; the foot asks them to sign in instead.
   function buildGuestFoot(){
     var foot = document.createElement("div");
-    foot.className = "drawer-proficiency-foot drawer-guest-foot drawer-expand-content";
+    foot.className = "drawer-proficiency-foot drawer-guest-foot";
     var msg = document.createElement("div");
     msg.className = "drawer-guest-hint";
     msg.textContent = t("guestLoginHint");
@@ -247,16 +241,6 @@
     drawer.innerHTML = "";
     drawer.style.transform = "";
     drawer.style.transition = "";
-
-    // Drag zone = handle bar + head. On mobile (bottom-sheet layout) dragging
-    // down from here dismisses the drawer, mirroring native pull-down-to-close
-    // sheets; on desktop the handle is hidden via CSS and this is inert.
-    var dragZone = document.createElement("div");
-    dragZone.className = "drawer-drag-zone";
-    var dragHandle = document.createElement("div");
-    dragHandle.className = "drawer-drag-handle";
-    dragHandle.innerHTML = "<span></span>";
-    dragZone.appendChild(dragHandle);
 
     var head = document.createElement("div");
     head.className = "drawer-head" + (tr.custom ? " custom" : "");
@@ -288,8 +272,6 @@
     if(!isGuest()) headActions.appendChild(goalBtn); // D8: guests can't favorite
     headActions.appendChild(closeBtn);
     head.appendChild(headLeft); head.appendChild(headActions);
-    dragZone.appendChild(head);
-    attachDrawerDragToClose(dragZone, drawer);
 
     var body = document.createElement("div");
     body.className = "drawer-body";
@@ -326,14 +308,8 @@
     }
     body.appendChild(nameTable);
 
-    // Everything below the name table is hidden on the mobile bottom-sheet's
-    // "peek" state (see .peek-mode / .drawer-expand-content in
-    // detail-drawer.css) — swiping up on the drag handle reveals it. Grouped
-    // in one wrapper so the CSS only needs a single selector for the body's
-    // share of the expand-only content; the footer blocks get the same
-    // class directly since they're siblings of body, not inside it.
+    // Everything below the name table (plain wrapper; always fully shown).
     var expandContent = document.createElement("div");
-    expandContent.className = "drawer-expand-content";
 
     // Edit mode: 7-char ID + location code(s), click to copy.
     if(state.editMode){
@@ -495,14 +471,14 @@
 
     body.appendChild(expandContent);
 
-    drawer.appendChild(dragZone);
+    drawer.appendChild(head);
     drawer.appendChild(body);
 
     // Personal progress, pinned to the bottom (sibling of the scrollable body):
     // landed toggle + 4-way landing-rate control. Always interactive, not gated
     // behind edit mode — it tracks personal practice, not the trick's definition.
     var profFoot = document.createElement("div");
-    profFoot.className = "drawer-proficiency-foot drawer-expand-content";
+    profFoot.className = "drawer-proficiency-foot";
 
     var landedWrap = document.createElement("div");
     landedWrap.className = "proficiency-group";
@@ -569,7 +545,7 @@
 
     if(canEditTrick){
       var foot = document.createElement("div");
-      foot.className = "drawer-foot drawer-expand-content";
+      foot.className = "drawer-foot";
       var addVarB = document.createElement("button");
       addVarB.className = "col-add-btn";
       addVarB.style.flex = "1";
@@ -590,12 +566,6 @@
       foot.appendChild(addVarB); foot.appendChild(editB); foot.appendChild(delB);
       drawer.appendChild(foot);
     }
-
-    // Reflect the current peek/expanded state on the freshly-rebuilt drawer
-    // (innerHTML was cleared above, so nothing here carries over on its own)
-    // and, for peek, measure+apply its exact content height. No-op visually
-    // outside the mobile media query.
-    applyDrawerModeClass(drawer);
   }
 
   /* ============================================================

@@ -37,8 +37,34 @@
     state.searchQuery = "";
     document.getElementById("searchInput").value = "";
     document.getElementById("searchClear").classList.remove("show");
+    closeSearchPanel();
     render();
     openDrawerFor(tr.id);
+  }
+
+  /* ============================================================
+     SEARCH PANEL — drops down under the topbar's center button
+  ============================================================ */
+  function isSearchPanelOpen(){
+    return document.getElementById("searchPanel").classList.contains("show");
+  }
+  function openSearchPanel(){
+    document.getElementById("searchPanel").classList.add("show");
+    var btn = document.getElementById("searchToggleBtn");
+    btn.classList.add("active");
+    btn.setAttribute("aria-expanded", "true");
+    document.getElementById("searchInput").focus();
+  }
+  function closeSearchPanel(){
+    document.getElementById("searchPanel").classList.remove("show");
+    var btn = document.getElementById("searchToggleBtn");
+    btn.classList.remove("active");
+    btn.setAttribute("aria-expanded", "false");
+    document.getElementById("searchInput").blur();
+    closeSearchSuggest();
+  }
+  function toggleSearchPanel(){
+    if(isSearchPanelOpen()) closeSearchPanel(); else openSearchPanel();
   }
 
   /* ============================================================

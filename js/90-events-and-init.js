@@ -8,26 +8,16 @@
     document.getElementById("searchInput").value = "";
     document.getElementById("searchClear").classList.remove("show");
     updateSearchInlineCount("");
-    closeSearchSuggest();
-    collapseMobileSearchIfEmpty();
+    closeSearchPanel();
     closeDrawer();
     render();
   });
 
-  // On narrow viewports the switch collapses to just the active language
-  // (see .lang-btn / .lang-btn.active in the mobile media query), so a tap
-  // cycles zh -> jp -> en -> zh rather than picking the clicked button's own
-  // data-lang (there's only ever one visible/clickable button to hit).
-  var LANG_CYCLE_ORDER = ["zh", "jp", "en"];
+  // Language switch (lives in the settings page).
   document.getElementById("langSwitch").addEventListener("click", function(ev){
     var btn = ev.target.closest(".lang-btn");
     if(!btn) return;
-    if(isNarrowViewport()){
-      var idx = LANG_CYCLE_ORDER.indexOf(state.lang);
-      state.lang = LANG_CYCLE_ORDER[(idx + 1) % LANG_CYCLE_ORDER.length];
-    } else {
-      state.lang = btn.getAttribute("data-lang");
-    }
+    state.lang = btn.getAttribute("data-lang");
     localStorage.setItem(LANG_KEY, state.lang);
     render();
   });
@@ -35,29 +25,19 @@
   var searchInput = document.getElementById("searchInput");
   var searchClear = document.getElementById("searchClear");
   var searchSuggest = document.getElementById("searchSuggest");
-  var searchWrap = document.querySelector(".search-wrap");
-  var topbarEl = document.querySelector(".topbar");
+  var searchToggleBtn = document.getElementById("searchToggleBtn");
+  var searchPanel = document.getElementById("searchPanel");
 
-  // Collapsed mobile search bar: tapping the icon-only bar expands it into a
-  // full-width overlay for typing; it collapses back once empty and blurred.
-  // A no-op above the mobile breakpoint (the CSS these classes drive only
-  // has an effect inside that media query).
-  function expandMobileSearch(){
-    if(!isNarrowViewport()) return;
-    searchWrap.classList.add("search-expanded");
-    topbarEl.classList.add("search-mode");
-  }
-  function collapseMobileSearchIfEmpty(){
-    if(!isNarrowViewport()) return;
-    if(searchInput.value) return;
-    searchWrap.classList.remove("search-expanded");
-    topbarEl.classList.remove("search-mode");
-  }
-  searchWrap.addEventListener("click", function(){
-    if(!isNarrowViewport()) return;
-    if(searchWrap.classList.contains("search-expanded")) return;
-    expandMobileSearch();
-    searchInput.focus();
+  // Search panel: opens from the topbar's center button; closes via Escape,
+  // the button again, or a click outside the panel.
+  searchToggleBtn.addEventListener("click", function(ev){
+    ev.stopPropagation();
+    toggleSearchPanel();
+  });
+  document.addEventListener("click", function(ev){
+    if(!isSearchPanelOpen()) return;
+    if(searchPanel.contains(ev.target) || searchToggleBtn.contains(ev.target)) return;
+    closeSearchPanel();
   });
 
   searchInput.addEventListener("input", function(){
@@ -79,7 +59,6 @@
     // Let mousedown on a suggestion row register before the dropdown disappears.
     setTimeout(function(){
       closeSearchSuggest();
-      collapseMobileSearchIfEmpty();
     }, 120);
   });
   searchInput.addEventListener("focus", function(){
@@ -191,7 +170,7 @@
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
     if(document.getElementById("searchSuggest").classList.contains("show")) return closeSearchSuggest();
-    if(searchWrap.classList.contains("search-expanded")){ searchInput.blur(); return collapseMobileSearchIfEmpty(); }
+    if(isSearchPanelOpen()) return closeSearchPanel();
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
     if(document.getElementById("publishModalOverlay").classList.contains("show")) return document.getElementById("publishModalOverlay").classList.remove("show");
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
@@ -201,6 +180,7 @@
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("trickModalOverlay").classList.contains("show")) return closeTrickModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
+    if(isSettingsOpen()) return closeSettings();
     if(document.getElementById("detailDrawer").classList.contains("show")) return closeDrawer();
   });
 

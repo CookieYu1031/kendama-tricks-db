@@ -2,12 +2,24 @@
   .space-rail{
     flex: 0 0 56px; width:56px;
     display:flex; flex-direction:column; align-items:center; gap:8px;
-    padding: 14px 8px;
+    padding: 14px 0;
     border-right: 1px solid var(--glass-border);
     background: var(--glass-1);
     backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
-    overflow-y:auto; overflow-x:hidden;
+    overflow:hidden;
   }
+  /* Three zones: top (00/01/02) and bottom (functions) are pinned; the middle
+     zone (收藏 + custom tables) takes the remaining height and scrolls by
+     itself. Side padding leaves room for the edit badges (which overhang
+     the buttons) inside the scroll container's clip box. */
+  .rail-zone{ width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; padding: 0 8px; box-sizing:border-box; }
+  .rail-zone-top, .rail-zone-bottom{ flex:0 0 auto; }
+  .rail-zone-mid{
+    flex:1 1 auto; min-height:0; justify-content:flex-start;
+    padding: 6px 8px; overflow-y:auto; overflow-x:hidden;
+    scrollbar-width:none;
+  }
+  .rail-zone-mid::-webkit-scrollbar{ display:none; }
   .space-btn{
     position:relative;
     width:40px; height:40px; flex:0 0 auto; border-radius:13px; border:1px solid var(--glass-border);
@@ -17,7 +29,7 @@
     cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
   }
   .space-btn:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
-  .space-btn.active{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--lacquer-bright); box-shadow: var(--glass-highlight); }
+  .space-btn.active{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--accent-text); box-shadow: var(--glass-highlight); }
   /* Long-press-drag reordering feedback for the rail's "other spaces"
      section — same visual language as .item.dragging/.drop-before/.drop-after
      in browse-columns.css, mirrored here since .space-btn lives outside
@@ -33,23 +45,23 @@
      Only ever inserted between two sections that both actually have content
      — see renderSpaceRail in 08-render-browse-columns.js. */
   .space-rail-divider{ width:28px; height:1px; flex:0 0 auto; background: var(--glass-border-strong); margin: 2px 0; }
-  .space-add-btn{ color: var(--lacquer-bright); border-style:dashed; font-size:16px; }
+  .space-add-btn{ color: var(--accent-text); border-style:dashed; font-size:16px; }
   .space-edit-badge{
     position:absolute; top:-5px; right:-5px; width:16px; height:16px; border-radius:50%;
-    background: var(--lacquer); color:#0b0b0b; display:flex; align-items:center; justify-content:center;
+    background: var(--lacquer); color: var(--on-accent-2); display:flex; align-items:center; justify-content:center;
     border:2px solid var(--ink-2); cursor:pointer; z-index:2;
   }
   .space-edit-badge svg{ width:9px; height:9px; }
   .space-edit-badge:hover{ background: var(--lacquer-bright); }
   .rail-edit-toggle{
-    width:40px; height:40px; flex:0 0 auto; margin-top:auto; border-radius:13px; border:1px solid var(--glass-border);
+    width:40px; height:40px; flex:0 0 auto; border-radius:13px; border:1px solid var(--glass-border);
     background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
     color: var(--paper-dim); display:flex; align-items:center; justify-content:center;
     cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
   }
   .rail-edit-toggle svg{ width:17px; height:17px; }
   .rail-edit-toggle:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
-  .rail-edit-toggle.on{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--lacquer-bright); box-shadow: var(--glass-highlight); }
+  .rail-edit-toggle.on{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--accent-text); box-shadow: var(--glass-highlight); }
 
   /* ---------- Topbar ---------- */
   /* Three-column grid (left / center / right) instead of a plain flex row —
@@ -96,6 +108,7 @@
   .brand-mark img{
     width:100%; height:100%; object-fit:cover;
   }
+  :root[data-theme="light"] .brand-mark img{ filter: brightness(0.22) saturate(1.4); } /* white logo -> ink on paper, glow stays blue-tinted */
   .brand-title{
     font-family: var(--font-display);
     font-weight: 800;
@@ -112,17 +125,38 @@
     margin-top: 1px;
   }
 
+  /* Center "search" button; clicking drops .search-panel down under the bar. */
+  .search-toggle{
+    display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 18px;
+    border-radius:999px; border:1px solid var(--glass-border);
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    box-shadow: var(--glass-highlight);
+    color: var(--paper-dim); font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer;
+    transition: background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
+  }
+  .search-toggle svg{ width:15px; height:15px; flex:0 0 auto; }
+  .search-toggle:hover{ background: var(--glass-3); color: var(--paper); }
+  .search-toggle.active{ border-color: var(--lacquer); color: var(--paper); }
+  .search-panel{
+    position:absolute; top: calc(100% + 8px); left:50%; transform: translateX(-50%);
+    width: min(520px, calc(100vw - 24px)); box-sizing:border-box;
+    padding:12px;
+    background: var(--surface-search);
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    border:1px solid var(--glass-border); border-radius: var(--radius);
+    box-shadow: var(--shadow-lg), var(--glass-highlight);
+    display:none; z-index:30;
+  }
+  .search-panel.show{ display:block; }
   .search-wrap{
-    /* Explicit width instead of flex:1 — it now lives in the topbar grid's own
-       center column (see .topbar), so its size no longer needs to derive from
-       the surrounding flex layout to stay centered. */
-    width: clamp(220px, 32vw, 460px);
+    width:100%;
     height: 40px;
     position: relative;
     display:flex;
     align-items:center;
   }
-  .search-wrap svg{ position:absolute; top:50%; left:12px; width:15px; height:15px; transform: translateY(-50%); color: var(--paper-faint); pointer-events:none; }
+  .search-wrap svg{ position:absolute; z-index:1; top:50%; left:12px; width:15px; height:15px; transform: translateY(-50%); color: var(--paper-faint); pointer-events:none; }
   .search-input{
     width:100%;
     height:100%;
@@ -165,7 +199,7 @@
      one more glass layer. */
   .search-suggest{
     position:absolute; top: calc(100% + 6px); left:0; right:0;
-    background: rgba(78, 79, 79, 0.9);
+    background: var(--surface-suggest);
     backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
@@ -187,50 +221,32 @@
   .lang-switch{
     display:flex; justify-content:center; background: var(--glass-2); backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft); border:1px solid var(--glass-border); border-radius: 999px; padding:3px; gap:2px;
   }
-  .lang-btn{
+  .lang-btn, .theme-btn{
     border:none; background:transparent; color: var(--paper-dim);
     font-size:12.5px; font-weight:600; padding:6px 12px; border-radius: 999px; cursor:pointer;
     transition: background .2s var(--ease), color .2s var(--ease);
     letter-spacing: .02em; text-align:center; min-width:38px;
   }
-  .lang-btn.active{ background: var(--lacquer); color: var(--ink); }
-  .lang-btn:not(.active):hover{ color: var(--paper); }
+  .lang-btn.active, .theme-btn.active{ background: var(--lacquer); color: var(--on-accent); }
+  .lang-btn:not(.active):hover, .theme-btn:not(.active):hover{ color: var(--paper); }
 
-  /* ---------- Auth (login button / avatar menu), sits right of the lang switch ---------- */
-  .auth-widget{ position:relative; flex:0 0 auto; }
-  .auth-user{ position:relative; }
-  .auth-avatar-btn{
-    width:36px; height:36px; border-radius:50%; border:1px solid var(--glass-border);
-    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
-    padding:0; overflow:hidden; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    transition: border-color .18s var(--ease), transform .15s var(--ease);
+  /* ---------- Account row (lives in the settings page) ---------- */
+  .auth-widget{ min-width:0; }
+  .auth-user{
+    display:grid; grid-template-columns: minmax(0,1fr) auto; align-items:center; gap:12px 14px; min-width:0;
+    grid-template-areas: "acct act" "edit edit" "sync sync";
   }
-  .auth-avatar-btn:hover{ border-color: var(--lacquer); transform: translateY(-1px); }
-  .auth-avatar-img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .auth-avatar-img[hidden]{ display:none; }
-  .auth-avatar-fallback{
-    font-family: var(--font-display); font-weight:700; font-size:14px; color: var(--paper);
-    line-height:1;
+  .auth-user .auth-menu-account{ grid-area: acct; }
+  .auth-user .auth-menu-name-edit{ grid-area: edit; }
+  .auth-user .auth-menu-sync{ grid-area: sync; justify-content:flex-start; }
+  .auth-user .settings-account-actions{ grid-area: act; flex-wrap:nowrap; }
+  /* Narrow phones: actions drop below the account, right-aligned. */
+  @media (max-width: 480px){
+    .auth-user{ grid-template-columns: minmax(0,1fr); grid-template-areas: "acct" "act" "edit" "sync"; }
   }
-  .auth-menu{
-    position:absolute; top: calc(100% + 8px); right:0; min-width:230px;
-    /* Clamped so the menu can never bleed past the left edge of narrow
-       viewports (it would otherwise overflow off-screen on ~320px phones
-       once the name/email are long), which left its buttons partly
-       unreachable. */
-    max-width: calc(100vw - 24px);
-    background: rgba(28, 28, 30, 0.96);
-    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
-    border:1px solid var(--glass-border); border-radius: var(--radius);
-    box-shadow: var(--shadow-lg), var(--glass-highlight);
-    padding:12px 14px; display:none; flex-direction:column; gap:10px; z-index:30;
-  }
-  .auth-user.open .auth-menu{ display:flex; }
-
-  .auth-menu-account{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .auth-menu-account{ display:flex; align-items:center; gap:14px; min-width:0; }
   .auth-menu-avatar-wrap{
-    flex:0 0 auto; width:34px; height:34px; border-radius:50%; overflow:hidden;
+    flex:0 0 auto; width:48px; height:48px; border-radius:50%; overflow:hidden;
     border:1px solid var(--glass-border);
     background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
     display:flex; align-items:center; justify-content:center;
@@ -240,7 +256,7 @@
   .auth-menu-avatar-fallback{ font-family: var(--font-display); font-weight:700; font-size:13px; color: var(--paper); line-height:1; }
   .auth-menu-account-text{ min-width:0; flex:1 1 auto; display:flex; flex-direction:column; gap:2px; }
   .auth-menu-name-row{ display:flex; align-items:center; gap:6px; min-width:0; }
-  .auth-menu-name{ font-size:13.5px; font-weight:600; color: var(--paper); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .auth-menu-name{ font-size:15px; font-weight:600; color: var(--paper); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .auth-menu-edit-btn{
     flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:none; background:transparent;
     color: var(--paper-faint); cursor:pointer; display:flex; align-items:center; justify-content:center;
@@ -248,7 +264,7 @@
   }
   .auth-menu-edit-btn svg{ width:13px; height:13px; }
   .auth-menu-edit-btn:hover{ background: var(--glass-2); color: var(--paper); }
-  .auth-menu-email{ font-size:11.5px; color: var(--paper-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .auth-menu-email{ font-size:12px; color: var(--paper-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .auth-menu-sync{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
   .auth-menu-sync-text{ font-size:11.5px; color: var(--paper-faint); min-width:0; }
@@ -268,7 +284,7 @@
     font-size:12px; font-weight:600; padding:6px 10px; border-radius: var(--radius-sm); cursor:pointer;
     transition: background .16s var(--ease), border-color .16s var(--ease);
   }
-  .auth-menu-name-save{ background: var(--lacquer); border-color: var(--lacquer); color: var(--ink); }
+  .auth-menu-name-save{ background: var(--lacquer); border-color: var(--lacquer); color: var(--on-accent); }
   .auth-menu-name-save:hover{ filter: brightness(1.08); }
   .auth-menu-name-cancel:hover{ background: var(--glass-3); }
 
@@ -280,20 +296,10 @@
     transition: background .16s var(--ease), border-color .16s var(--ease);
   }
   .auth-menu-logout:hover{ background: var(--glass-3); border-color: var(--lacquer); }
-  /* Dimmed (not disabled) while syncing: locking the avatar button out
-     entirely used to mean that if the cloud sync was slow — or a flaky
-     connection left it hanging — the button (and therefore logout) stayed
-     unreachable even though the person was clearly already logged in
-     (their real photo was already showing). The menu/logout must always
-     stay reachable regardless of how long the background sync takes. */
-  .auth-widget.syncing #authAvatarBtn{ opacity:0.55; }
+  /* Dimmed while syncing; logout stays reachable regardless of how long the
+     background sync takes. */
   .auth-widget.syncing #authLoginBtn{ opacity:0.55; pointer-events:none; }
   .auth-widget.syncing .auth-menu-edit-btn{ opacity:0.5; pointer-events:none; }
-
-  @media (max-width: 860px){
-    .auth-avatar-btn{ width:32px; height:32px; }
-    .auth-menu{ min-width:210px; }
-  }
 
   .icon-btn{
     width:36px; height:36px; border-radius:13px; border:1px solid var(--glass-border);
@@ -328,55 +334,10 @@
   .edit-toggle.on .edit-toggle-label{ color: var(--paper); }
 
   @media (max-width: 860px){
-    .brand-sub{ display:none; }
-    /* Switch the topbar from its desktop 3-column grid (built to keep the
-       full-size search bar pinned to the true center) to a plain flex row —
-       collapsed mobile search no longer needs center-pinning, and flex lets
-       margin-left:auto push it flush against the language switch instead. */
-    .topbar{ padding: 0 12px; gap:10px; display:flex; align-items:center; }
+    .brand-text{ display:none; }
+    .topbar{ padding: 0 12px; gap:10px; }
     .edit-toggle-label{ display:none; }
     .edit-toggle{ padding:5px; }
-
-    /* Collapsed search: a round icon-only button in the same visual family
-       as the collapsed language switch below (pill shape, .glass-2
-       background, same border) so the two sit together as a matched pair at
-       the topbar's right edge — margin-left:auto pushes this element and
-       everything after it (.topbar-side-right, containing the language
-       switch) flush right as one cluster, so the switch lands in its usual
-       rightmost spot with the search button immediately to its left.
-       Tapping adds .search-expanded (see the click handler in
-       17-events-and-init.js), which pulls it out of that flex flow into a
-       full-width absolute overlay instead and drops the button chrome since
-       the input underneath already has its own background. */
-    .search-wrap{
-      width:36px; height:36px; flex:0 0 auto; margin-left:auto;
-      border-radius:999px; border:1px solid var(--glass-border);
-      background: var(--glass-2);
-      backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
-      transition: background .18s var(--ease), border-color .18s var(--ease);
-    }
-    .search-wrap svg{ z-index:2; cursor:pointer; }
-    .search-wrap:not(.search-expanded) svg{ left:50%; transform: translate(-50%, -50%); color: var(--paper-dim); }
-    .search-wrap:not(.search-expanded):hover{ background: var(--glass-3); }
-    .search-wrap:not(.search-expanded) .search-input{
-      width:0; padding:0; border-color:transparent; background:transparent; opacity:0; pointer-events:none;
-    }
-    .search-wrap:not(.search-expanded) .search-clear,
-    .search-wrap:not(.search-expanded) .search-suggest{ display:none !important; }
-    .search-wrap.search-expanded{
-      position:absolute; top:50%; left:12px; right:12px; width:auto; height:40px;
-      transform: translateY(-50%); margin-left:0;
-      border-color:transparent; background:none; backdrop-filter:none; -webkit-backdrop-filter:none;
-      z-index:25;
-    }
-    .topbar.search-mode .topbar-side{ opacity:0; pointer-events:none; }
-
-    /* Language switch collapses to just the active language; tapping it
-       cycles zh -> jp -> en instead of picking a specific button (see the
-       click handler in 17-events-and-init.js). */
-    .lang-switch{ padding:2px; }
-    .lang-btn{ display:none; min-width:0; padding:5px 9px; font-size:11px; }
-    .lang-btn.active{ display:block; }
   }
 
   /* ---------- 總表更新通知 (base-update-banner) ---------- */
@@ -394,7 +355,7 @@
   .base-update-note-row{ font-size:12.5px; color: var(--paper-dim); line-height:1.5; }
   .base-update-version{
     display:inline-block; font-family: var(--font-mono); font-size:11px; font-weight:700;
-    color: var(--lacquer-bright); margin-right:7px;
+    color: var(--accent-text); margin-right:7px;
   }
   .base-update-banner-actions{ display:flex; gap:8px; flex:0 0 auto; align-items:flex-start; margin-top:1px; }
   @media (max-width: 780px){
@@ -403,3 +364,33 @@
   }
 
 
+
+  /* ---------- Settings page ---------- */
+  .settings-modal [hidden]{ display:none !important; }
+  .settings-head{ display:flex; align-items:center; gap:10px; padding: 18px 22px 0; flex:0 0 auto; }
+  .settings-head .modal-title{ flex:1 1 auto; margin-bottom:0; }
+  .settings-admin-btn[disabled]{ opacity:0.5; cursor:not-allowed; }
+  .settings-close{ flex:0 0 auto; }
+  .settings-body{ display:flex; flex-direction:column; gap:16px; }
+  .settings-row{ min-width:0; }
+  .settings-pair{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .theme-btn{
+    border:none; background:transparent; color: var(--paper-dim);
+    font-size:15px; font-weight:600; padding:5px 12px; border-radius:999px; cursor:pointer;
+    transition: background .2s var(--ease), color .2s var(--ease);
+    min-width:38px; text-align:center; line-height:1.4;
+  }
+  .settings-account-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  .settings-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .settings-item{
+    display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left;
+    padding:12px 14px; border-radius: var(--radius); border:1px solid var(--glass-border);
+    background: var(--glass-1); color: var(--paper); font-family:inherit; min-width:0;
+  }
+  .settings-item[disabled]{ opacity:0.55; cursor:not-allowed; }
+  .settings-item-label{ font-size:13.5px; font-weight:600; }
+  .settings-item-note{ font-size:11.5px; color: var(--paper-faint); line-height:1.4; }
+  .settings-soon{ font-size:11px; color: var(--accent-text); font-family: var(--font-mono); }
+  @media (max-width: 360px){
+    .settings-grid{ grid-template-columns: 1fr; }
+  }
