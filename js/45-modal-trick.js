@@ -3,32 +3,63 @@
   /* ============================================================
      TRICK MODAL (Add / Edit)
   ============================================================ */
-  function renderTrickCatPicker(selectedIds, excludeIds){
+  addStrings({
+    zh:{ confirmRemoveTrickTitle:"從此處移除此招式？", confirmRemoveTrickBody:"只會移除此招式在這個位置的項目，其他位置不受影響。",
+         confirmRemoveTrickLastBody:"這是此招式的最後一個位置，移除後招式本身也會被刪除。", tableRootOption:"（表格根層）",
+         confirmDeleteTrickBody:"此招式將自資料庫中永久移除，並從所有位置消失。" },
+    jp:{ confirmRemoveTrickTitle:"この場所から技を外しますか？", confirmRemoveTrickBody:"この場所への配置だけを外します。他の場所には影響しません。",
+         confirmRemoveTrickLastBody:"これが最後の配置のため、技そのものも削除されます。", tableRootOption:"（表のルート）",
+         confirmDeleteTrickBody:"この技はデータベースから完全に削除され、すべての場所から消えます。" },
+    en:{ confirmRemoveTrickTitle:"Remove this trick from here?", confirmRemoveTrickBody:"Only its placement in this location is removed; other locations are unaffected.",
+         confirmRemoveTrickLastBody:"This is its last location, so the trick itself will be deleted too.", tableRootOption:"(Table root)",
+         confirmDeleteTrickBody:"This trick will be permanently deleted and disappear from every location." }
+  });
+
+  // Ids shown in the picker (placements outside it, e.g. in another table, are kept on save)
+  // and whether the trick being created is a user trick (custom:true).
+  var trickPickerIds = [];
+  var trickModalCustom = false;
+
+  // Rows: the active table's root (not for 收藏), then every folder / trick container.
+  // Containers that can't take another trick (level limit) are disabled.
+  function renderTrickCatPicker(selectedIds, excludeIds, movingTrickId){
     var picker = document.getElementById("trickCatPicker");
     picker.innerHTML = "";
-    var flat = flattenContainersForPicker(excludeIds);
-    if(flat.length === 0){
+    trickPickerIds = [];
+    var rows = [];
+    if(state.activeSpace !== FAV_TABLE_ID){
+      rows.push({ id: state.activeSpace, depth:0, name: t("tableRootOption"), type:"root", ref:{} });
+    }
+    flattenContainersForPicker(excludeIds).forEach(function(row){
+      if(row.id === FAV_STARRED_ID) return;
+      rows.push(row);
+    });
+    if(rows.length === 0){
       picker.innerHTML = '<div class="cat-tree-empty">' + escapeHtml(t("noSubItems")) + '</div>';
       return;
     }
-    flat.forEach(function(row){
+    rows.forEach(function(row){
       var label = document.createElement("label");
       label.className = "cat-tree-item";
       var cb = document.createElement("input");
       cb.type = "checkbox";
       cb.value = row.id;
       cb.checked = selectedIds.indexOf(row.id) !== -1;
+      var fits = canAddChild(row.id, "trick") && (!movingTrickId || subtreeFits(movingTrickId, "trick", levelOf(row.id) + 1));
+      if(!fits && !cb.checked) cb.disabled = true;
       var span = document.createElement("span");
-      var prefix = row.depth>0 ? "\u2003".repeat(row.depth) + "\u2514 " : "";
-      var marker = row.type==="trick" ? "\u25B6 " : (row.ref.icon ? row.ref.icon + " " : "");
+      var prefix = row.depth>0 ? " ".repeat(row.depth) + "└ " : "";
+      var marker = row.type==="trick" ? "▶ " : (row.ref.icon ? row.ref.icon + " " : "");
       span.textContent = prefix + marker + row.name;
       label.appendChild(cb); label.appendChild(span);
       picker.appendChild(label);
+      trickPickerIds.push(row.id);
     });
   }
 
-  function openTrickModal(trickId, categoryHint){
+  function openTrickModal(trickId, categoryHint, opts){
     state.editingTrickId = trickId;
+    trickModalCustom = !!(opts && opts.custom);
     var overlay = document.getElementById("trickModalOverlay");
     document.getElementById("trickFormError").classList.remove("show");
     document.getElementById("trickDeleteBtn").hidden = !trickId;
@@ -51,12 +82,12 @@
       document.getElementById("trickZh").value = "";
       document.getElementById("trickJp").value = "";
       document.getElementById("trickEn").value = "";
-      selectedIds = categoryHint ? [categoryHint] : [];
+      selectedIds = [categoryHint || state.activeSpace];
       state.trickDraftIcon = "";
       state.trickDraftColor = "default";
     }
     updateIconColorPreview("trick");
-    renderTrickCatPicker(selectedIds, excludeIds);
+    renderTrickCatPicker(selectedIds, excludeIds, trickId);
 
     overlay.classList.add("show");
     setTimeout(function(){ document.getElementById("trickZh").focus(); }, 80);
@@ -71,6 +102,10 @@
     var jp = document.getElementById("trickJp").value.trim();
     var en = document.getElementById("trickEn").value.trim();
     var checked = Array.prototype.slice.call(document.querySelectorAll("#trickCatPicker input:checked")).map(function(cb){ return cb.value; });
+
+    // placements the picker doesn't show (other tables) stay as they are
+    var hidden = state.editingTrickId ? getTrick(state.editingTrickId).categoryIds.filter(function(cid){ return trickPickerIds.indexOf(cid) === -1; }) : [];
+    checked = checked.concat(hidden);
 
     if((!zh && !jp && !en) || checked.length===0){
       document.getElementById("trickFormError").textContent = t("trickFormError");
@@ -93,7 +128,7 @@
       });
       tr.orderByCategory = prunedOrder;
     } else {
-      db.tricks.push({ id: uid("trick"), name:{ zh:zh, jp:jp, en:en }, media: [], categoryIds: checked, orderByCategory: {}, order: db.tricks.length, icon: state.trickDraftIcon, color: state.trickDraftColor });
+      db.tricks.push(normalizeDB({ categories: [], tricks: [{ id: newItemId(), name:{ zh:zh, jp:jp, en:en }, media: [], categoryIds: checked, orderByCategory: {}, order: db.tricks.length, icon: state.trickDraftIcon, color: state.trickDraftColor, custom: trickModalCustom }] }).tricks[0]);
     }
     saveDB();
     closeTrickModal();
@@ -101,34 +136,28 @@
     render();
   }
 
-  function requestDeleteTrick(trickId){
-    openConfirm(t("confirmDeleteTrickTitle"), t("confirmDeleteTrickBody"), function(){
-      // A trick-folder can hold sub-categories directly now, so deleting it must
-      // also remove any sub-categories nested under it (and their own
-      // descendants) — otherwise they're left with a parentId pointing at
-      // nothing and become permanently unreachable clutter in storage. This
-      // mirrors the same cleanup requestDeleteCategory() already does for its
-      // own subtree; extension *tricks* inside that subtree are only detached
-      // (not deleted), consistent with how deleting a category already treats
-      // the tricks inside it.
-      var orphanedCatIds = getChildren(trickId).reduce(function(acc, c){
-        return acc.concat(getDescendantCategoryIds(c.id));
-      }, []);
-      if(orphanedCatIds.length){
-        db.categories = db.categories.filter(function(c){ return orphanedCatIds.indexOf(c.id) === -1; });
-        db.tricks.forEach(function(tr){
-          tr.categoryIds = tr.categoryIds.filter(function(cid){ return orphanedCatIds.indexOf(cid) === -1; });
-          orphanedCatIds.forEach(function(cid){ delete tr.orderByCategory[cid]; });
-        });
-        var cutIdx = state.path.findIndex(function(id){ return orphanedCatIds.indexOf(id) !== -1; });
-        if(cutIdx !== -1) state.path = state.path.slice(0, cutIdx);
+  // containerId: the column's container (null = table root) -> only that placement is removed;
+  // "*" / omitted (edit modal, drawer) -> the trick is deleted from everywhere.
+  function requestDeleteTrick(trickId, containerId){
+    var tr = getTrick(trickId);
+    if(!tr) return;
+    var all = containerId === "*" || containerId === undefined;
+    var cid = containerId === null || containerId === undefined ? state.activeSpace : containerId;
+    if(!all && tr.categoryIds.indexOf(cid) === -1) all = true; // virtual placement (e.g. 收藏 > 自訂義)
+    var last = all || tr.categoryIds.length <= 1;
+    var title = all ? t("confirmDeleteTrickTitle") : t("confirmRemoveTrickTitle");
+    var body = all ? t("confirmDeleteTrickBody") : t("confirmRemoveTrickBody") + (last ? " " + t("confirmRemoveTrickLastBody") : "");
+    openConfirm(title, body, function(){
+      if(all){
+        tr.categoryIds.slice().forEach(function(c){ removeTrickPlacement(trickId, c); });
+        if(getTrick(trickId)){ db.tricks = db.tricks.filter(function(x){ return x.id !== trickId; }); }
+      } else {
+        removeTrickPlacement(trickId, cid);
       }
-      db.tricks = db.tricks.filter(function(t){ return t.id !== trickId; });
-      if(state.detailTrickId === trickId) closeDrawer();
       saveDB();
+      if(state.detailTrickId && !getTrick(state.detailTrickId)) closeDrawer();
       closeTrickModal();
       showToast(t("deletedTrick"));
       render();
     });
   }
-

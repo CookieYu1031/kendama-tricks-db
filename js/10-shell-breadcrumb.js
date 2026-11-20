@@ -56,6 +56,7 @@
     setText("spaceNameZhLabel", t("categoryNameZh"), true);
     setText("spaceNameJpLabel", t("categoryNameJp"));
     setText("spaceNameEnLabel", t("categoryNameEn"));
+    setText("spaceCodeLabel", t("spaceCodeLabel"));
     setText("spaceCancelBtn", t("cancel"));
     setText("spaceSaveBtn", t("save"));
     setText("spaceDeleteBtn", t("deleteSpace"));

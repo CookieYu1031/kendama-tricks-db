@@ -10,7 +10,13 @@
   // here too. Trick-folder rows get a "▶" marker (matching the same marker
   // used in the trick modal's own picker) so they read distinctly from plain
   // categories in the dropdown.
-  function fillParentSelect(selectEl, excludeIds){
+  addStrings({
+    zh:{ categoryDepthLimitReached:"資料夾最多 3 層，請選擇較淺層的父層", confirmDeleteCategoryBody:"此分類及其子分類、資訊都會被刪除；其中的招式只會移除在此處的位置，最後一個位置被移除時招式才會刪除。" },
+    jp:{ categoryDepthLimitReached:"フォルダは最大3階層までです。より浅い親を選んでください", confirmDeleteCategoryBody:"このカテゴリとサブカテゴリ・情報を削除します。中の技はこの場所から外すだけで、最後の配置が消えたときに削除されます。" },
+    en:{ categoryDepthLimitReached:"Folders can go up to 3 levels deep. Pick a shallower parent.", confirmDeleteCategoryBody:"This folder, its sub-folders and info items are deleted. Tricks inside only lose this location; a trick is deleted when its last location is removed." }
+  });
+
+  function fillParentSelect(selectEl, excludeIds, movingCatId){
     selectEl.innerHTML = "";
     var rootOpt = document.createElement("option");
     rootOpt.value = ""; rootOpt.textContent = t("rootLevel");
@@ -18,7 +24,9 @@
     flattenContainersForPicker(excludeIds).forEach(function(row){
       var opt = document.createElement("option");
       opt.value = row.id;
-      var atDepthLimit = row.depth >= MAX_CATEGORY_DEPTH - 1; // this row is already the deepest allowed level
+      // can't take a folder child (level limit; includes the moved folder's own subtree)
+      var atDepthLimit = !canAddChild(row.id, "folder") ||
+        (movingCatId && !subtreeFits(movingCatId, "category", levelOf(row.id) + 1));
       var prefix = row.depth>0 ? "\u2003".repeat(row.depth) + "\u2514 " : "";
       var marker = row.type === "trick" ? "\u25B6 " : "";
       opt.textContent = prefix + marker + row.name + (atDepthLimit ? " " + t("maxDepthSuffix") : "");
@@ -78,7 +86,7 @@
     document.getElementById("catDeleteBtn").hidden = !categoryId;
 
     var excludeIds = categoryId ? getDescendantCategoryIds(categoryId) : [];
-    fillParentSelect(document.getElementById("catParent"), excludeIds);
+    fillParentSelect(document.getElementById("catParent"), excludeIds, categoryId);
 
     if(categoryId){
       var cat = getCategory(categoryId);
@@ -174,8 +182,8 @@
       return;
     }
 
-    var newDepth = parentVal ? categoryDepth(parentVal) + 1 : 1;
-    if(newDepth > MAX_CATEGORY_DEPTH){
+    if(!canAddChild(parentVal, "folder") ||
+       (state.editingCategoryId && !subtreeFits(state.editingCategoryId, "category", levelOf(parentVal) + 1))){
       document.getElementById("categoryFormError").textContent = t("categoryDepthLimitReached");
       document.getElementById("categoryFormError").classList.add("show");
       return;
@@ -189,7 +197,7 @@
       cat.color = state.categoryDraftColor;
     } else {
       var siblingCount = getChildren(parentVal).length;
-      db.categories.push({ id: uid("cat"), parentId: parentVal, name:{ zh:zh, jp:jp, en:en }, order: siblingCount, icon: state.categoryDraftIcon, color: state.categoryDraftColor, spaceId: state.activeSpace });
+      db.categories.push({ id: newItemId(), parentId: parentVal, name:{ zh:zh, jp:jp, en:en }, order: siblingCount, icon: state.categoryDraftIcon, color: state.categoryDraftColor, spaceId: state.activeSpace });
     }
     saveDB();
     closeCategoryModal();
@@ -199,21 +207,23 @@
 
   function requestDeleteCategory(categoryId){
     var cat = getCategory(categoryId);
-    if(!cat) return;
+    if(!cat || cat.virtual) return;
     openConfirm(t("confirmDeleteCategoryTitle"), t("confirmDeleteCategoryBody"), function(){
       var idsToRemove = getDescendantCategoryIds(categoryId);
-      db.categories = db.categories.filter(function(c){ return idsToRemove.indexOf(c.id) === -1; });
+      var placements = [];
       db.tricks.forEach(function(tr){
-        tr.categoryIds = tr.categoryIds.filter(function(cid){ return idsToRemove.indexOf(cid) === -1; });
-        idsToRemove.forEach(function(cid){ delete tr.orderByCategory[cid]; });
+        tr.categoryIds.forEach(function(cid){ if(idsToRemove.indexOf(cid) !== -1) placements.push([tr.id, cid]); });
       });
+      db.categories = db.categories.filter(function(c){ return idsToRemove.indexOf(c.id) === -1; });
+      db.infos = (db.infos || []).filter(function(n){ return idsToRemove.indexOf(n.parentId) === -1; });
+      placements.forEach(function(p){ removeTrickPlacement(p[0], p[1]); });
       // trim path at the first removed ancestor (keeps everything above the deleted branch)
       var cutIdx = state.path.findIndex(function(id){ return idsToRemove.indexOf(id) !== -1; });
       if(cutIdx !== -1) state.path = state.path.slice(0, cutIdx);
+      if(state.detailTrickId && !getTrick(state.detailTrickId)) closeDrawer();
       saveDB();
       closeCategoryModal();
       showToast(t("deletedCategory"));
       render();
     });
   }
-

@@ -1,11 +1,27 @@
 "use strict";
 
+  addStrings({
+    zh: { copied:"已複製", copyHint:"點擊複製", tagsLabel:"標籤", addTag:"新增標籤", newTagPlaceholder:"標籤名稱",
+      removeTagFromTrick:"從此招式移除標籤", deleteTagGlobal:"刪除此標籤（所有招式）",
+      confirmDeleteTagTitle:"確認刪除此標籤？", confirmDeleteTagBody:"此標籤將自所有招式中移除，此動作無法復原。",
+      gripLabel:"持法", partsLabel:"部位", rateLabel:"成功率", officialNoteLabel:"官方備註", personalNoteLabel:"我的備註" },
+    jp: { copied:"コピーしました", copyHint:"クリックでコピー", tagsLabel:"タグ", addTag:"タグを追加", newTagPlaceholder:"タグ名",
+      removeTagFromTrick:"この技からタグを外す", deleteTagGlobal:"このタグを削除（全ての技）",
+      confirmDeleteTagTitle:"このタグを削除しますか？", confirmDeleteTagBody:"このタグは全ての技から外れます。この操作は元に戻せません。",
+      gripLabel:"持ち方", partsLabel:"部位", rateLabel:"成功率", officialNoteLabel:"公式メモ", personalNoteLabel:"自分のメモ" },
+    en: { copied:"Copied", copyHint:"Click to copy", tagsLabel:"Tags", addTag:"Add tag", newTagPlaceholder:"Tag name",
+      removeTagFromTrick:"Remove tag from this trick", deleteTagGlobal:"Delete this tag (all tricks)",
+      confirmDeleteTagTitle:"Delete this tag?", confirmDeleteTagBody:"This tag will be removed from every trick. This cannot be undone.",
+      gripLabel:"Grip", partsLabel:"Parts", rateLabel:"Landing rate", officialNoteLabel:"Official note", personalNoteLabel:"My note" }
+  });
+
   /* ============================================================
      DETAIL DRAWER
   ============================================================ */
   function openDrawerFor(trickId){
     state.detailTrickId = trickId;
     state.detailDrawerExpanded = false; // always reopen collapsed to the mobile peek state
+    drawerUi.tagPicker = false; drawerUi.rateHint = false;
     renderColumns();
     renderDrawer();
     document.getElementById("detailDrawer").classList.add("show");
@@ -93,11 +109,125 @@
     dragZone.addEventListener("pointercancel", endDrag);
   }
 
+  /* ---------- Pure helpers (unit-tested in tests/drawer-logic.test.js) ---------- */
+  // Tap an already-active level again to clear it.
+  function toggleRate(tr, level){
+    tr.rate = (tr.rate === level || RATE_LEVELS.indexOf(level) === -1) ? null : level;
+    return tr.rate;
+  }
+  // Single-select grip chip (tap again clears).
+  function toggleGrip(tr, key){
+    tr.grip = (tr.grip === key || GRIP_KEYS.indexOf(key) === -1) ? null : key;
+    return tr.grip;
+  }
+  // Multi-select part chip; result keeps the canonical PART_KEYS order.
+  function togglePart(tr, key){
+    if(PART_KEYS.indexOf(key) === -1) return tr.parts;
+    var parts = tr.parts || [];
+    if(parts.indexOf(key) === -1) parts = parts.concat([key]);
+    else parts = parts.filter(function(p){ return p !== key; });
+    tr.parts = PART_KEYS.filter(function(p){ return parts.indexOf(p) !== -1; });
+    return tr.parts;
+  }
+  // [{ id, label }] for the tags on a trick (unknown ids skipped).
+  function trickTagChips(tr){
+    var out = [];
+    (tr.tagIds || []).forEach(function(id){
+      var tag = getTag(id);
+      if(tag) out.push({ id: id, label: resolveDisplayName(tag.name).text });
+    });
+    return out;
+  }
+  // Existing tags not yet on the trick.
+  function availableTagChips(tr){
+    var have = tr.tagIds || [];
+    return (db.tags || []).filter(function(g){ return have.indexOf(g.id) === -1; })
+      .map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text }; });
+  }
+  // Adds a tag to the trick; creates it (addTag) unless a tag with the same name exists.
+  function addTagToTrick(tr, text, lang){
+    text = (text || "").trim();
+    if(!text) return null;
+    var low = text.toLowerCase();
+    var tag = (db.tags || []).find(function(g){
+      return ["zh", "jp", "en"].some(function(l){ return g.name[l] && g.name[l].toLowerCase() === low; });
+    });
+    if(!tag){
+      var nm = { zh:"", jp:"", en:"" };
+      nm[lang || "zh"] = text;
+      tag = addTag(nm);
+    }
+    tr.tagIds = tr.tagIds || [];
+    if(tr.tagIds.indexOf(tag.id) === -1) tr.tagIds.push(tag.id);
+    saveDB();
+    return tag;
+  }
+  // Location codes of a trick, e.g. ["001a-tr-00"]; one per placement in a table that has a code.
+  function trickLocCodes(tr){
+    var ix = ensureDbIndex();
+    var seenSpace = {}, out = [];
+    function catItem(c){ return { type:"fo", id:c.id, name:c.name, ref:c }; }
+    function trItem(x){ return { type:"tr", id:x.id, name:x.name, ref:x }; }
+    function infoItem(n){ return { type:"in", id:n.id, name:n.name || {}, ref:n }; }
+    function sorted(items, parentId){
+      return typeof sortColumnItems === "function" ? sortColumnItems(items, parentId) : items;
+    }
+    function kidsOf(parentId){
+      var items = (ix.catsByParent[parentId] || []).map(catItem).concat((ix.tricksByContainer[parentId] || []).map(trItem));
+      return sorted(items, parentId).concat((ix.infosByParent[parentId] || []).map(infoItem));
+    }
+    (tr.categoryIds || []).forEach(function(cid){
+      var sid = containerSpaceId(cid);
+      var sp = sid && getSpace(sid);
+      if(!sp || !sp.code || seenSpace[sid]) return;
+      seenSpace[sid] = true;
+      var roots = ix.rootCats.filter(function(c){ return c.spaceId === sid; }).map(catItem)
+        .concat((ix.tricksByContainer[sid] || []).map(trItem));
+      roots = sorted(roots, null).concat(ix.rootInfos.filter(function(n){ return n.spaceId === sid; }).map(infoItem));
+      var res = computeLocCodes(sp.code, roots, function(it){ return it.type === "in" ? [] : kidsOf(it.id); });
+      locCodeOf(res, tr.id).forEach(function(c){ if(c && out.indexOf(c) === -1) out.push(c); });
+    });
+    return out;
+  }
+  function trickTableId(tr){
+    return containerSpaceId((tr.categoryIds || [])[0]);
+  }
+
+  // Tag-picker / rate-hint open state for the drawer (reset when another trick opens).
+  var drawerUi = { tagPicker: false, rateHint: false };
+
+  function copyDrawerText(text){
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text);
+    }catch(e){ /* ignore */ }
+    showToast(t("copied"));
+  }
+
+  function makeChip(text, active, onClick){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "drawer-chip" + (active ? " active" : "");
+    b.textContent = text;
+    if(onClick) b.addEventListener("click", onClick);
+    else b.classList.add("static");
+    return b;
+  }
+  function makeLabel(text){
+    var l = document.createElement("div");
+    l.className = "drawer-cats-label";
+    l.textContent = text;
+    return l;
+  }
+
   function renderDrawer(){
     var drawer = document.getElementById("detailDrawer");
     if(!state.detailTrickId){ return; }
     var tr = getTrick(state.detailTrickId);
     if(!tr){ closeDrawer(); return; }
+    // Edit-mode controls only when this account may modify the trick: official
+    // tricks in locked tables are admin-only, custom tricks are always the user's.
+    var canEditTrick = state.editMode && canModifyItem({ type:"trick", ref:tr }, null,
+      typeof isAdminAccount === "function" && isAdminAccount());
 
     drawer.innerHTML = "";
     drawer.style.transform = "";
@@ -114,30 +244,26 @@
     dragZone.appendChild(dragHandle);
 
     var head = document.createElement("div");
-    head.className = "drawer-head";
+    head.className = "drawer-head" + (tr.custom ? " custom" : "");
     var headLeft = document.createElement("div");
     var title = document.createElement("div");
     title.className = "drawer-title";
-    var titleInfo = resolveTrickTitle(tr.name);
-    title.textContent = titleInfo.text;
+    title.textContent = resolveDisplayName(tr.name).text;
     headLeft.appendChild(title);
     var headActions = document.createElement("div");
     headActions.className = "drawer-head-actions";
 
-    // Quick-toggle: file this trick into (or out of) the 收藏 bucket
-    // category — the same categoryIds array used everywhere else, so
-    // editing the trick anywhere else stays in sync automatically (single
-    // source of truth).
+    // Quick-toggle: star / un-star (tr.favorite, via toggleFavorite).
     var goalBtn = document.createElement("button");
     goalBtn.type = "button";
-    goalBtn.className = "drawer-quick-btn" + (trickInSpaceBucket(tr.id, "space-goal") ? " active" : "");
+    goalBtn.className = "drawer-quick-btn" + (isFavorite(tr.id) ? " active" : "");
     goalBtn.innerHTML = "⭐";
     goalBtn.title = t("toggleGoal");
     goalBtn.addEventListener("click", function(){
-      toggleTrickInSpaceBucket(tr.id, "space-goal");
-      renderSpaceRail();
+      toggleFavorite(tr.id);
+      if(typeof renderSpaceRail === "function") renderSpaceRail();
       renderColumns();
-      if(!closeDrawerIfLeftActiveBucket(tr.id, "space-goal")) renderDrawer();
+      if(!closeDrawerIfLeftActiveBucket(tr.id)) renderDrawer();
     });
 
     var closeBtn = document.createElement("button");
@@ -153,45 +279,158 @@
     var body = document.createElement("div");
     body.className = "drawer-body";
 
-    // Which language field the big title above actually displays verbatim
-    // (mirrors resolveTrickTitle's own fallback order) — so the language
-    // table below never repeats it. When the title is a *derived* romaji
-    // reading (EN UI, kana-only jp name — see resolveTrickTitle), it isn't
-    // literally the same text as the raw jp field, so that field is still
-    // worth showing below; titleLangKey stays null and nothing gets skipped.
-    var titleLangKey = titleInfo.transformed ? null : titleInfo.sourceLang;
-
+    // Name table. View mode: the other languages (otherNames skips the one the
+    // big title shows verbatim; empty languages are hidden). Edit mode: all three
+    // languages as inputs.
     var nameTable = document.createElement("div");
     nameTable.className = "name-table";
-    [["zh", tr.name.zh], ["jp", tr.name.jp], ["en", tr.name.en]].forEach(function(pair){
-      if(pair[0] === titleLangKey) return; // already shown as the big title above
-      if(!pair[1]) return;
-      var row = document.createElement("div");
-      row.className = "name-row";
-      row.innerHTML = '<span class="lang-tag">' + pair[0].toUpperCase() + '</span><span class="name-val">' + escapeHtml(pair[1]) + '</span>';
-      nameTable.appendChild(row);
-    });
+    if(canEditTrick){
+      ["zh", "jp", "en"].forEach(function(l){
+        var row = document.createElement("div");
+        row.className = "name-row";
+        var tag = document.createElement("span");
+        tag.className = "lang-tag"; tag.textContent = l.toUpperCase();
+        var inp = document.createElement("input");
+        inp.type = "text"; inp.className = "drawer-inline-input";
+        inp.value = tr.name[l] || "";
+        inp.addEventListener("input", function(){
+          tr.name[l] = inp.value.trim();
+          title.textContent = resolveDisplayName(tr.name).text;
+          saveDB();
+        });
+        row.appendChild(tag); row.appendChild(inp);
+        nameTable.appendChild(row);
+      });
+    } else {
+      otherNames(tr.name).forEach(function(pair){
+        var row = document.createElement("div");
+        row.className = "name-row";
+        row.innerHTML = '<span class="lang-tag">' + pair[0] + '</span><span class="name-val">' + escapeHtml(pair[1]) + '</span>';
+        nameTable.appendChild(row);
+      });
+    }
     body.appendChild(nameTable);
 
     // Everything below the name table is hidden on the mobile bottom-sheet's
     // "peek" state (see .peek-mode / .drawer-expand-content in
     // detail-drawer.css) — swiping up on the drag handle reveals it. Grouped
     // in one wrapper so the CSS only needs a single selector for the body's
-    // share of the expand-only content; profFoot/foot below get the same
+    // share of the expand-only content; the footer blocks get the same
     // class directly since they're siblings of body, not inside it.
     var expandContent = document.createElement("div");
     expandContent.className = "drawer-expand-content";
 
-    var videoLabel = document.createElement("div");
-    videoLabel.className = "drawer-cats-label";
-    videoLabel.textContent = t("mediaTypeVideo");
-    expandContent.appendChild(videoLabel);
+    // Edit mode: 7-char ID + location code(s), click to copy.
+    if(state.editMode){
+      var meta = document.createElement("div");
+      meta.className = "drawer-meta";
+      [tr.id].concat(trickLocCodes(tr)).forEach(function(code){
+        var el = document.createElement("button");
+        el.type = "button"; el.className = "drawer-meta-code"; el.title = t("copyHint");
+        el.textContent = code;
+        el.addEventListener("click", function(){ copyDrawerText(code); });
+        meta.appendChild(el);
+      });
+      expandContent.appendChild(meta);
+    }
 
+    // Tags
+    var tagChips = trickTagChips(tr);
+    if(tagChips.length || canEditTrick){
+      expandContent.appendChild(makeLabel(t("tagsLabel")));
+      var tagWrap = document.createElement("div");
+      tagWrap.className = "drawer-chip-row";
+      tagChips.forEach(function(c){
+        var chip;
+        if(canEditTrick){
+          chip = makeChip(c.label + " ×", false, function(){
+            tr.tagIds = (tr.tagIds || []).filter(function(x){ return x !== c.id; });
+            saveDB(); renderDrawer();
+          });
+          chip.title = t("removeTagFromTrick");
+        } else chip = makeChip(c.label, false);
+        tagWrap.appendChild(chip);
+      });
+      if(canEditTrick){
+        tagWrap.appendChild(makeChip("+ " + t("addTag"), drawerUi.tagPicker, function(){
+          drawerUi.tagPicker = !drawerUi.tagPicker; renderDrawer();
+        }));
+      }
+      expandContent.appendChild(tagWrap);
+      if(canEditTrick && drawerUi.tagPicker){
+        var picker = document.createElement("div");
+        picker.className = "drawer-tag-picker";
+        var pickRow = document.createElement("div");
+        pickRow.className = "drawer-chip-row";
+        var isAdmin = typeof isAdminAccount === "function" && isAdminAccount();
+        availableTagChips(tr).forEach(function(c){
+          pickRow.appendChild(makeChip("+ " + c.label, false, function(){
+            tr.tagIds = (tr.tagIds || []).concat([c.id]);
+            saveDB(); renderDrawer();
+          }));
+          if(isAdmin){
+            var delTag = document.createElement("button");
+            delTag.type = "button"; delTag.className = "drawer-chip drawer-chip-danger";
+            delTag.title = t("deleteTagGlobal"); delTag.innerHTML = ICON_TRASH;
+            delTag.addEventListener("click", function(){
+              openConfirm(t("confirmDeleteTagTitle"), t("confirmDeleteTagBody"), function(){
+                removeTag(c.id); renderColumns(); renderDrawer();
+              });
+            });
+            pickRow.appendChild(delTag);
+          }
+        });
+        picker.appendChild(pickRow);
+        var newRow = document.createElement("div");
+        newRow.className = "drawer-tag-new";
+        var newInp = document.createElement("input");
+        newInp.type = "text"; newInp.className = "drawer-inline-input"; newInp.placeholder = t("newTagPlaceholder");
+        var newBtn = document.createElement("button");
+        newBtn.type = "button"; newBtn.className = "col-add-btn";
+        newBtn.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addTag")) + "</span>";
+        var submitTag = function(){
+          if(addTagToTrick(tr, newInp.value, state.lang)) renderDrawer();
+        };
+        newBtn.addEventListener("click", submitTag);
+        newInp.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); submitTag(); } });
+        newRow.appendChild(newInp); newRow.appendChild(newBtn);
+        picker.appendChild(newRow);
+        expandContent.appendChild(picker);
+      }
+    }
+
+    // Grip (single) + parts (multi). View mode: chips for what is set; edit mode: selectors.
+    if(canEditTrick || tr.grip){
+      expandContent.appendChild(makeLabel(t("gripLabel")));
+      var gripRow = document.createElement("div");
+      gripRow.className = "drawer-chip-row";
+      GRIP_KEYS.forEach(function(k){
+        if(!canEditTrick && tr.grip !== k) return;
+        gripRow.appendChild(makeChip(t("grip_" + k), tr.grip === k,
+          canEditTrick ? function(){ toggleGrip(tr, k); saveDB(); renderDrawer(); } : null));
+      });
+      expandContent.appendChild(gripRow);
+    }
+    if(canEditTrick || (tr.parts && tr.parts.length)){
+      expandContent.appendChild(makeLabel(t("partsLabel")));
+      var partsRow = document.createElement("div");
+      partsRow.className = "drawer-chip-row";
+      PART_KEYS.forEach(function(k){
+        var on = (tr.parts || []).indexOf(k) !== -1;
+        if(!canEditTrick && !on) return;
+        partsRow.appendChild(makeChip(t("part_" + k), on,
+          canEditTrick ? function(){ togglePart(tr, k); saveDB(); renderDrawer(); } : null));
+      });
+      expandContent.appendChild(partsRow);
+    }
+
+    // Videos (max MAX_VIDEOS)
+    expandContent.appendChild(makeLabel(t("mediaTypeVideo")));
     var videoWrap = document.createElement("div");
     videoWrap.style.display = "flex"; videoWrap.style.flexDirection = "column"; videoWrap.style.gap = "4px"; videoWrap.style.marginBottom = "16px";
     var videos = (tr.media || []).filter(function(m){ return m.type === "video"; });
     videos.forEach(function(item){ videoWrap.appendChild(renderVideoRow(tr.id, item)); });
-    if(state.editMode){
+    if(canEditTrick && videos.length < MAX_VIDEOS){
       var addVideoBtn = document.createElement("button");
       addVideoBtn.className = "col-add-btn";
       addVideoBtn.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addVideoShort")) + "</span>";
@@ -200,33 +439,43 @@
     }
     expandContent.appendChild(videoWrap);
 
-    // A single free-text note per trick — directly typable in edit mode, plain
-    // text in view mode. No icon/title row, no field background.
-    var noteLabel = document.createElement("div");
-    noteLabel.className = "drawer-cats-label";
-    noteLabel.textContent = t("mediaTypeNote");
-    expandContent.appendChild(noteLabel);
+    // Official note first (marked), then the personal note.
+    var canEditOfficial = !!trickTableId(tr) && canEditTable(trickTableId(tr));
+    if(tr.officialNote || (state.editMode && canEditOfficial)){
+      expandContent.appendChild(makeLabel(t("officialNoteLabel")));
+      var offWrap = document.createElement("div");
+      offWrap.style.marginBottom = "16px";
+      if(state.editMode && canEditOfficial){
+        var offInput = document.createElement("textarea");
+        offInput.className = "note-field-input";
+        offInput.rows = 3;
+        offInput.placeholder = t("mediaContentPlaceholder");
+        offInput.value = tr.officialNote || "";
+        offInput.addEventListener("input", function(){ tr.officialNote = offInput.value; saveDB(); });
+        offWrap.appendChild(offInput);
+      } else {
+        var offDisplay = document.createElement("div");
+        offDisplay.className = "note-field note-field-official";
+        offDisplay.textContent = tr.officialNote;
+        offWrap.appendChild(offDisplay);
+      }
+      expandContent.appendChild(offWrap);
+    }
 
+    // Personal note: free text, editable by everyone (it's the user's own data).
+    expandContent.appendChild(makeLabel(t("personalNoteLabel")));
     var noteWrap = document.createElement("div");
     noteWrap.style.marginBottom = "20px";
-    var noteValue = getTrickNote(tr);
-    if(state.editMode){
-      var noteInput = document.createElement("textarea");
-      noteInput.className = "note-field-input";
-      noteInput.rows = 4;
-      noteInput.placeholder = t("mediaContentPlaceholder");
-      noteInput.value = noteValue;
-      noteInput.addEventListener("input", function(){
-        tr.note = noteInput.value;
-        saveDB();
-      });
-      noteWrap.appendChild(noteInput);
-    } else if(noteValue){
-      var noteDisplay = document.createElement("div");
-      noteDisplay.className = "note-field";
-      noteDisplay.textContent = noteValue;
-      noteWrap.appendChild(noteDisplay);
-    }
+    var noteInput = document.createElement("textarea");
+    noteInput.className = "note-field-input";
+    noteInput.rows = 4;
+    noteInput.placeholder = t("mediaContentPlaceholder");
+    noteInput.value = getTrickNote(tr);
+    noteInput.addEventListener("input", function(){
+      tr.note = noteInput.value;
+      saveDB();
+    });
+    noteWrap.appendChild(noteInput);
     expandContent.appendChild(noteWrap);
 
     body.appendChild(expandContent);
@@ -234,40 +483,67 @@
     drawer.appendChild(dragZone);
     drawer.appendChild(body);
 
-    // Practice-proficiency: a 6-way segmented control, pinned to the bottom of
-    // the drawer (a sibling of the scrollable body, not inside it) so it stays
-    // visible regardless of scroll position — always interactive, not gated
-    // behind edit mode, since it tracks personal practice progress rather than
-    // editing the trick's own definitional data.
+    // Personal progress, pinned to the bottom (sibling of the scrollable body):
+    // landed toggle + 4-way landing-rate control. Always interactive, not gated
+    // behind edit mode — it tracks personal practice, not the trick's definition.
     var profFoot = document.createElement("div");
     profFoot.className = "drawer-proficiency-foot drawer-expand-content";
 
-    var profLabel = document.createElement("div");
-    profLabel.className = "drawer-cats-label";
-    profLabel.textContent = t("proficiencyLabel");
-    profFoot.appendChild(profLabel);
+    var landedWrap = document.createElement("div");
+    landedWrap.className = "proficiency-group";
+    landedWrap.style.marginBottom = "12px";
+    [[false, "notLanded"], [true, "landed"]].forEach(function(def){
+      var lBtn = document.createElement("button");
+      lBtn.type = "button";
+      lBtn.className = "proficiency-btn" + (!!tr.landed === def[0] ? " active" : "");
+      lBtn.textContent = t(def[1]);
+      lBtn.addEventListener("click", function(){
+        if(!!tr.landed === def[0]) return;
+        tr.landed = def[0];
+        saveDB();
+        renderDrawer();
+      });
+      landedWrap.appendChild(lBtn);
+    });
+    profFoot.appendChild(landedWrap);
+
+    var rateHead = document.createElement("div");
+    rateHead.className = "drawer-rate-head";
+    var infoBtn = document.createElement("button");
+    infoBtn.type = "button"; infoBtn.className = "drawer-info-btn" + (drawerUi.rateHint ? " active" : "");
+    infoBtn.textContent = "i"; infoBtn.title = t("rateLabel");
+    var hint = document.createElement("div");
+    hint.className = "drawer-rate-hint"; hint.hidden = !drawerUi.rateHint;
+    hint.innerHTML = RATE_LEVELS.map(function(l){
+      return '<span style="color:' + RATE_COLORS[l] + '">' + escapeHtml(t("rate_" + l)) + '</span> ' + escapeHtml(t("rateHint_" + l));
+    }).join("<br>");
+    infoBtn.addEventListener("click", function(){
+      drawerUi.rateHint = !drawerUi.rateHint;
+      hint.hidden = !drawerUi.rateHint;
+      infoBtn.classList.toggle("active", drawerUi.rateHint);
+    });
+    rateHead.appendChild(makeLabel(t("rateLabel"))); rateHead.appendChild(infoBtn);
+    profFoot.appendChild(rateHead);
+    profFoot.appendChild(hint);
 
     var profWrap = document.createElement("div");
     profWrap.className = "proficiency-group";
-    var currentProficiency = getTrickProficiency(tr);
-    PROFICIENCY_LEVELS.forEach(function(level){
+    RATE_LEVELS.forEach(function(level){
       var pBtn = document.createElement("button");
       pBtn.type = "button";
-      pBtn.className = "proficiency-btn" + (currentProficiency === level ? " active" : "");
-      pBtn.textContent = t("proficiency_" + level);
-      var pfHex = PROFICIENCY_COLORS[level];
+      pBtn.className = "proficiency-btn" + (tr.rate === level ? " active" : "");
+      pBtn.textContent = t("rate_" + level);
+      var pfHex = RATE_COLORS[level];
       pBtn.style.setProperty("--pf-bg", hexToRgba(pfHex, 0.16));
       pBtn.style.setProperty("--pf-bg-hover", hexToRgba(pfHex, 0.28));
       pBtn.style.setProperty("--pf-active-a", hexToRgba(pfHex, 0.95));
       pBtn.style.setProperty("--pf-active-b", hexToRgba(pfHex, 0.68));
       pBtn.style.setProperty("--pf-text", pfHex);
       pBtn.addEventListener("click", function(){
-        tr.proficiency = level;
+        toggleRate(tr, level);
         saveDB();
-        // Update the icon glow everywhere it's currently visible (miller-column
-        // row, and any parent trick's extension-list row in this drawer) right
-        // now, instead of waiting for the next full render() to touch those
-        // persistent DOM nodes — that's what caused the one-render lag.
+        // Update the icon glow everywhere it's currently visible right now,
+        // instead of waiting for the next full render().
         refreshTrickIconGlow(tr.id);
         renderDrawer();
       });
@@ -276,7 +552,7 @@
     profFoot.appendChild(profWrap);
     drawer.appendChild(profFoot);
 
-    if(state.editMode){
+    if(canEditTrick){
       var foot = document.createElement("div");
       foot.className = "drawer-foot drawer-expand-content";
       var addVarB = document.createElement("button");
@@ -310,27 +586,6 @@
   /* ============================================================
      MEDIA ROW (video items shown below the trick name)
   ============================================================ */
-  var PLATFORM_ICONS = {
-    youtube: '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.7"/><path d="M10 9l6 3-6 3V9z" fill="currentColor"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>',
-    facebook: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="sans-serif">f</text></svg>',
-    tiktok: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M13 7v7.2a2.3 2.3 0 11-2-2.28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 7c.3 1.6 1.5 2.8 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    vimeo: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">V</text></svg>',
-    twitter: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">X</text></svg>',
-    other: '<svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 015.7 5.7l-1.4 1.4M14 18l-1 1A4 4 0 016 13.3l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
-  };
-  function detectPlatform(url){
-    if(!url) return "other";
-    var host;
-    try{ host = new URL(url).hostname.replace(/^www\./,"").replace(/^m\./,""); }catch(e){ return "other"; }
-    if(host==="youtube.com" || host==="youtu.be") return "youtube";
-    if(host==="instagram.com") return "instagram";
-    if(host==="facebook.com" || host==="fb.watch") return "facebook";
-    if(host==="tiktok.com") return "tiktok";
-    if(host==="vimeo.com" || host==="player.vimeo.com") return "vimeo";
-    if(host==="twitter.com" || host==="x.com") return "twitter";
-    return "other";
-  }
   function renderVideoRow(trickId, item){
     var row = document.createElement("div");
     row.className = "item"; row.style.margin = "0";
@@ -343,7 +598,8 @@
     text.innerHTML = '<div class="item-name">' + escapeHtml(item.title || t("mediaTypeVideo")) + '</div>';
     row.appendChild(icon); row.appendChild(text);
 
-    if(state.editMode){
+    var vTr = getTrick(trickId);
+    if(state.editMode && vTr && canModifyItem({ type:"trick", ref:vTr }, null, typeof isAdminAccount === "function" && isAdminAccount())){
       var actions = document.createElement("div");
       actions.className = "item-edit-actions";
       var editBtn = document.createElement("button");

@@ -122,7 +122,7 @@
     if(pinned) btn.dataset.pinned = "1";
     btn.textContent = sp.icon || "🗂️";
     btn.title = spaceLabel(sp.id);
-    if(state.editMode){
+    if(state.editMode && (!sp.locked || isAdminNow())){
       var badge = document.createElement("span");
       badge.className = "space-edit-badge";
       badge.innerHTML = ICON_EDIT;
@@ -150,10 +150,7 @@
     });
   }
 
-  // Thin horizontal rule separating the rail's sections (總表 / 收藏 /
-  // other spaces) — see renderSpaceRail for when each divider is actually
-  // inserted (a divider bordering an empty, hidden section is skipped
-  // rather than shown floating next to its neighbor).
+  // Thin horizontal rule between the official tables and 收藏 / custom tables.
   function buildRailDivider(){
     var hr = document.createElement("div");
     hr.className = "space-rail-divider";
@@ -164,60 +161,18 @@
     var rail = document.getElementById("spaceRail");
     rail.innerHTML = "";
 
-    var indexSpace = db.spaces.find(function(s){ return s.id === "space-index"; });
-    var goalSpace = db.spaces.find(function(s){ return s.id === "space-goal"; });
-    var otherSpaces = db.spaces.filter(function(s){
-      return s.id !== "space-index" && s.id !== "space-goal";
-    }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
-    var section2Spaces = [goalSpace].filter(function(sp){
-      return sp && getAllTricksInSpace(sp.id).length > 0;
-    });
-
-    // Section 1: 招式總表, pinned to the very top.
-    if(indexSpace){
-      var indexBtn = buildSpaceBtn(indexSpace, true);
-      bindSpaceNavigate(indexBtn, indexSpace);
-      rail.appendChild(indexBtn);
-    }
-
-    // A divider only ever separates two sections that both actually have
-    // something in them — if 收藏 is currently empty (and thus hidden), the
-    // divider that would normally sit right above it is dropped too,
-    // leaving a single line between 總表 and the next visible section
-    // instead of two lines with nothing between them.
-    if(section2Spaces.length || otherSpaces.length) rail.appendChild(buildRailDivider());
-
-    // Section 2: 收藏 — fixed position right under 總表, and only shown
-    // once it actually holds at least one trick.
-    section2Spaces.forEach(function(sp){
-      var btn = buildSpaceBtn(sp, true);
-      bindSpaceNavigate(btn, sp);
+    // t00, t01, t02, divider, fav, custom tables (see railLayout in 20-browse-order.js).
+    var customSpaces = db.spaces.filter(function(s){ return !isDefaultSpaceId(s.id); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    railLayout(db.spaces).forEach(function(entry){
+      if(entry === "divider"){ rail.appendChild(buildRailDivider()); return; }
+      var isCustom = !isDefaultSpaceId(entry.id);
+      var btn = buildSpaceBtn(entry, !isCustom);
+      // Only custom tables are freely reorderable (long-press drag); built-ins stay pinned.
+      if(isCustom && state.editMode) attachSpaceLongPressDrag(btn, entry, customSpaces);
+      bindSpaceNavigate(btn, entry);
       rail.appendChild(btn);
     });
-    if(section2Spaces.length && otherSpaces.length) rail.appendChild(buildRailDivider());
-
-    // Section 3: every other (custom) space — freely reorderable via the
-    // same long-press-then-drag gesture tricks/categories already use.
-    otherSpaces.forEach(function(sp){
-      var btn = buildSpaceBtn(sp, false);
-      if(state.editMode) attachSpaceLongPressDrag(btn, sp, otherSpaces);
-      bindSpaceNavigate(btn, sp);
-      rail.appendChild(btn);
-    });
-
-    // If the space currently being viewed just dropped out of the rail
-    // (its last trick was removed from 收藏), fall back to the total index
-    // rather than leaving the view stuck on a hidden tab.
-    if(state.activeSpace === "space-goal"
-       && getAllTricksInSpace(state.activeSpace).length === 0
-       && indexSpace){
-      state.activeSpace = indexSpace.id;
-      localStorage.setItem(SPACE_KEY, indexSpace.id);
-      state.path = [];
-      if(state.detailTrickId) closeDrawer(); // also hides the drawer's DOM, not just the state
-      var activeBtn = rail.querySelector('[data-space-id="' + indexSpace.id + '"]');
-      if(activeBtn) activeBtn.classList.add("active");
-    }
 
     if(state.editMode){
       var addBtn = document.createElement("button");
@@ -225,7 +180,10 @@
       addBtn.className = "space-btn space-add-btn";
       addBtn.innerHTML = ICON_PLUS;
       addBtn.title = t("newSpace");
-      addBtn.addEventListener("click", function(){ openSpaceModal(null); });
+      addBtn.addEventListener("click", function(){
+        if(!canAddCustomSpace()){ showToast(t("spaceLimitReached"), "error"); return; }
+        openSpaceModal(null);
+      });
       rail.appendChild(addBtn);
     }
 

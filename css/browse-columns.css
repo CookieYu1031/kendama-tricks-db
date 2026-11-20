@@ -79,6 +79,9 @@
     transition: background .16s var(--ease), border-color .16s var(--ease), box-shadow .16s var(--ease), padding .3s var(--ease), gap .3s var(--ease), width .3s var(--ease), margin .3s var(--ease);
     position:relative;
   }
+  /* user-made (custom:true) tricks: faint wood tint, same family as --wood */
+  :root{ --item-custom-bg: rgba(201,160,99,0.08); }
+  .item.custom{ background: var(--item-custom-bg); }
   .item:hover{ background: var(--glass-2); border-color: var(--glass-border); box-shadow: 0 0 0 1px rgba(var(--lacquer-rgb),0.18), 0 0 14px rgba(var(--lacquer-rgb),0.16); }
   .item.selected{ background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.22), rgba(var(--lacquer-rgb),0.10)); border-color: rgba(var(--lacquer-rgb),0.45); box-shadow: var(--glass-highlight); }
   .item-icon{

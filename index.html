@@ -285,6 +285,10 @@
           <input type="text" id="spaceEn" />
         </div>
       </div>
+      <div class="field" id="spaceCodeField" hidden>
+        <label id="spaceCodeLabel">表格代碼</label>
+        <input type="text" id="spaceCode" readonly />
+      </div>
       <div class="form-error" id="spaceFormError">請至少輸入中文名稱</div>
     </div>
     <div class="modal-footer">
@@ -315,6 +319,49 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" id="publishCancelBtn">取消</button>
         <button class="btn btn-primary" id="publishConfirmBtn">發布</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Info Modal (read view + add / edit form) -->
+<div class="modal-overlay" id="infoModalOverlay">
+  <div class="modal" id="infoModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="infoModalTitle">資訊</div>
+      <div id="infoViewBody">
+        <div class="info-content" id="infoViewContent"></div>
+      </div>
+      <div id="infoEditBody" hidden>
+        <div class="field">
+          <label id="infoNameZhLabel">中文名稱</label>
+          <input type="text" id="infoZh" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label id="infoNameJpLabel">日文名稱</label>
+            <input type="text" id="infoJp" />
+          </div>
+          <div class="field">
+            <label id="infoNameEnLabel">英文名稱</label>
+            <input type="text" id="infoEn" />
+          </div>
+        </div>
+        <div class="field">
+          <label id="infoContentLabel">內容</label>
+          <textarea id="infoContent"></textarea>
+        </div>
+        <div class="form-error" id="infoFormError">請至少輸入一個標題</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions-split">
+        <button class="btn btn-danger" id="infoDeleteBtn" hidden>刪除資訊</button>
+        <div style="display:flex; gap:10px; flex:1; justify-content:flex-end;">
+          <button class="btn btn-ghost" id="infoCancelBtn">關閉</button>
+          <button class="btn btn-ghost" id="infoEditBtn" hidden>編輯資訊</button>
+          <button class="btn btn-primary" id="infoSaveBtn" hidden>儲存</button>
+        </div>
       </div>
     </div>
   </div>
@@ -371,6 +418,7 @@
 <script src="js/43-modal-category.js"></script>
 <script src="js/44-modal-space.js"></script>
 <script src="js/45-modal-trick.js"></script>
+<script src="js/46-modal-info.js"></script>
 <script src="js/50-sync-core.js"></script>
 <script src="js/51-shared-base.js"></script>
 <script src="js/52-auth.js"></script>

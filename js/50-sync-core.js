@@ -179,6 +179,7 @@
           });
           batch.set(userRef.collection("meta").doc("spaces"), {
             spaces: db.spaces,
+            schema: CLOUD_SCHEMA,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           return batch.commit();
@@ -201,6 +202,8 @@
   /* ------------------------------------------------------------
      Load: per-space diff docs + spaces meta doc -> merged db
   ------------------------------------------------------------ */
+  // Bumped when the cloud layout changes incompatibly; older docs are ignored.
+  var CLOUD_SCHEMA = 2;
   function loadMergedDBFromCloud(uid){
     var userRef = fbStore.collection("users").doc(uid);
     return userRef.collection("spaceData").get().then(function(snap){
@@ -210,9 +213,18 @@
       DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
 
       return userRef.collection("meta").doc("spaces").get().then(function(metaSnap){
-        var spacesList = (metaSnap.exists && Array.isArray(metaSnap.data().spaces) && metaSnap.data().spaces.length)
-          ? metaSnap.data().spaces
+        var meta = metaSnap.exists ? metaSnap.data() : null;
+        // Pre-v0.2 cloud data (no schema marker) is dropped on purpose (B6/B7):
+        // start this account from empty tables; the next save writes schema 2.
+        if(!meta || meta.schema !== CLOUD_SCHEMA){ diffMap = {}; meta = null; }
+        var spacesList = (meta && Array.isArray(meta.spaces) && meta.spaces.length)
+          ? meta.spaces
           : null; // normalizeDB fills in the default tables
+        // Only diffs of tables that still exist (old space-* docs are ignored).
+        var liveIds = DEFAULT_SPACE_IDS.concat((spacesList || []).map(function(sp){ return sp && sp.id; }));
+        Object.keys(diffMap).forEach(function(id){ if(liveIds.indexOf(id) === -1) delete diffMap[id]; });
+        spaceIds = Object.keys(diffMap);
+        DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
 
         return ensureViewingVersionResolved(uid).then(function(viewingVersion){
           var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_TABLE_ID; });

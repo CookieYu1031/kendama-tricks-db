@@ -253,6 +253,28 @@
       if(iconEl) applyTrickGlow(iconEl, tr);
     });
   }
+  /* ---------------- Video platforms ---------------- */
+  var PLATFORM_ICONS = {
+    youtube: '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.7"/><path d="M10 9l6 3-6 3V9z" fill="currentColor"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="sans-serif">f</text></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M13 7v7.2a2.3 2.3 0 11-2-2.28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 7c.3 1.6 1.5 2.8 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    vimeo: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">V</text></svg>',
+    twitter: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">X</text></svg>',
+    other: '<svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 015.7 5.7l-1.4 1.4M14 18l-1 1A4 4 0 016 13.3l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
+  };
+  function detectPlatform(url){
+    if(!url) return "other";
+    var host;
+    try{ host = new URL(url).hostname.replace(/^www\./,"").replace(/^m\./,""); }catch(e){ return "other"; }
+    if(host==="youtube.com" || host==="youtu.be") return "youtube";
+    if(host==="instagram.com") return "instagram";
+    if(host==="facebook.com" || host==="fb.watch") return "facebook";
+    if(host==="tiktok.com") return "tiktok";
+    if(host==="vimeo.com" || host==="player.vimeo.com") return "vimeo";
+    if(host==="twitter.com" || host==="x.com") return "twitter";
+    return "other";
+  }
   // Only plain web links may be stored/opened as video URLs — blocks
   // javascript:, data: and other schemes that could run code on click.
   function isSafeHttpUrl(url){
