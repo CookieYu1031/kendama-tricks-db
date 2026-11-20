@@ -3,9 +3,15 @@
   /* ============================================================
      STATE
   ============================================================ */
+  // 03-i18n.js loads after 02, so the data-model strings (02) are registered here.
+  if(typeof addStrings === "function" && typeof DATA_MODEL_STRINGS !== "undefined") addStrings(DATA_MODEL_STRINGS);
+
   var state = {
     lang: localStorage.getItem(LANG_KEY) || "zh",
-    activeSpace: localStorage.getItem(SPACE_KEY) || db.spaces[0].id,
+    activeSpace: (function(){
+      var saved = localStorage.getItem(SPACE_KEY);
+      return db.spaces.some(function(s){ return s.id === saved; }) ? saved : "t00";
+    })(),
     editMode: false,
     path: [],            // array of category ids (drill-down chain)
     searchQuery: "",

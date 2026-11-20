@@ -33,15 +33,40 @@
   ];
   var ICON_EMOJI_SET = ICON_EMOJI_GROUPS.reduce(function(a,b){ return a.concat(b); }, []);
 
-  // One tint per proficiency level (left-to-right: none/once/rare/sometimes/often/mastered),
-  // used both to color the segmented control buttons and as the trick icon's glow color.
-  // "none" has no assigned tint since it never renders a glow or a colored button state.
-  var PROFICIENCY_COLORS = {
-    none:      "#9B9A97", // gray
-    once:      "#D6483F", // red
+  // One tint per landing-rate level (see RATE_LEVELS in 01-data-model.js), used both to
+  // color the rate buttons and as the trick icon's glow color. rate:null has no glow.
+  var RATE_COLORS = {
     rare:      "#DFAB01", // yellow
     sometimes: "#4F9768", // green
-    often:     "#3E9BE0", // blue
+    most:      "#3E9BE0", // blue
     mastered:  "#9065B0"  // purple
   };
 
+  // i18n strings for the data model (parts, grips, rates, landed). Registered via
+  // addStrings() in 04-state.js, because 03-i18n.js loads after this file.
+  var DATA_MODEL_STRINGS = {
+    zh: {
+      part_kensaki:"劍尖", part_kensakiSide:"劍尖側", part_sara:"大小皿", part_saraEdge:"大小皿邊", part_kenBody:"劍身",
+      part_suberidome:"止滑", part_chuzara:"中皿", part_chuzaraEdge:"中皿邊", part_tamaTop:"球上", part_ana:"球洞",
+      grip_ken:"持劍", grip_tama:"持球", grip_ito:"持線",
+      rate_rare:"偶爾", rate_sometimes:"有時", rate_most:"多半", rate_mastered:"熟練",
+      rateHint_rare:"約 1/10", rateHint_sometimes:"約 3/10", rateHint_most:"約 5/10", rateHint_mastered:"約 8/10",
+      landed:"已成功", notLanded:"未成功"
+    },
+    jp: {
+      part_kensaki:"剣先", part_kensakiSide:"剣先サイド", part_sara:"大小皿", part_saraEdge:"大小皿のふち", part_kenBody:"けん身",
+      part_suberidome:"すべり止め", part_chuzara:"中皿", part_chuzaraEdge:"中皿のふち", part_tamaTop:"玉の上", part_ana:"穴",
+      grip_ken:"けん持ち", grip_tama:"玉持ち", grip_ito:"糸持ち",
+      rate_rare:"たまに", rate_sometimes:"ときどき", rate_most:"だいたい", rate_mastered:"得意",
+      rateHint_rare:"約1/10", rateHint_sometimes:"約3/10", rateHint_most:"約5/10", rateHint_mastered:"約8/10",
+      landed:"成功済み", notLanded:"未成功"
+    },
+    en: {
+      part_kensaki:"Spike", part_kensakiSide:"Spike side", part_sara:"Big/small cup", part_saraEdge:"Big/small cup rim", part_kenBody:"Ken body",
+      part_suberidome:"Slip stopper", part_chuzara:"Base cup", part_chuzaraEdge:"Base cup rim", part_tamaTop:"Ball top", part_ana:"Ball hole",
+      grip_ken:"Hold ken", grip_tama:"Hold ball", grip_ito:"Hold string",
+      rate_rare:"Rarely", rate_sometimes:"Sometimes", rate_most:"Mostly", rate_mastered:"Mastered",
+      rateHint_rare:"about 1/10", rateHint_sometimes:"about 3/10", rateHint_most:"about 5/10", rateHint_mastered:"about 8/10",
+      landed:"Landed", notLanded:"Not landed"
+    }
+  };
