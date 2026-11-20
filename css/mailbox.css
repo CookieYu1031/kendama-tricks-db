@@ -1,0 +1,31 @@
+/* Admin mailbox + user forms (js/73-mailbox.js, js/74-forms.js) + inbox section of the updates page (js/16). */
+  .mailbox-modal{ width: 640px; }
+  .mb-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .mb-tab{ font-family:inherit; font-size:12.5px; padding:5px 12px; }
+  .mb-tab.active{ background: var(--lacquer); border-color: var(--lacquer); color: var(--on-accent); }
+  .mb-item{ padding:12px 14px; margin-bottom:10px; border:1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--glass-1); min-width:0; }
+  .mb-item.is-done{ opacity:0.62; }
+  .mb-item-head{ display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .mb-kind{ font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background: var(--glass-2); border:1px solid var(--glass-border); color: var(--accent-text); }
+  .mb-kind-trick{ color: var(--wood); }
+  .mb-kind-apply{ color: var(--danger-bright); }
+  .mb-done-badge{ font-size:11px; color: var(--paper-faint); }
+  .mb-date{ margin-left:auto; font-size:11.5px; font-family: var(--font-mono); color: var(--paper-faint); }
+  .mb-who{ font-size:12.5px; color: var(--paper-dim); margin-bottom:6px; word-break:break-all; }
+  .mb-email{ font-family: var(--font-mono); font-size:11.5px; color: var(--paper-faint); }
+  .mb-text{ font-size:13.5px; line-height:1.6; white-space:pre-wrap; word-break:break-word; margin-bottom:6px; }
+  .mb-payload-row{ display:flex; gap:8px; font-size:12px; color: var(--paper-dim); word-break:break-all; }
+  .mb-payload-key{ flex:0 0 auto; color: var(--paper-faint); }
+  .mb-payload a{ color: var(--accent-text); text-decoration:underline; }
+  .mb-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .mb-reply{ margin:10px 0 0; }
+  .form-modal .cat-tree-item{ padding:6px 4px; }
+  .form-note{ margin:0 0 14px; font-size:12.5px; line-height:1.5; }
+  .form-modal .modal-footer .modal-actions .btn[disabled]{ opacity:0.55; cursor:not-allowed; transform:none; }
+  .inbox-title{ font-family: var(--font-display); font-size:14px; font-weight:700; margin:2px 0 4px; }
+  #updatesVersions .inbox-title{ margin-top:16px; }
+  .inbox-item{ position:relative; }
+  .inbox-item.is-unread{ border-left:3px solid var(--lacquer); padding-left:10px; }
+  .inbox-from{ font-size:12px; font-weight:700; color: var(--accent-text); }
+  .inbox-trick{ font-size:12px; color: var(--paper-faint); margin-bottom:4px; }
+  .inbox-del{ margin-top:8px; }

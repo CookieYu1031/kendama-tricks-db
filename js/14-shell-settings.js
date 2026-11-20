@@ -46,6 +46,24 @@
     btn.appendChild(img);
   }
 
+  // Row 4 buttons ship disabled in index.html ("coming soon"); wire them up here
+  // (forms live in js/74-forms.js, both require sign-in and check it themselves).
+  function enableFormItems(){
+    [["settingsSubmitLabel", "openSubmitForm"], ["settingsReportLabel", "openReportForm"]].forEach(function(p){
+      var label = document.getElementById(p[0]);
+      var btn = label && label.closest ? label.closest("button") : null;
+      if(!btn) return;
+      var soon = btn.querySelector("[data-soon]");
+      if(soon && soon.parentNode) soon.parentNode.removeChild(soon);
+      if(btn.getAttribute("data-form-ready")) return;
+      btn.setAttribute("data-form-ready", "1");
+      btn.disabled = false;
+      btn.addEventListener("click", function(){
+        if(typeof window[p[1]] === "function") window[p[1]]();
+      });
+    });
+  }
+
   function renderSettingsUI(){
     function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
     var gear = document.getElementById("settingsBtn");
@@ -70,6 +88,7 @@
     setText("settingsSubmitLabel", t("settingsSubmit"));
     setText("settingsSubmitNote", t("settingsSubmitNote"));
     setText("settingsReportLabel", t("settingsReport"));
+    enableFormItems();
     Array.prototype.forEach.call(document.querySelectorAll("[data-soon]"), function(el){
       el.textContent = t("comingSoon");
     });

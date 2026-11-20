@@ -83,6 +83,7 @@
       var ghosts = typeof pendingGhostItems === "function" ? pendingGhostItems(col.parentId) : [];
       var items = sortColumnItems(col.items.concat(ghosts), col.parentId);
       var realItems = ghosts.length ? items.filter(function(x){ return !x.ghost; }) : items;
+      var subRows = typeof submissionRowItems === "function" ? submissionRowItems(col.parentId) : []; // admin review mode (76)
 
       if(isMobile && colIndex > 0){
         var backBtn = document.createElement("button");
@@ -95,7 +96,7 @@
       var itemsWrap = document.createElement("div");
       itemsWrap.className = "col-items";
 
-      if(items.length === 0){
+      if(items.length === 0 && !subRows.length){
         var empty = document.createElement("div");
         empty.className = "col-empty";
         empty.innerHTML = ICON_EMPTY + "<div>" + escapeHtml(t("noSubItems")) + "</div>" + (state.editMode? "<div>"+escapeHtml(t("clickAddBelow"))+"</div>" : "");
@@ -107,6 +108,7 @@
           itemsWrap.appendChild(renderItemRow(it, col.parentId, colIndex, realIdx++, realItems));
         });
       }
+      subRows.forEach(function(s){ itemsWrap.appendChild(buildSubmissionRow(s)); });
       colEl.appendChild(itemsWrap);
 
       // Each column keeps its own "add category / add trick" controls, scoped to that
@@ -379,6 +381,7 @@
       if(canDragItem(it, parentId, admin)) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
     }
 
+    if(typeof applySubmissionDots === "function") applySubmissionDots(row, it); // review mode (76)
     if(typeof applyPendingMark === "function") applyPendingMark(row, it);
 
     if(isDrillable){

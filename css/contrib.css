@@ -1,0 +1,44 @@
+/* Contributors, submissions and review mode (js/71, js/72, js/76). Colors of contributors are inline hex (theme-independent). */
+  .contrib-form{ display:flex; gap:8px; margin-bottom:10px; }
+  .contrib-form input{
+    flex:1; min-width:0; padding:8px 10px; border-radius:10px; border:1px solid var(--glass-border);
+    background: var(--glass-2); color: var(--paper); font: inherit; font-size:13px;
+  }
+  .contrib-form input:focus{ outline:none; border-color: var(--lacquer); }
+  .contrib-list{ display:flex; flex-direction:column; gap:4px; max-height:160px; overflow-y:auto; margin-bottom:10px; }
+  .contrib-row{ display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:9px; background: var(--glass-2); }
+  .contrib-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .contrib-email{ flex:1; min-width:0; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .contrib-review-btn{ margin-top:2px; }
+
+  /* Review mode: badge on the rail edit toggle */
+  .rail-edit-toggle{ position:relative; }
+  .rail-edit-toggle.review{ border-color: #F3A712; }
+  .rail-edit-toggle.review::after{
+    content:""; position:absolute; top:3px; right:3px; width:9px; height:9px; border-radius:50%;
+    background:#F3A712; box-shadow:0 0 0 2px rgba(243,167,18,0.3);
+  }
+
+  /* Submission rows + dots (top-right, like .pending-dot) */
+  .item.sub-row{ position:relative; }
+  .sub-dots{
+    position:absolute; top:5px; right:6px; display:flex; align-items:center; gap:2px; pointer-events:none;
+  }
+  .sub-dot{ width:8px; height:8px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,0.12); }
+  .sub-dots-more{ font-size:9px; line-height:1; font-weight:700; color: var(--paper-dim); font-family: var(--font-mono); }
+  .item.has-pending .sub-dots{ right:18px; }
+  .m-col.collapsed:not(:hover) .sub-dots{ top:4px; right:8px; }
+
+  /* Review drawer */
+  .sub-submitter{ display:flex; align-items:center; gap:8px; font-size:12.5px; color: var(--paper-dim); margin-bottom:12px; word-break:break-all; }
+  .sub-submitter .sub-dot{ flex:0 0 auto; box-shadow:none; }
+  .sub-videos{ display:flex; flex-direction:column; gap:4px; margin-bottom:16px; }
+  .sub-accept-btn{ border-color: var(--lacquer); color: var(--accent-text); }
+
+  /* Contributor's 投稿 button in the drawer head */
+  .drawer-submit-btn{
+    height:32px; padding:0 12px; border-radius:9px; border:1px solid var(--lacquer); background: rgba(var(--lacquer-rgb),0.18);
+    color: var(--accent-text); font: inherit; font-size:12.5px; font-weight:600; cursor:pointer; flex:0 0 auto;
+  }
+  .drawer-submit-btn:hover:not([disabled]){ background: linear-gradient(165deg, var(--lacquer-bright), var(--lacquer)); color: var(--on-accent); }
+  .drawer-submit-btn.done, .drawer-submit-btn[disabled]{ opacity:0.55; cursor:default; border-color: var(--glass-border); background: var(--glass-2); color: var(--paper-dim); }

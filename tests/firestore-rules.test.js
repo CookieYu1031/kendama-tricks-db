@@ -52,11 +52,19 @@ test("hasOnly field lists exact", function () {
     "schema,baseVersion,chunks,hash,updatedAt",
     "data",
     "latestVersion,latestNote,latestLabel,publishedAt",
-    "version,note,versionLabel,publishedAt,chunks"
+    "version,note,versionLabel,publishedAt,chunks",
+    "email,addedAt,color",
+    "uid,email,name,trick,parentId,status,createdAt",
+    "id,name,media,icon,color,grip,parts,officialNote,tagIds",
+    "uid,email,displayName,kind,text,payload,createdAt,status",
+    "lastReportAt",
+    "kind,text,trickName,from,createdAt,read",
+    "read",
+    "lang,favorites,landed,rates,lastActiveAt,createdAt"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 7); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 15); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -76,7 +84,8 @@ test("limits", function () {
 });
 
 test("shared base writes are admin only", function () {
-  var s = src.slice(src.indexOf("match /sharedBase/space-index"));
+  var start = src.indexOf("match /sharedBase/space-index");
+  var s = src.slice(start, src.indexOf("match /contributors/"));
   var writes = s.match(/allow (create, update|delete): if [^\n]*/g);
   writes.forEach(function (w) { assert.match(w, /isAdmin\(\)/); });
 });
@@ -87,4 +96,21 @@ test("default deny is last", function () {
   assert.match(src.slice(i), /allow read, write: if false;/);
   assert.equal(src.slice(src.lastIndexOf("match /"), i).length >= 0, true);
   assert.ok(src.indexOf("match /sharedBase") < i && src.indexOf("match /users/{uid}") < i);
+});
+
+test("v0.7 collections present with admin-gated reads", function () {
+  ["contributors/{emailId}", "submissions/{subId}", "reports/{rid}", "rateLimits/{uid}", "users/{uid}/inbox/{mid}", "userStats/{uid}"].forEach(function (p) {
+    assert.ok(src.indexOf("match /" + p) !== -1, p);
+  });
+  assert.match(src, /function isContributor\(\)/);
+  assert.match(src, /match \/reports\/\{rid\}[\s\S]*?allow read, update, delete: if isAdmin\(\);/);
+  assert.match(src, /match \/userStats\/\{uid\}[\s\S]*?allow list: if isAdmin\(\);/);
+  assert.match(src, /duration\.value\(60, 's'\)/);
+});
+
+test("catch-all deny stays last", function () {
+  var last = src.lastIndexOf("match /{document=**}");
+  ["match /userStats/", "match /reports/", "match /submissions/"].forEach(function (p) {
+    assert.ok(src.indexOf(p) < last, p);
+  });
 });

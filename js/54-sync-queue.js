@@ -125,6 +125,8 @@
       _syncBusy = null;
       setSyncing(false);
       renderSyncUI();
+      // Public-table stats for the admin panel (57); own change/daily gate, never blocks sync.
+      if(result.status !== "error" && result.status !== "conflict" && typeof writeUserStatsIfNeeded === "function") writeUserStatsIfNeeded();
       return result;
     });
     return _syncBusy;
