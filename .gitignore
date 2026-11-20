@@ -1,0 +1,26 @@
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+
+# Secrets (service account keys etc.)
+*.key.json
+service-account*.json
+.env
+.env.*
+
+# Node / tooling
+node_modules/
+.claude/settings.local.json
+
+# Local artifacts
+screenshots/
+*.tmp
+.DS_Store
+Thumbs.db
+~$*
+
+# Spec doc (kept local only)
+*.docx

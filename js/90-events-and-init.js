@@ -32,67 +32,6 @@
     render();
   });
 
-  // Hidden power-user commands typed straight into the search box — deliberately
-  // undocumented in the UI (no placeholder hint, no menu), matched on exact text.
-  function resetSearchInputUI(){
-    searchInput.value = "";
-    searchClear.classList.remove("show");
-    state.searchQuery = "";
-    updateSearchInlineCount("");
-    closeSearchSuggest();
-  }
-  // Data-driven list of hidden "/" commands. Each entry powers both the
-  // execution below AND the live "/" preview dropdown (see renderCommandSuggest
-  // in 08-render-browse-columns.js), so the description shown to the user and
-  // the actual behavior can never drift apart. Descriptions are looked up via
-  // t(descKey) at render time so they follow the current UI language.
-  var HIDDEN_COMMANDS = [
-    { cmd: "/Export", descKey: "cmdExportDesc", action: function(){
-        exportJSON();
-      } },
-    { cmd: "/Import", descKey: "cmdImportDesc", action: function(){
-        document.getElementById("importFileInput").click();
-      } },
-    { cmd: "/Clear tricks", descKey: "cmdClearTricksDesc", action: function(){
-        db.tricks = [];
-        saveDB();
-        state.detailTrickId = null;
-        closeDrawer();
-        render();
-        showToast(t("deletedTrick"));
-      } },
-    { cmd: "/Clear all", descKey: "cmdClearAllDesc", action: function(){
-        db.categories = []; db.tricks = [];
-        saveDB();
-        state.path = []; state.detailTrickId = null;
-        closeDrawer();
-        render();
-        showToast(t("deletedCategory"));
-      } },
-    { cmd: "/Reset", descKey: "cmdResetDesc", action: function(){
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(SPACE_KEY);
-        db = loadDB();
-        state.activeSpace = db.spaces[0].id;
-        state.path = []; state.detailTrickId = null;
-        closeDrawer();
-        render();
-        showToast(t("importSuccess"));
-      } }
-  ];
-
-  function runHiddenCommand(raw){
-    var cmd = raw.trim();
-    var match = null;
-    for(var i=0; i<HIDDEN_COMMANDS.length; i++){
-      if(HIDDEN_COMMANDS[i].cmd === cmd){ match = HIDDEN_COMMANDS[i]; break; }
-    }
-    if(!match) return false;
-    resetSearchInputUI();
-    match.action();
-    return true;
-  }
-
   var searchInput = document.getElementById("searchInput");
   var searchClear = document.getElementById("searchClear");
   var searchSuggest = document.getElementById("searchSuggest");
@@ -125,15 +64,6 @@
     var raw = searchInput.value;
     searchClear.classList.toggle("show", raw.length>0);
 
-    // Hidden power-user commands only fire on Enter (see keydown handler below);
-    // while the user is typing one, don't run a live trick search — but do show
-    // the matching command(s) with their descriptions in the suggest dropdown.
-    if(raw.trim().charAt(0) === "/"){
-      updateSearchInlineCount("");
-      renderSearchSuggest(raw);
-      return;
-    }
-
     // Everything else searches live, Google-style — no Enter required. The
     // miller-column view underneath is left exactly as it was; only the small
     // result count and the suggestion dropdown update.
@@ -143,7 +73,6 @@
   });
   searchInput.addEventListener("keydown", function(ev){
     if(ev.key !== "Enter") return;
-    if(runHiddenCommand(searchInput.value)) return;
     closeSearchSuggest();
   });
   searchInput.addEventListener("blur", function(){
@@ -163,12 +92,6 @@
     updateSearchInlineCount("");
     closeSearchSuggest();
     searchInput.focus();
-  });
-
-  document.getElementById("importFileInput").addEventListener("change", function(ev){
-    var file = ev.target.files && ev.target.files[0];
-    if(file) importJSONFile(file);
-    ev.target.value = "";
   });
 
   // Category modal

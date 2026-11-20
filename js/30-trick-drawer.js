@@ -357,7 +357,7 @@
     }
 
     row.addEventListener("click", function(){
-      if(item.url){ window.open(item.url, "_blank", "noopener,noreferrer"); }
+      if(isSafeHttpUrl(item.url)){ window.open(item.url, "_blank", "noopener,noreferrer"); }
     });
     return row;
   }

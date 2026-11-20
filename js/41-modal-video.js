@@ -57,7 +57,7 @@
       fb.className = "video-fallback";
       var msg = info && info.type !== "other" ? t("embedNotSupportedNote") : t("noVideo");
       fb.innerHTML = ICON_PLAY.replace("currentColor","var(--paper-faint)") + "<p>" + escapeHtml(msg) + "</p>";
-      if(item.url){
+      if(isSafeHttpUrl(item.url)){
         var link = document.createElement("a");
         link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer";
         link.className = "btn btn-primary";
