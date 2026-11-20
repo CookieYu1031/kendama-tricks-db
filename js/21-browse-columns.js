@@ -109,7 +109,7 @@
       // col-items flex-grow above, regardless of how many rows are in the list.
       if(state.editMode){
         var addRow = renderColAddRow(col);
-        if(addRow) colEl.appendChild(addRow);
+        if(addRow){ colEl.appendChild(addRow); colEl.classList.add("has-fab"); }
       }
     });
 
@@ -217,25 +217,19 @@
     container.appendChild(actions);
   }
 
+  // One floating "+" per column (edit mode): opens the unified add modal (js/47-modal-add.js).
+  // Shown only when the column accepts at least one type (permissions, level limits).
   function renderColAddRow(col){
     var allow = allowedAddButtons(col.parentId, state.activeSpace, isAdminNow());
     if(!allow.folder && !allow.trick && !allow.info) return null;
-    var row = document.createElement("div");
-    row.className = "col-add-row";
-    var parentIsTrick = col.parentId && !!getTrick(col.parentId);
-
-    function addBtn(label, onClick){
-      var b = document.createElement("button");
-      b.className = "col-add-btn";
-      b.innerHTML = ICON_PLUS + "<span>" + escapeHtml(label) + "</span>";
-      b.addEventListener("click", onClick);
-      row.appendChild(b);
-    }
-    // A trick-folder can hold sub-categories directly (same as any container).
-    if(allow.folder) addBtn(t("addCategoryShort"), function(){ openCategoryModal(null, col.parentId); });
-    if(allow.trick) addBtn(parentIsTrick ? t("addVariantShort") : t("addTrickShort"), function(){ openTrickModal(null, col.parentId, { custom: allow.customTrick }); });
-    if(allow.info) addBtn(t("addInfoShort"), function(){ openInfoModal(null, col.parentId); });
-    return row;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "col-add-fab";
+    b.innerHTML = ICON_PLUS;
+    b.title = t("addTitleBtn");
+    b.setAttribute("aria-label", t("addTitleBtn"));
+    b.addEventListener("click", function(){ openAddModal(col.parentId, state.activeSpace); });
+    return b;
   }
 
   // Builds the icon + name/meta text block shared by every item row —

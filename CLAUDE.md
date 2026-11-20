@@ -70,7 +70,10 @@
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
+| 右滑返回上一層 | `js/23-browse-gestures.js` |
+| 快捷鍵 | `js/24-browse-keys.js` |
 | 招式資訊抽屜、影片列 | `js/30-trick-drawer.js` |
+| 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式 modal | `js/40`–`js/45` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
