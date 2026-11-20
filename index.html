@@ -81,6 +81,12 @@
                   <button type="button" class="auth-menu-name-save" id="authMenuNameSave">儲存</button>
                 </div>
               </div>
+              <div class="auth-menu-sync" id="authMenuSync">
+                <span class="auth-menu-sync-text" id="authMenuSyncText"></span>
+                <button type="button" class="auth-menu-edit-btn auth-menu-sync-btn" id="authMenuSyncBtn" title="立即同步" aria-label="立即同步">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 01-13.7 5.6M4 12a8 8 0 0113.7-5.6M18 3v4h-4M6 21v-4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
               <div class="auth-menu-divider"></div>
               <button type="button" class="auth-menu-logout" id="authLogoutBtn">登出</button>
             </div>
@@ -383,6 +389,24 @@
   </div>
 </div>
 
+<!-- Sync conflict Modal (js/55-sync-conflict.js) -->
+<div class="modal-overlay" id="conflictOverlay">
+  <div class="modal modal-sm" id="conflictModal">
+    <div class="modal-scroll">
+      <div class="modal-title" id="conflictTitle">本機與雲端的資料不同</div>
+      <div class="modal-sub" id="conflictSub" style="margin-bottom:0;"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="conflictLaterBtn">稍後</button>
+        <button class="btn btn-ghost" id="conflictCloudBtn">用雲端</button>
+        <button class="btn btn-ghost" id="conflictLocalBtn">用本機</button>
+        <button class="btn btn-primary" id="conflictMergeBtn">合併</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Video Modal -->
 <div class="modal-overlay" id="videoModalOverlay">
   <div class="modal modal-video" id="videoModal"></div>
@@ -422,6 +446,9 @@
 <script src="js/50-sync-core.js"></script>
 <script src="js/51-shared-base.js"></script>
 <script src="js/52-auth.js"></script>
+<script src="js/53-sync-chunks.js"></script>
+<script src="js/54-sync-queue.js"></script>
+<script src="js/55-sync-conflict.js"></script>
 <script src="js/59-auth-state.js"></script>
 <script src="js/60-search-suggest.js"></script>
 <script src="js/90-events-and-init.js"></script>

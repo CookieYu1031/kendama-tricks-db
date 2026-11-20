@@ -1,50 +1,32 @@
 "use strict";
 
   /* ============================================================
-     AUTH + CLOUD SYNC (base data + per-space diff)
+     CLOUD SYNC CORE — base data, per-space diff, merge, admin flag
      ------------------------------------------------------------
-     Data model recap: `db` (see 01-data-model.js) stays exactly the same
-     in-memory shape as before — { categories, tricks, spaces } flat
-     arrays — every render/modal/etc. function keeps working on it
-     unchanged. This file only concerns itself with how that shape gets
-     serialized to/from Firestore once someone is logged in.
+     `db` (01-data-model.js) keeps its flat-array shape; this file only
+     defines how it maps to/from the per-space diff. Layout (CLOUD_SCHEMA 3):
 
-     BASE DATA — there are no static base files any more (data/base/ was removed
-     in v0.2). Every table's base is empty except the shared 總表 (t00), whose base
-     is a live, versioned document tree in Firestore that only ADMIN_UID can publish
-     new versions of — see the SHARED BASE section in 51-shared-base.js. Official
-     publishing for 01/02 comes in v0.6.
+       users/{uid}/meta/spaces -> { spaces, tags, schema:3, clientUpdatedAt, updatedAt }
+       users/{uid}/spaceData/{sid} -> { schema:3, baseVersion, chunks, hash, updatedAt }
+       users/{uid}/spaceData/{sid}/chunks/{i} -> { data }   // JSON of the diff, split
+       diff = { baseVersion, added:{categories,tricks,infos}, modified:{...},
+                removed:{categoryIds,trickIds,infoIds} }
 
-     USER DIFF — Firestore, split by space (not one big document):
-       users/{uid}/spaceData/{spaceId} -> {
-         baseVersion,
-         added:    { categories:[...], tricks:[...] },
-         modified: { categories:[...], tricks:[...] },
-         removed:  { categoryIds:[...], trickIds:[...] },
-         updatedAt
-       }
-       users/{uid}/meta/spaces -> { spaces:[...db.spaces...], updatedAt }
-         (the shelf list itself — icons/names/order/viewMode, including
-         any custom spaces — is small enough to store whole, not diffed)
+     Chunking, Firestore reads/writes: 53-sync-chunks.js. Local-first queue and
+     triggers: 54-sync-queue.js. Conflicts: 55-sync-conflict.js.
 
-     Every save recomputes each space's diff from scratch by comparing
-     the *current* `db` against that space's base data — nothing is
-     patched incrementally, so there's no separate tombstone bookkeeping
-     to maintain across sessions: an item merely absent from "current"
-     but present in "base" already reads as removed.
+     BASE DATA: every table's base is empty except the shared 總表 (t00), a live
+     versioned snapshot in Firestore published by admins (51-shared-base.js).
+     A diff is always computed from scratch against that base, so there is no
+     tombstone bookkeeping: an item in base but absent from `db` reads as removed.
 
-     A trick can legitimately belong to categories in more than one space
-     at once (e.g. tagged into both 招式庫 and 收藏 via the drawer's
-     quick-toggle bucket) — such tricks are simply written into every
-     space's diff they currently touch. That's intentional duplication
-     (Firestore has no cross-document joins), not a bug; merging back
-     just unions by id, and the copies are always identical since they
-     all come from the same in-memory trick object.
+     A trick can sit in categories of several spaces; it is written into every
+     space diff it touches (intentional duplication; merging unions by id).
   ============================================================ */
 
   var DEFAULT_SPACE_IDS = DEFAULT_SPACES.map(function(s){ return s.id; });
   // The one table (總表, t00) whose "base" is a live document tree in Firestore that
-  // only ADMIN_UID can publish new versions of — see the SHARED BASE section in
+  // only admins (admins/{uid}) can publish new versions of — see the SHARED BASE section in
   // 51-shared-base.js. The Firestore doc path stays sharedBase/space-index (rules
   // depend on it), but it maps to table t00.
   var SHARED_BASE_DOC_ID = "space-index";
@@ -52,9 +34,9 @@
 
   var authCurrentUser = null;
   var _authFirstStateSeen = false; // avoids reloading local data before we know anything, on the very first (logged-out) check at page load
-  var _cloudSaveTimer = null;
-  var CLOUD_SAVE_DEBOUNCE_MS = 600;
-  var baseDataCache = {}; // spaceId -> empty base; "t00@N" -> {version, categories, tricks} (shared-base versions)
+  var baseDataCache = {}; // "t00@N" -> {version, categories, tricks, infos, tags} (shared-base versions)
+  // Bumped when the cloud layout changes incompatibly; schema 2 stays readable, older is ignored.
+  var CLOUD_SCHEMA = 3;
   // This session's resolved view of the shared 總表: which version this
   // account is currently pinned to (its diff is computed against this
   // exact snapshot, not whatever the latest published version happens to
@@ -64,16 +46,20 @@
   var _currentViewingVersion = null;
   var _lastSeenPointer = null;
 
-  function isLoggedIn(){ return !!authCurrentUser; }
-  function isAdminAccount(){ return !!(authCurrentUser && authCurrentUser.uid === ADMIN_UID); }
+  // "Logged in" also covers the instant-open window: a last-known user's cache is loaded
+  // before Firebase Auth resolves (see loadDB in 01). The auth callback confirms or reverts.
+  function isLoggedIn(){ return !!(authCurrentUser || _optimisticUid); }
+  // Admin flag comes from admins/{uid} (read at login, see 54) and is cached per user.
+  function isAdminAccount(){ return !!(userCache && userCache.isAdmin && isLoggedIn()); }
 
   /* ------------------------------------------------------------
      Base data loading (cached per space id for the page's lifetime)
   ------------------------------------------------------------ */
+  function emptyBase(version){ return { version: version || 0, categories: [], tricks: [], infos: [], tags: [] }; }
   function fetchBaseSpaceData(spaceId){
     // No static base files: every table except the shared 總表 (served by
     // fetchSharedBaseVersion) has an empty base.
-    return Promise.resolve({ version: 0, categories: [], tricks: [] });
+    return Promise.resolve(emptyBase(0));
   }
 
   /* ------------------------------------------------------------
@@ -98,147 +84,67 @@
   }
   function deepEqual(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
 
+  function infosForSpace(spaceId){
+    return (db.infos || []).filter(function(n){ return n.spaceId === spaceId; });
+  }
+
+  // Added / modified / removed of one collection vs its base, by id.
+  function diffCollection(baseList, curList){
+    var baseMap = {}; (baseList || []).forEach(function(x){ baseMap[x.id] = x; });
+    var curIds = {}; curList.forEach(function(x){ curIds[x.id] = true; });
+    var added = [], modified = [], removed = [];
+    curList.forEach(function(x){
+      if(!baseMap[x.id]) added.push(x);
+      else if(!deepEqual(x, baseMap[x.id])) modified.push(x);
+    });
+    Object.keys(baseMap).forEach(function(id){ if(!curIds[id]) removed.push(id); });
+    return { added: added, modified: modified, removed: removed };
+  }
+
   function computeSpaceDiff(spaceId, base){
-    var baseCatMap = {}; base.categories.forEach(function(c){ baseCatMap[c.id] = c; });
-    var baseTrickMap = {}; base.tricks.forEach(function(t){ baseTrickMap[t.id] = t; });
-
-    var curCats = categoriesForSpace(spaceId);
-    var curTricks = tricksForSpace(spaceId);
-    var curCatIds = {}; curCats.forEach(function(c){ curCatIds[c.id] = true; });
-    var curTrickIds = {}; curTricks.forEach(function(t){ curTrickIds[t.id] = true; });
-
-    var addedCats = [], modifiedCats = [], removedCatIds = [];
-    curCats.forEach(function(c){
-      if(!baseCatMap[c.id]) addedCats.push(c);
-      else if(!deepEqual(c, baseCatMap[c.id])) modifiedCats.push(c);
-    });
-    Object.keys(baseCatMap).forEach(function(id){ if(!curCatIds[id]) removedCatIds.push(id); });
-
-    var addedTricks = [], modifiedTricks = [], removedTrickIds = [];
-    curTricks.forEach(function(t){
-      if(!baseTrickMap[t.id]) addedTricks.push(t);
-      else if(!deepEqual(t, baseTrickMap[t.id])) modifiedTricks.push(t);
-    });
-    Object.keys(baseTrickMap).forEach(function(id){ if(!curTrickIds[id]) removedTrickIds.push(id); });
-
+    var c = diffCollection(base.categories, categoriesForSpace(spaceId));
+    var t = diffCollection(base.tricks, tricksForSpace(spaceId));
+    var n = diffCollection(base.infos, infosForSpace(spaceId));
     return {
       baseVersion: base.version,
-      added: { categories: addedCats, tricks: addedTricks },
-      modified: { categories: modifiedCats, tricks: modifiedTricks },
-      removed: { categoryIds: removedCatIds, trickIds: removedTrickIds }
+      added: { categories: c.added, tricks: t.added, infos: n.added },
+      modified: { categories: c.modified, tricks: t.modified, infos: n.modified },
+      removed: { categoryIds: c.removed, trickIds: t.removed, infoIds: n.removed }
+    };
+  }
+  function isEmptyDiff(d){
+    return ["added", "modified"].every(function(k){
+      return !d[k].categories.length && !d[k].tricks.length && !d[k].infos.length;
+    }) && !d.removed.categoryIds.length && !d.removed.trickIds.length && !d.removed.infoIds.length;
+  }
+
+  /* ------------------------------------------------------------
+     Merge (base + one space's diff -> that space's live items)
+  ------------------------------------------------------------ */
+  function applyCollectionDiff(baseList, addedList, modifiedList, removedIds){
+    var map = {}; (baseList || []).forEach(function(x){ map[x.id] = x; });
+    (addedList || []).concat(modifiedList || []).forEach(function(x){ map[x.id] = x; });
+    (removedIds || []).forEach(function(id){ delete map[id]; });
+    return objVals(map);
+  }
+  function mergeSpaceData(base, diff){
+    var a = (diff && diff.added) || {}, m = (diff && diff.modified) || {}, r = (diff && diff.removed) || {};
+    return {
+      categories: applyCollectionDiff(base.categories, a.categories, m.categories, r.categoryIds),
+      tricks: applyCollectionDiff(base.tricks, a.tricks, m.tricks, r.trickIds),
+      infos: applyCollectionDiff(base.infos, a.infos, m.infos, r.infoIds)
     };
   }
 
-  /* ------------------------------------------------------------
-     Merge (base + one space's diff -> that space's live categories/tricks)
-  ------------------------------------------------------------ */
-  function mergeSpaceData(base, diff){
-    var catMap = {}; base.categories.forEach(function(c){ catMap[c.id] = c; });
-    var trickMap = {}; base.tricks.forEach(function(t){ trickMap[t.id] = t; });
-    if(diff){
-      (diff.added && diff.added.categories || []).concat(diff.modified && diff.modified.categories || [])
-        .forEach(function(c){ catMap[c.id] = c; });
-      (diff.removed && diff.removed.categoryIds || []).forEach(function(id){ delete catMap[id]; });
-
-      (diff.added && diff.added.tricks || []).concat(diff.modified && diff.modified.tricks || [])
-        .forEach(function(t){ trickMap[t.id] = t; });
-      (diff.removed && diff.removed.trickIds || []).forEach(function(id){ delete trickMap[id]; });
-    }
-    return { categories: objVals(catMap), tricks: objVals(trickMap) };
-  }
-
   function mergeAllSpaces(spaceIds, baseMap, diffMap){
-    var allCats = {}, allTricks = {};
+    var allCats = {}, allTricks = {}, allInfos = {};
     spaceIds.forEach(function(sid){
-      var merged = mergeSpaceData(baseMap[sid], diffMap[sid]);
+      var merged = mergeSpaceData(baseMap[sid] || emptyBase(0), diffMap[sid]);
       merged.categories.forEach(function(c){ allCats[c.id] = c; });
       merged.tricks.forEach(function(t){ allTricks[t.id] = t; });
+      merged.infos.forEach(function(n){ allInfos[n.id] = n; });
     });
-    return { categories: objVals(allCats), tricks: objVals(allTricks) };
-  }
-
-  /* ------------------------------------------------------------
-     Save: current db -> per-space diff docs + spaces meta doc
-  ------------------------------------------------------------ */
-  function saveDiffToCloud(){
-    if(!authCurrentUser) return Promise.resolve();
-    var uid = authCurrentUser.uid;
-    var spaceIds = allKnownSpaceIds();
-    var userRef = fbStore.collection("users").doc(uid);
-    return ensureViewingVersionResolved(uid).then(function(viewingVersion){
-      var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_TABLE_ID; });
-      return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
-        return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
-          var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
-          baseMap[SHARED_BASE_TABLE_ID] = indexBase;
-          var batch = fbStore.batch();
-          spaceIds.forEach(function(sid){
-            var diff = computeSpaceDiff(sid, baseMap[sid]);
-            diff.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-            batch.set(userRef.collection("spaceData").doc(sid), diff);
-          });
-          batch.set(userRef.collection("meta").doc("spaces"), {
-            spaces: db.spaces,
-            schema: CLOUD_SCHEMA,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          return batch.commit();
-        });
-      });
-    }).catch(function(err){
-      console.error("Cloud save failed:", err);
-      showToast(t("authSaveError"), "error");
-    });
-  }
-
-  function queueCloudSave(){
-    if(_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
-    _cloudSaveTimer = setTimeout(function(){
-      _cloudSaveTimer = null;
-      saveDiffToCloud();
-    }, CLOUD_SAVE_DEBOUNCE_MS);
-  }
-
-  /* ------------------------------------------------------------
-     Load: per-space diff docs + spaces meta doc -> merged db
-  ------------------------------------------------------------ */
-  // Bumped when the cloud layout changes incompatibly; older docs are ignored.
-  var CLOUD_SCHEMA = 2;
-  function loadMergedDBFromCloud(uid){
-    var userRef = fbStore.collection("users").doc(uid);
-    return userRef.collection("spaceData").get().then(function(snap){
-      var diffMap = {};
-      snap.forEach(function(doc){ diffMap[doc.id] = doc.data(); });
-      var spaceIds = Object.keys(diffMap);
-      DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
-
-      return userRef.collection("meta").doc("spaces").get().then(function(metaSnap){
-        var meta = metaSnap.exists ? metaSnap.data() : null;
-        // Pre-v0.2 cloud data (no schema marker) is dropped on purpose (B6/B7):
-        // start this account from empty tables; the next save writes schema 2.
-        if(!meta || meta.schema !== CLOUD_SCHEMA){ diffMap = {}; meta = null; }
-        var spacesList = (meta && Array.isArray(meta.spaces) && meta.spaces.length)
-          ? meta.spaces
-          : null; // normalizeDB fills in the default tables
-        // Only diffs of tables that still exist (old space-* docs are ignored).
-        var liveIds = DEFAULT_SPACE_IDS.concat((spacesList || []).map(function(sp){ return sp && sp.id; }));
-        Object.keys(diffMap).forEach(function(id){ if(liveIds.indexOf(id) === -1) delete diffMap[id]; });
-        spaceIds = Object.keys(diffMap);
-        DEFAULT_SPACE_IDS.forEach(function(id){ if(spaceIds.indexOf(id) === -1) spaceIds.push(id); });
-
-        return ensureViewingVersionResolved(uid).then(function(viewingVersion){
-          var otherSpaceIds = spaceIds.filter(function(id){ return id !== SHARED_BASE_TABLE_ID; });
-          return Promise.all(otherSpaceIds.map(fetchBaseSpaceData)).then(function(otherBases){
-            return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
-              var baseMap = {}; otherSpaceIds.forEach(function(id, i){ baseMap[id] = otherBases[i]; });
-              baseMap[SHARED_BASE_TABLE_ID] = indexBase;
-              var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
-              return normalizeDB({ categories: merged.categories, tricks: merged.tricks, spaces: spacesList });
-            });
-          });
-        });
-      });
-    });
+    return { categories: objVals(allCats), tricks: objVals(allTricks), infos: objVals(allInfos) };
   }
 
   // After swapping `db` for a freshly-loaded object (cloud or local),

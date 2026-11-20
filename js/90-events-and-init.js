@@ -209,5 +209,7 @@
   /* ============================================================
      INIT
   ============================================================ */
+  // detectPlatform (05) did not exist when `db` was first normalized in 01: fill video platforms now.
+  backfillPlatforms(db);
   if(typeof rebuildReadingDict === "function") rebuildReadingDict(db.tricks);
   render();

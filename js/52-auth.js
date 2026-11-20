@@ -17,7 +17,10 @@
 
   function authLogout(){
     closeAuthMenu();
-    fbAuth.signOut().then(function(){
+    // Push pending changes first (never prompts; a conflict just stays pending on this device).
+    flushSync({ silent: true }).then(function(){
+      return fbAuth.signOut();
+    }).then(function(){
       showToast(t("authLoggingOut"));
     }).catch(function(err){ console.error("Sign-out failed:", err); });
   }
@@ -98,6 +101,7 @@
       closeAuthMenu();
     }
 
+    renderSyncUI();
     document.getElementById("publishUpdateBtn").hidden = !isAdminAccount();
     document.getElementById("publishUpdateBtn").title = t("publishUpdate");
   }

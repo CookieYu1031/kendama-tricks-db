@@ -250,6 +250,11 @@
   .auth-menu-edit-btn:hover{ background: var(--glass-2); color: var(--paper); }
   .auth-menu-email{ font-size:11.5px; color: var(--paper-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+  .auth-menu-sync{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+  .auth-menu-sync-text{ font-size:11.5px; color: var(--paper-faint); min-width:0; }
+  .auth-menu-sync-btn svg{ transition: transform .6s linear; }
+  .auth-widget.syncing .auth-menu-sync-btn svg{ transform: rotate(360deg); }
+
   .auth-menu-name-edit{ display:flex; flex-direction:column; gap:8px; }
   .auth-menu-name-input{
     width:100%; box-sizing:border-box; background: var(--glass-2); border:1px solid var(--glass-border);
