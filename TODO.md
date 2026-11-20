@@ -7,6 +7,7 @@
 - [x] `.gitignore`、remote 改 https、`firebase.json` ignore 與快取標頭（G1, G2）
 - [x] GitHub Actions：push main 後先測試，再部署 Hosting 和 rules（G4）。需要先設定 secret，見下方「待辦（需要你）」
 - [x] CLAUDE.md、TODO.md、agents（scout / builder / tester）、skills（preview / local-test）、`tests/_load.js`、`scripts/shot.sh`（H1, H2, A5）
+- [ ] 正式站改用 Firebase Hosting `kendama-tricks-db.web.app`；GitHub Pages 改從 `gh-pages` 分支提供跳轉頁（已在本地建好）
 - [ ] → 移除隱藏指令（E10）、移除匯出匯入（C6）
 - [ ] → 拆檔並重新編號（A2, A4）。`08`、`19` 優先拆，更新 index.html 和 CLAUDE.md 檔案地圖
 - [ ] → render 局部更新，畫面和風格維持不變（A3）
@@ -69,5 +70,6 @@
 ## 待辦（需要你）
 
 - [ ] GitHub repo secret `FIREBASE_SERVICE_ACCOUNT`：服務帳戶 JSON，角色是 Firebase Hosting Admin 和 Firebase Rules Admin
-- [ ] Google Cloud Console：限制 API key 的 HTTP referrer
+- [x] Google Cloud Console：限制 API key 的 HTTP referrer（含 `cookieyu1031.github.io/*`，跳轉期間保留）
+- [ ] GitHub repo Settings → Pages：來源改成 `gh-pages` 分支
 - [ ] 劍玉部位示意圖（E9）

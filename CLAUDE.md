@@ -37,6 +37,7 @@
 
 - 每個版本開一個分支 `vX.Y`。完成並經我確認後合回 `main`。
 - push 到 `main` 會觸發 `.github/workflows/deploy.yml`：先跑測試，再部署 Hosting 和 Firestore rules。
+- 正式網址：https://kendama-tricks-db.web.app 。舊網址 `cookieyu1031.github.io/kendama-tricks-db` 由 `gh-pages` 分支跳轉過去，不要在那個分支放 app 程式碼。
 - 本機預覽：`firebase serve --only hosting -p 5000`。
 
 ## 模型分派與平行工作
