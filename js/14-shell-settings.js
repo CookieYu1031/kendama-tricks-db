@@ -59,11 +59,11 @@
     closeBtn.setAttribute("aria-label", t("settingsClose"));
     if(!closeBtn.firstChild) closeBtn.innerHTML = ICON_X;
 
-    // Admin panel button: admin-only, disabled until v0.6.
+    // Admin panel button: admin-only (panel itself lives in 70-admin-panel.js).
     var adminBtn = document.getElementById("settingsAdminBtn");
     adminBtn.hidden = !(typeof isAdminAccount === "function" && isAdminAccount());
-    adminBtn.textContent = t("comingSoon");
-    adminBtn.title = t("settingsAdminSoon");
+    adminBtn.textContent = t("adminOpen");
+    adminBtn.title = t("adminOpen");
 
     setText("settingsGuideLabel", t("settingsGuide"));
     setText("settingsNoticesLabel", t("settingsNotices"));

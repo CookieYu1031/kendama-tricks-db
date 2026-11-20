@@ -51,8 +51,8 @@ test("hasOnly field lists exact", function () {
     "viewingVersion,updatedAt",
     "schema,baseVersion,chunks,hash,updatedAt",
     "data",
-    "latestVersion,latestNote,publishedAt",
-    "version,note,publishedAt,chunks"
+    "latestVersion,latestNote,latestLabel,publishedAt",
+    "version,note,versionLabel,publishedAt,chunks"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
@@ -66,6 +66,10 @@ test("limits", function () {
   assert.match(src, /chunks <= 50/);
   assert.match(src, /hash\.size\(\) <= 128/);
   assert.match(src, /data\.size\(\) <= 1000000/);
+  assert.match(src, /latestLabel\.size\(\) <= 32/);
+  assert.match(src, /versionLabel\.size\(\) <= 32/);
+  assert.match(src, /latestNote\.size\(\) <= 500/);
+  assert.match(src, /note\.size\(\) <= 500/);
   assert.ok(src.indexOf("^[0-9A-Za-z_-]{1,40}$") >= 0);
   assert.ok(src.indexOf("^[0-9]{1,2}$") >= 0);
   assert.ok(src.indexOf("^[0-9]{1,6}$") >= 0);

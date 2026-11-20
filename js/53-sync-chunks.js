@@ -177,7 +177,7 @@
           return ensureViewingVersionResolved(uid).then(function(viewingVersion){
             return fetchSharedBaseVersion(viewingVersion).then(function(indexBase){
               var baseMap = {};
-              spaceIds.forEach(function(id){ baseMap[id] = id === SHARED_BASE_TABLE_ID ? indexBase : emptyBase(0); });
+              spaceIds.forEach(function(id){ baseMap[id] = baseForSpace(indexBase, id); });
               var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
               var tagMap = {};
               (indexBase.tags || []).forEach(function(g){ tagMap[g.id] = g; });
@@ -207,7 +207,7 @@
       var newHashes = {};
       var jobs = [];
       ids.forEach(function(sid){
-        var diff = computeSpaceDiff(sid, sid === SHARED_BASE_TABLE_ID ? indexBase : emptyBase(0));
+        var diff = computeSpaceDiff(sid, baseForSpace(indexBase, sid));
         var payload = JSON.stringify(diff);
         var h = hashString(payload);
         newHashes[sid] = h;

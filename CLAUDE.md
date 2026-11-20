@@ -63,9 +63,11 @@
 | UI state | `js/04-state.js` |
 | 資料查詢 helpers、escapeHtml、isSafeHttpUrl | `js/05-data-helpers.js` |
 | SVG icons | `js/06-icons-svg.js` |
+| 更新頁（通知與近期更新、未讀紅點） | `js/16-shell-updates.js` |
+| 管理員面板（發布、待發布摘要、版本號）| `js/70-admin-panel.js`、`css/admin-panel.css` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
-| 設定頁（齒輪、帳號列、語言、即將推出項目） | `js/14-shell-settings.js` |
+| 設定頁（齒輪、帳號列、語言、即將推出項目、管理員面板入口） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
@@ -84,10 +86,12 @@
 | 雲端分塊（切塊、批次、讀寫 users 雲端資料） | `js/53-sync-chunks.js` |
 | Local-first 同步佇列（dirty、觸發點、admins 旗標、使用者快取） | `js/54-sync-queue.js`（快取讀寫在 `js/01-data-model.js`） |
 | 同步衝突（三方合併、三選一彈窗） | `js/55-sync-conflict.js` |
+| 待更新區：未發布紅點、紅叉幽靈列、還原、發布摘要（admin） | `js/56-pending.js`（發布範圍和版本標籤在 `js/51-shared-base.js`） |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
 | 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
 | 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
+| 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |

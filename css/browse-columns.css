@@ -208,3 +208,22 @@
   .chip:hover{ border-color: var(--wood); color: var(--wood); }
   .sr-none{ color: var(--paper-faint); font-size:14px; padding: 40px 0; text-align:center; }
 
+
+  /* ---------- Pending (unpublished) marks, admin only (js/56-pending.js) ---------- */
+  .pending-dot{
+    position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%;
+    background: var(--danger-bright); box-shadow: 0 0 0 2px rgba(var(--danger-rgb),0.25);
+    pointer-events:none;
+  }
+  .item.pending-ghost{ opacity:.5; border-style:dashed; border-color: rgba(var(--danger-rgb),0.45); }
+  .item.pending-ghost:hover{ opacity:.85; }
+  .item.pending-ghost .item-name{ text-decoration: line-through; }
+  .pending-x{
+    position:absolute; top:3px; right:4px; width:18px; height:18px; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    border:none; border-radius:50%; cursor:pointer;
+    background: var(--danger); color:#fff;
+  }
+  .pending-x svg{ width:10px; height:10px; }
+  .m-col.collapsed:not(:hover) .pending-dot,
+  .m-col.collapsed:not(:hover) .pending-x{ top:4px; right:8px; }
