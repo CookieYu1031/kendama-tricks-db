@@ -70,8 +70,10 @@
 | 查看投稿模式（列、圓點、唯讀抽屜、收錄/不予收錄）；rail 編輯鈕長按在 `js/12-shell-rail.js` | `js/76-submission-review.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
-| 設定頁（齒輪、帳號列、語言、即將推出項目、管理員面板入口） | `js/14-shell-settings.js` |
+| 設定頁（齒輪、帳號列、語言、快速導覽、隱私說明、管理員面板入口） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
+| PWA：SW 註冊、離線 toast、安裝列與一次性橫幅 | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
+| 互動式導覽（首次使用／首次登入、設定頁快速導覽） | `js/18-shell-tour.js`、`css/tour.css`（觸發點在 `js/59-auth-state.js`） |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |

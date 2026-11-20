@@ -1,0 +1,14 @@
+{
+  "name": "劍玉招式庫 · Kendama Trick Database",
+  "short_name": "劍玉招式庫",
+  "description": "Kendama Trick Database",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "icons": [
+    { "src": "assets/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
