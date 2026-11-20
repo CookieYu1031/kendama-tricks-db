@@ -9,7 +9,7 @@
     var moved = arr.splice(fromIdx, 1)[0];
     arr.splice(toIdx, 0, moved);
     persistColumnOrder(arr, parentId);
-    render();
+    render({ columns: true, drawer: true }); // reorder within a column: rail/chrome unaffected
   }
 
   // Long-press-to-drag reordering: holding a row still for LONG_PRESS_MS picks it up;

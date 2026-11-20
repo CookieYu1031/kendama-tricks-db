@@ -7,12 +7,12 @@
 - [x] `.gitignore`、remote 改 https、`firebase.json` ignore 與快取標頭（G1, G2）
 - [x] GitHub Actions：push main 後先測試，再部署 Hosting 和 rules（G4）。需要先設定 secret，見下方「待辦（需要你）」
 - [x] CLAUDE.md、TODO.md、agents（scout / builder / tester）、skills（preview / local-test）、`tests/_load.js`、`scripts/shot.sh`（H1, H2, A5）
-- [ ] 正式站改用 Firebase Hosting `kendama-tricks-db.web.app`；GitHub Pages 改從 `gh-pages` 分支提供跳轉頁（已在本地建好）
-- [ ] → 移除隱藏指令（E10）、移除匯出匯入（C6）
-- [ ] → 拆檔並重新編號（A2, A4）。`08`、`19` 優先拆，更新 index.html 和 CLAUDE.md 檔案地圖
-- [ ] → render 局部更新，畫面和風格維持不變（A3）
-- [ ] ∥ 影片 URL 只接受 http(s)（G3）
-- [ ] ∥ 手機空狀態的文字貼齊右邊界
+- [x] 正式站改用 Firebase Hosting `kendama-tricks-db.web.app`；GitHub Pages 改從 `gh-pages` 分支提供跳轉頁（已在本地建好）
+- [x] → 移除隱藏指令（E10）、移除匯出匯入（C6）
+- [x] → 拆檔並重新編號（A2, A4）。`08`、`19` 優先拆，更新 index.html 和 CLAUDE.md 檔案地圖
+- [x] → render 局部更新：索引查詢 + render(parts)；欄位 DOM 重用因風險略過（A3）
+- [x] ∥ 影片 URL 只接受 http(s)（G3）
+- [x] ∥ 手機空狀態的文字貼齊右邊界
 
 ## v0.2 資料模型（分支 `v0.2`）
 
@@ -20,9 +20,9 @@
 - [ ] ∥ 位置代號 `[首碼][層碼…]-[fo|tr|in]-[流水碼]`，層碼用 a–z 加 A–Z 共 52 碼（B2）
 - [ ] ∥ 名稱替補規則；羅拼不存欄位，從假名自動轉；漢字不用辭典，改用網站現有資料推斷讀音，例如其他招式中同一詞彙已有假名或羅拼（B11）
 - [ ] → 新分區：總表 00、檢定 01、賽事 02、收藏（收藏和自訂義兩類）、自訂 0a–0z。現有資料移除（B6）
-- [ ] → 層級限制 0–4 層，第 4 層不能放資料夾（B3）；資訊項是獨立類型（B4）；多處引用時刪除只移除該處引用，最後一處才刪本體（B5-a）
+- [ ] → 層級限制 0–4 層，第 4 層不能放資料夾（B3）；保留招式變體（招式底下放招式），變體也占層數；資訊項是獨立類型（B4）；多處引用時刪除只移除該處引用，最後一處才刪本體（B5-a）
 - [ ] → 熟練度改成「是否成招」和「成招率」4 級，舊資料移除（B7）
-- [ ] → 全域標籤、握持和部位欄位（B8）；影片最多 3 個（B9）；備註第一行是官方說明，後面是個人備註（B10）
+- [ ] → 全域標籤、握持（單選）和部位（複選）欄位（B8）；總表內的使用者自訂招式先做資料欄位和底色，存本地，v0.3 接雲端；影片最多 3 個（B9）；備註第一行是官方說明，後面是個人備註（B10）
 
 ## v0.3 儲存與同步（分支 `v0.3`）
 
@@ -69,7 +69,7 @@
 
 ## 待辦（需要你）
 
-- [ ] GitHub repo secret `FIREBASE_SERVICE_ACCOUNT`：服務帳戶 JSON，角色是 Firebase Hosting Admin 和 Firebase Rules Admin
+- [x] GitHub repo secret `FIREBASE_SERVICE_ACCOUNT`：服務帳戶 JSON，角色是 Firebase Hosting Admin 和 Firebase Rules Admin
 - [x] Google Cloud Console：限制 API key 的 HTTP referrer（含 `cookieyu1031.github.io/*`，跳轉期間保留）
 - [ ] GitHub repo Settings → Pages：來源改成 `gh-pages` 分支
 - [ ] 劍玉部位示意圖（E9）

@@ -131,6 +131,7 @@
   // that's fine — this function body only runs after all scripts have
   // loaded, so the reference resolves at call time, not at parse time.
   function saveDB(){
+    if(typeof invalidateDbIndex === "function") invalidateDbIndex();
     if(typeof isLoggedIn === "function" && isLoggedIn()){
       queueCloudSave();
     } else {

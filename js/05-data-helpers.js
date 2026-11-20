@@ -10,15 +10,51 @@
   var MOBILE_BREAKPOINT = 860;
   function isNarrowViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT; }
 
-  function getCategory(id){ return db.categories.find(function(c){ return c.id===id; }); }
-  function getTrick(id){ return db.tricks.find(function(t){ return t.id===id; }); }
-  function getChildren(parentId){
-    if(parentId === null){
-      return db.categories.filter(function(c){ return c.parentId===null && c.spaceId===state.activeSpace; });
-    }
-    return db.categories.filter(function(c){ return c.parentId===parentId; });
+  // Lazily-built lookup index (id -> record, parentId -> categories,
+  // containerId -> tricks) so lookups don't linearly scan db on every call.
+  // Stale when db was reassigned, its arrays changed length, or dbIndexVersion
+  // was bumped (saveDB() and render() both bump it).
+  var dbIndexVersion = 0;
+  var dbIndex = null;
+  function invalidateDbIndex(){ dbIndexVersion++; }
+  function ensureDbIndex(){
+    if(dbIndex && dbIndex.db === db && dbIndex.version === dbIndexVersion &&
+       dbIndex.nCats === db.categories.length && dbIndex.nTricks === db.tricks.length) return dbIndex;
+    var ix = { db: db, version: dbIndexVersion, nCats: db.categories.length, nTricks: db.tricks.length,
+      catById: Object.create(null), trickById: Object.create(null),
+      catsByParent: Object.create(null), rootCats: [], tricksByContainer: Object.create(null) };
+    db.categories.forEach(function(c){
+      if(!(c.id in ix.catById)) ix.catById[c.id] = c;
+      if(c.parentId === null) ix.rootCats.push(c);
+      else (ix.catsByParent[c.parentId] || (ix.catsByParent[c.parentId] = [])).push(c);
+    });
+    db.tricks.forEach(function(t){
+      if(!(t.id in ix.trickById)) ix.trickById[t.id] = t;
+      var seen = null;
+      t.categoryIds.forEach(function(cid){
+        if(seen && seen[cid]) return;
+        (seen || (seen = {}))[cid] = true;
+        (ix.tricksByContainer[cid] || (ix.tricksByContainer[cid] = [])).push(t);
+      });
+    });
+    dbIndex = ix;
+    return ix;
   }
-  function getTricksInCategory(catId){ return db.tricks.filter(function(t){ return t.categoryIds.indexOf(catId) !== -1; }); }
+
+  function getCategory(id){ return ensureDbIndex().catById[id]; }
+  function getTrick(id){ return ensureDbIndex().trickById[id]; }
+  function getChildren(parentId){
+    var ix = ensureDbIndex();
+    if(parentId === null){
+      return ix.rootCats.filter(function(c){ return c.spaceId===state.activeSpace; });
+    }
+    var l = ix.catsByParent[parentId];
+    return l ? l.slice() : [];
+  }
+  function getTricksInCategory(catId){
+    var l = ensureDbIndex().tricksByContainer[catId];
+    return l ? l.slice() : [];
+  }
 
   // A trick "belongs to" a space if any of its containers' root ancestor
   // (walking up through pathToContainer) is a root category filed under that

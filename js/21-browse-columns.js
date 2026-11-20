@@ -3,12 +3,20 @@
   /* ============================================================
      BROWSE — render(), miller columns, flat/grid views, item rows
   ============================================================ */
-  function render(){
-    renderChrome();
-    renderSpaceRail();
-    renderColumns();
-    renderDrawer();
+  // render() with no argument rebuilds everything. Pass { chrome, rail, columns,
+  // drawer } (any subset, truthy = rebuild) to refresh only those parts when the
+  // caller knows nothing else changed. The lookup index is always invalidated
+  // first, so a partial render never reads stale data.
+  function render(parts){
+    invalidateDbIndex();
+    var all = !parts;
+    if(all || parts.chrome) renderChrome();
+    if(all || parts.rail) renderSpaceRail();
+    if(all || parts.columns) renderColumns();
+    if(all || parts.drawer) renderDrawer();
   }
+  // Tree navigation (path change only): rail, chrome and drawer don't depend on it.
+  var RENDER_COLUMNS_ONLY = { columns: true };
 
   // Finds which column currently displays the trick whose drawer is open — the
   // "focus" column that the collapse rule below measures distance from. Merely
@@ -67,7 +75,7 @@
         var backBtn = document.createElement("button");
         backBtn.className = "col-add-btn col-back-btn";
         backBtn.innerHTML = ICON_ARROW_LEFT + "<span>" + escapeHtml(t("backToList")) + "</span>";
-        backBtn.addEventListener("click", function(){ state.path = state.path.slice(0, colIndex-1); render(); });
+        backBtn.addEventListener("click", function(){ state.path = state.path.slice(0, colIndex-1); render(RENDER_COLUMNS_ONLY); });
         colEl.appendChild(backBtn);
       }
 
@@ -354,7 +362,7 @@
         chev.addEventListener("click", function(ev){
           ev.stopPropagation();
           state.path = state.path.slice(0, colIndex).concat(it.id);
-          render();
+          render(RENDER_COLUMNS_ONLY);
         });
       }
       row.appendChild(chev);
@@ -363,7 +371,7 @@
     if(it.type==="category"){
       row.addEventListener("click", function(){
         state.path = state.path.slice(0, colIndex).concat(it.id);
-        render();
+        render(RENDER_COLUMNS_ONLY);
       });
     } else {
       row.addEventListener("click", function(){
@@ -372,8 +380,8 @@
         // Tricks without extensions still need the path truncated to this level,
         // otherwise a previously-opened sibling's extension column would linger.
         state.path = hasChildren ? state.path.slice(0, colIndex).concat(it.id) : state.path.slice(0, colIndex);
-        render();
-        openDrawerFor(it.id);
+        invalidateDbIndex();
+        openDrawerFor(it.id); // re-renders columns + drawer itself
       });
     }
 
