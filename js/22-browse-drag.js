@@ -160,7 +160,7 @@
       if(target.parentId === parentId){
         if(!target.row) return;
         var siblings = Array.prototype.filter.call(target.colEl.querySelectorAll(".item"), function(el){
-          return el.parentElement === target.row.parentElement;
+          return el.parentElement === target.row.parentElement && !el.classList.contains("pending-ghost");
         });
         var toIdxRaw = siblings.indexOf(target.row);
         if(toIdxRaw === -1) return;

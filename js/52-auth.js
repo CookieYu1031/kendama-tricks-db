@@ -103,9 +103,6 @@
     }
 
     renderSyncUI();
-    document.getElementById("publishUpdateBtn").hidden = !isAdminAccount();
-    document.getElementById("publishUpdateBtn").title = t("publishUpdate");
-    document.getElementById("publishUpdateBtn").textContent = t("publishUpdate");
     if(typeof renderSettingsUI === "function") renderSettingsUI(); // admin button visibility
   }
 

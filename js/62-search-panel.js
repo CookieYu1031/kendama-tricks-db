@@ -106,8 +106,25 @@
     input.focus();
   }
 
+  // Lazy one-time fetch of the published index; any failure silently keeps in-memory search.
+  var searchJsonRequested = false;
+  function loadSearchJson(){
+    if(searchJsonRequested || typeof fetch !== "function") return;
+    searchJsonRequested = true;
+    fetch("data/search-index.json", { cache: "no-cache" }).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function(j){
+      if(!validSearchJson(j)) return;
+      searchJson = j;
+      searchIndexCache = null;
+      if(spEl("searchInput")) runSearchPanel();
+    }).catch(function(){ /* keep in-memory */ });
+  }
+
   // Called when the panel opens (language / db may have changed since last time).
   function refreshSearchPanel(){
+    loadSearchJson();
     buildSearchPanelChrome();
     updateSearchPanelTexts();
     syncSearchChips();
@@ -128,7 +145,7 @@
     var raw = spEl("searchInput").value;
     var query = parseSearchQuery(raw);
     searchView.ids = searchHasCriteria(query, searchFilters)
-      ? runSearch(getSearchIndex(), raw, searchFilters, buildTagLookup(db.tags)) : [];
+      ? runSearch(getSearchIndex(), raw, searchFilters, searchTagLookup()) : [];
     renderTagSuggest(raw);
     renderSearchList(searchHasCriteria(query, searchFilters));
   }

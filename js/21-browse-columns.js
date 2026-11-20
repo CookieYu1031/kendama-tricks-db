@@ -45,6 +45,7 @@
 
   function renderColumns(){
     var wrap = document.getElementById("millerWrap");
+    if(typeof beginPendingRender === "function") beginPendingRender(); // admin red dots / ghost rows (56)
 
     var activeSpaceObj = getSpace(state.activeSpace);
     var viewMode = activeSpaceObj ? (activeSpaceObj.viewMode || "tree") : "tree";
@@ -78,7 +79,10 @@
       var collapsed = !isMobile && focusIdx !== -1 && colIndex <= focusIdx - 2;
       colEl.className = "m-col" + (collapsed ? " collapsed" : "") + (isMobile && colIndex === columns.length-1 ? " mobile-active" : "");
 
-      var items = sortColumnItems(col.items, col.parentId);
+      // Removed-but-unpublished items stay in place as ghost rows (56); drag/reorder only sees real rows.
+      var ghosts = typeof pendingGhostItems === "function" ? pendingGhostItems(col.parentId) : [];
+      var items = sortColumnItems(col.items.concat(ghosts), col.parentId);
+      var realItems = ghosts.length ? items.filter(function(x){ return !x.ghost; }) : items;
 
       if(isMobile && colIndex > 0){
         var backBtn = document.createElement("button");
@@ -97,8 +101,10 @@
         empty.innerHTML = ICON_EMPTY + "<div>" + escapeHtml(t("noSubItems")) + "</div>" + (state.editMode? "<div>"+escapeHtml(t("clickAddBelow"))+"</div>" : "");
         itemsWrap.appendChild(empty);
       } else {
-        items.forEach(function(it, itemIdx){
-          itemsWrap.appendChild(renderItemRow(it, col.parentId, colIndex, itemIdx, items));
+        var realIdx = 0;
+        items.forEach(function(it){
+          if(it.ghost){ itemsWrap.appendChild(buildPendingGhostRow(it)); return; }
+          itemsWrap.appendChild(renderItemRow(it, col.parentId, colIndex, realIdx++, realItems));
         });
       }
       colEl.appendChild(itemsWrap);
@@ -182,6 +188,7 @@
 
     if(state.editMode && canModifyItem(it, null, isAdminNow())) appendBucketEditActions(row, tr, spaceId, null);
 
+    if(typeof applyPendingMark === "function") applyPendingMark(row, it);
     row.addEventListener("click", function(){ openDrawerFor(tr.id); });
     return row;
   }
@@ -371,6 +378,8 @@
       // item onto that column's container instead of just resorting siblings.
       if(canDragItem(it, parentId, admin)) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
     }
+
+    if(typeof applyPendingMark === "function") applyPendingMark(row, it);
 
     if(isDrillable){
       var chev = document.createElement("div");

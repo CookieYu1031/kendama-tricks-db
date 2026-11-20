@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="css/browse-columns.css">
 <link rel="stylesheet" href="css/detail-drawer.css">
 <link rel="stylesheet" href="css/buttons-and-modals.css">
+<link rel="stylesheet" href="css/admin-panel.css">
 <link rel="stylesheet" href="css/toast-and-utility.css">
 </head>
 <body>
@@ -101,7 +102,7 @@
   <div class="modal modal-lg settings-modal" id="settingsModal">
     <div class="settings-head">
       <div class="modal-title" id="settingsTitle">設定</div>
-      <button type="button" class="btn btn-ghost btn-sm settings-admin-btn" id="settingsAdminBtn" disabled hidden></button>
+      <button type="button" class="btn btn-ghost btn-sm settings-admin-btn" id="settingsAdminBtn" hidden></button>
       <button type="button" class="icon-btn settings-close" id="settingsCloseBtn"></button>
     </div>
     <div class="modal-scroll settings-body">
@@ -138,7 +139,6 @@
             </button>
           </div>
           <div class="settings-account-actions">
-            <button type="button" class="btn btn-ghost btn-sm" id="publishUpdateBtn" hidden>發布總表更新</button>
             <button type="button" class="btn btn-ghost btn-sm" id="authLogoutBtn">登出</button>
           </div>
         </div>
@@ -164,9 +164,8 @@
           <span class="settings-item-label" id="settingsGuideLabel">操作介紹</span>
           <span class="settings-soon" data-soon>即將推出</span>
         </button>
-        <button type="button" class="settings-item" disabled>
+        <button type="button" class="settings-item" id="settingsNoticesBtn">
           <span class="settings-item-label" id="settingsNoticesLabel">通知與近期更新</span>
-          <span class="settings-soon" data-soon>即將推出</span>
         </button>
         <button type="button" class="settings-item" disabled>
           <span class="settings-item-label" id="settingsSubmitLabel">招式投稿／申請協助者</span>
@@ -178,6 +177,56 @@
           <span class="settings-soon" data-soon>即將推出</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Updates page (js/16-shell-updates.js) -->
+<div class="modal-overlay" id="updatesOverlay">
+  <div class="modal modal-lg" id="updatesModal">
+    <div class="settings-head">
+      <div class="modal-title" id="updatesTitle">通知與近期更新</div>
+      <button type="button" class="icon-btn settings-close" id="updatesCloseBtn"></button>
+    </div>
+    <div class="modal-scroll" id="updatesList"></div>
+  </div>
+</div>
+
+<!-- Admin panel (js/70-admin-panel.js; admin only, opened from settings) -->
+<div class="modal-overlay" id="adminOverlay">
+  <div class="modal modal-lg admin-modal" id="adminModal">
+    <div class="settings-head">
+      <div class="modal-title" id="adminTitle">管理員面板</div>
+      <button type="button" class="icon-btn settings-close" id="adminCloseBtn"></button>
+    </div>
+    <div class="modal-scroll admin-grid">
+      <div class="admin-area-mail">
+        <button type="button" class="btn btn-ghost btn-sm admin-mailbox-btn" id="adminMailboxBtn" disabled>📫 郵件箱</button>
+      </div>
+      <section class="admin-card admin-area-stats">
+        <div class="admin-card-title" id="adminStatsTitle">網站統計</div>
+        <div class="admin-soon" data-soon>即將推出</div>
+      </section>
+      <section class="admin-card admin-area-publish">
+        <div class="admin-card-title" id="adminPublishTitle">更新與發布</div>
+        <div class="admin-last"><span id="adminLastLabel">上次版本</span><span class="admin-last-value" id="adminLastValue"></span></div>
+        <div class="field">
+          <label for="adminVersion" id="adminVersionLbl">版本號</label>
+          <input type="text" id="adminVersion" maxlength="32" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="adminNote" id="adminNoteLbl">更新備註 <span class="req">*</span></label>
+          <textarea id="adminNote" rows="3"></textarea>
+        </div>
+        <div class="admin-card-subtitle" id="adminPendingTitle">待發布的變更</div>
+        <div class="admin-pending" id="adminPending"></div>
+        <button type="button" class="btn btn-primary btn-block" id="adminPublishBtn">發布更新</button>
+        <div class="field-hint admin-index-hint"><span id="adminIndexHint"></span><a id="adminIndexLink" href="https://github.com/CookieYu1031/kendama-tricks-db/actions/workflows/search-index.yml" target="_blank" rel="noopener">更新搜尋索引</a></div>
+      </section>
+      <section class="admin-card admin-area-helpers">
+        <div class="admin-card-title" id="adminHelpersTitle">管理協助者</div>
+        <div class="admin-soon" data-soon>即將推出</div>
+      </section>
     </div>
   </div>
 </div>
@@ -325,26 +374,6 @@
   </div>
 </div>
 
-<!-- Publish Update Modal (admin only — publishes the admin's current 總表
-     content + a changelog note as a new shared-base version; see
-     publishSpaceIndexUpdate in js/19-auth-sync.js) -->
-<div class="modal-overlay" id="publishModalOverlay">
-  <div class="modal modal-sm" id="publishModal">
-    <div class="modal-scroll">
-      <div class="modal-title" id="publishModalTitle">發布總表更新</div>
-      <div class="field">
-        <label id="publishNoteLabel">更新備註</label>
-        <textarea id="publishNoteInput" rows="4" placeholder="這次更新了什麼？（所有使用者都會看到這段文字）"></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="publishCancelBtn">取消</button>
-        <button class="btn btn-primary" id="publishConfirmBtn">發布</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Info Modal (read view + add / edit form) -->
 <div class="modal-overlay" id="infoModalOverlay">
@@ -495,6 +524,7 @@
 <script src="js/12-shell-rail.js"></script>
 <script src="js/14-shell-settings.js"></script>
 <script src="js/15-shell-theme.js"></script>
+<script src="js/16-shell-updates.js"></script>
 <script src="js/20-browse-order.js"></script>
 <script src="js/21-browse-columns.js"></script>
 <script src="js/22-browse-drag.js"></script>
@@ -517,10 +547,12 @@
 <script src="js/53-sync-chunks.js"></script>
 <script src="js/54-sync-queue.js"></script>
 <script src="js/55-sync-conflict.js"></script>
+<script src="js/56-pending.js"></script>
 <script src="js/59-auth-state.js"></script>
 <script src="js/60-search-suggest.js"></script>
 <script src="js/61-search-index.js"></script>
 <script src="js/62-search-panel.js"></script>
+<script src="js/70-admin-panel.js"></script>
 <script src="js/90-events-and-init.js"></script>
 </body>
 </html>

@@ -142,15 +142,59 @@
     return m ? m[1] : null;
   }
 
-  // Cached index; rebuilt when db, guest-ness, language or the db index version changes.
+  /* ------------------------------------------------------------
+     Published static index (data/search-index.json, built by scripts/build-search-index.js)
+     { version, label?, generatedAt, entries:[...], tags:[...] }. Public tables only.
+  ------------------------------------------------------------ */
+  var searchJson = null;   // loaded + validated json, or null (not loaded / unusable / placeholder)
+
+  function validSearchJson(j){
+    return !!(j && typeof j === "object" && typeof j.version === "number" && j.version > 0 &&
+      Array.isArray(j.entries) && j.entries.length > 0);
+  }
+
+  // The json may stand in for the public part only when it is at least as new as the
+  // base version being viewed, and the user is not an admin (admins see working data).
+  function searchJsonUsable(j, viewingVersion, admin){
+    if(admin || !validSearchJson(j)) return false;
+    if(typeof viewingVersion !== "number") return false;
+    return j.version >= viewingVersion;
+  }
+
+  // json public entries + in-memory entries; same id -> in-memory wins. hasTrick(id) drops
+  // json entries whose trick is gone from the user's data.
+  function mergeSearchIndex(jsonEntries, memEntries, hasTrick){
+    var seen = {}, out = [];
+    (memEntries || []).forEach(function(e){ seen[e.id] = true; out.push(e); });
+    (jsonEntries || []).forEach(function(e){
+      if(seen[e.id] || (hasTrick && !hasTrick(e.id))) return;
+      seen[e.id] = true; out.push(e);
+    });
+    return out;
+  }
+
+  function searchViewingVersion(){
+    if(typeof _currentViewingVersion !== "undefined" && _currentViewingVersion !== null) return _currentViewingVersion;
+    if(typeof _lastSeenPointer !== "undefined" && _lastSeenPointer && _lastSeenPointer.latestVersion) return _lastSeenPointer.latestVersion;
+    return null;
+  }
+
+  function searchTagLookup(){
+    var tags = (searchJson && Array.isArray(searchJson.tags) ? searchJson.tags : []).concat(db.tags || []);
+    return buildTagLookup(tags);
+  }
+
+  // Cached index; rebuilt when db, guest-ness, language, the db index version or the json changes.
   var searchIndexCache = null;
   function getSearchIndex(){
     var guest = isGuest();
+    var useJson = searchJsonUsable(searchJson, searchViewingVersion(), typeof isAdminAccount === "function" && isAdminAccount());
     var c = searchIndexCache;
     if(c && c.db === db && c.version === dbIndexVersion && c.guest === guest && c.lang === state.lang &&
-       c.nTricks === db.tricks.length && c.nCats === db.categories.length) return c.index;
-    searchIndexCache = { db: db, version: dbIndexVersion, guest: guest, lang: state.lang,
-      nTricks: db.tricks.length, nCats: db.categories.length,
-      index: buildSearchIndex(db, { guest: guest }) };
+       c.useJson === useJson && c.nTricks === db.tricks.length && c.nCats === db.categories.length) return c.index;
+    var index = buildSearchIndex(db, { guest: guest });
+    if(useJson) index = mergeSearchIndex(searchJson.entries, index, function(id){ return !!getTrick(id); });
+    searchIndexCache = { db: db, version: dbIndexVersion, guest: guest, lang: state.lang, useJson: useJson,
+      nTricks: db.tricks.length, nCats: db.categories.length, index: index };
     return searchIndexCache.index;
   }

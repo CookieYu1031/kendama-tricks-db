@@ -11,6 +11,7 @@
     closeSearchPanel();
     closeDrawer();
     render();
+  if(typeof refreshUpdatesBadge === "function") refreshUpdatesBadge();
   });
 
   // Language switch (lives in the settings page).
@@ -148,7 +149,6 @@
     if(ev.key !== "Escape") return;
     if(isSearchPanelOpen()) return closeSearchPanel();
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
-    if(document.getElementById("publishModalOverlay").classList.contains("show")) return document.getElementById("publishModalOverlay").classList.remove("show");
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
@@ -156,6 +156,8 @@
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("addModalOverlay").classList.contains("show")) return closeAddModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
+    if(isAdminPanelOpen()) return closeAdminPanel();
+    if(isUpdatesOpen()) return closeUpdates();
     if(isSettingsOpen()) return closeSettings();
     if(document.getElementById("detailDrawer").classList.contains("show")) return closeDrawer();
   });

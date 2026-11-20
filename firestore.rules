@@ -82,14 +82,26 @@ service cloud.firestore {
       allow read: if true;
       allow delete: if isAdmin();
       allow create, update: if isAdmin() &&
-        request.resource.data.keys().hasOnly(['latestVersion', 'latestNote', 'publishedAt']);
+        request.resource.data.keys().hasOnly(['latestVersion', 'latestNote', 'latestLabel', 'publishedAt']) &&
+        (!('latestVersion' in request.resource.data) || request.resource.data.latestVersion is int) &&
+        (!('latestNote' in request.resource.data) ||
+          (request.resource.data.latestNote is string && request.resource.data.latestNote.size() <= 500)) &&
+        (!('latestLabel' in request.resource.data) ||
+          (request.resource.data.latestLabel is string && request.resource.data.latestLabel.size() <= 32));
 
       match /versions/{v} {
         allow read: if true;
         allow delete: if isAdmin();
         allow create, update: if isAdmin() &&
           v.matches('^[0-9]{1,6}$') &&
-          request.resource.data.keys().hasOnly(['version', 'note', 'publishedAt', 'chunks']);
+          request.resource.data.keys().hasOnly(['version', 'note', 'versionLabel', 'publishedAt', 'chunks']) &&
+          (!('version' in request.resource.data) || request.resource.data.version is int) &&
+          (!('note' in request.resource.data) ||
+            (request.resource.data.note is string && request.resource.data.note.size() <= 500)) &&
+          (!('versionLabel' in request.resource.data) ||
+            (request.resource.data.versionLabel is string && request.resource.data.versionLabel.size() <= 32)) &&
+          (!('chunks' in request.resource.data) ||
+            (request.resource.data.chunks is int && request.resource.data.chunks >= 0 && request.resource.data.chunks <= 50));
 
         match /chunks/{i} {
           allow read: if true;

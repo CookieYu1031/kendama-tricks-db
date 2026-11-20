@@ -7,10 +7,11 @@
      SHARED BASE (總表/招式庫 — space-index): admin-published, live in
      Firestore instead of a static shipped file.
 
-       sharedBase/space-index -> { latestVersion, latestNote, publishedAt }
-       sharedBase/space-index/versions/{n} -> { version, note, publishedAt, chunks }
+       sharedBase/space-index -> { latestVersion, latestNote, latestLabel, publishedAt }
+       sharedBase/space-index/versions/{n} -> { version, note, versionLabel, publishedAt, chunks }
        sharedBase/space-index/versions/{n}/chunks/{i} -> { data }  // JSON of
-                                  { categories, tricks, infos, tags } split into pieces
+                                  { tables, categories, tricks, infos, tags } split into pieces
+                                  (tables = ids covered: t00/t01/t02; absent in old versions = ["t00"])
                                   (older versions stored categories/tricks inline: still read)
        users/{uid}/meta/spaceIndexSync -> { viewingVersion, updatedAt }
 
@@ -25,6 +26,12 @@
      — the merge logic in mergeSpaceData/computeSpaceDiff doesn't change at
      all for this space, only where its "base" argument comes from does.
   ------------------------------------------------------------ */
+  addStrings({
+    zh:{ publishLabelInvalid:"版本名稱最多 32 字", publishNoteTooLong:"更新說明最多 500 字" },
+    jp:{ publishLabelInvalid:"バージョン名は32文字までです", publishNoteTooLong:"更新メモは500文字までです" },
+    en:{ publishLabelInvalid:"Version label: 32 characters max", publishNoteTooLong:"Changelog note: 500 characters max" }
+  });
+  var PUBLISH_LABEL_MAX = 32, PUBLISH_NOTE_MAX = 500; // keep in step with firestore.rules
   function sharedBaseRef(){ return fbStore.collection("sharedBase").doc(SHARED_BASE_DOC_ID); }
 
   function fetchSharedBasePointer(){
@@ -33,17 +40,19 @@
       return {
         latestVersion: d.latestVersion || 0,
         latestNote: d.latestNote || "",
+        latestLabel: d.latestLabel || "",
         publishedAt: d.publishedAt || null
       };
     }).catch(function(err){
       console.error("Shared base pointer fetch failed:", err);
-      return { latestVersion: 0, latestNote: "", publishedAt: null };
+      return { latestVersion: 0, latestNote: "", latestLabel: "", publishedAt: null };
     });
   }
 
   function normalizeBaseSnapshot(version, d){
     return {
       version: version,
+      tables: Array.isArray(d.tables) ? d.tables : ["t00"], // old snapshots: 總表 only
       categories: Array.isArray(d.categories) ? d.categories : [],
       tricks: Array.isArray(d.tricks) ? d.tricks : [],
       infos: Array.isArray(d.infos) ? d.infos : [],
@@ -138,11 +147,13 @@
       _lastSeenPointer = pointer;
       if(!pointer.latestVersion) return;
       return fetchSharedBaseVersion(pointer.latestVersion).then(function(base){
-        var otherCats = db.categories.filter(function(c){ return c.spaceId !== SHARED_BASE_TABLE_ID; });
+        // Replace only the tables this snapshot covers (old versions: t00 only).
+        var covered = base.tables || ["t00"];
+        var otherCats = db.categories.filter(function(c){ return covered.indexOf(c.spaceId) === -1; });
         var priorTrickIds = {};
-        tricksForSpace(SHARED_BASE_TABLE_ID).forEach(function(tr){ priorTrickIds[tr.id] = true; });
+        covered.forEach(function(sid){ tricksForSpace(sid).forEach(function(tr){ priorTrickIds[tr.id] = true; }); });
         var otherTricks = db.tricks.filter(function(tr){ return !priorTrickIds[tr.id]; });
-        var otherInfos = (db.infos || []).filter(function(n){ return n.spaceId !== SHARED_BASE_TABLE_ID; });
+        var otherInfos = (db.infos || []).filter(function(n){ return covered.indexOf(n.spaceId) === -1; });
         db.categories = otherCats.concat(base.categories);
         db.tricks = otherTricks.concat(base.tricks);
         db.infos = otherInfos.concat(base.infos);
@@ -158,35 +169,53 @@
      Publishing new 總表 versions (admin only) + the update banner
      everyone else sees once they're behind.
   ------------------------------------------------------------ */
-  function publishSpaceIndexUpdate(note){
-    if(!isAdminAccount()) return Promise.resolve();
+  // Pure: the snapshot to publish from a db object — all shared tables + tags.
+  function buildPublishSnapshot(data){
+    var cats = [], infos = [], tricks = {};
+    SHARED_BASE_TABLE_IDS.forEach(function(sid){
+      var cont = {}; cont[sid] = true;
+      data.categories.forEach(function(c){ if(c.spaceId === sid){ cats.push(c); cont[c.id] = true; } });
+      (data.infos || []).forEach(function(n){ if(n.spaceId === sid) infos.push(n); });
+      data.tricks.forEach(function(tr){ if((tr.categoryIds || []).some(function(cid){ return cont[cid]; })) tricks[tr.id] = tr; });
+    });
+    return { tables: SHARED_BASE_TABLE_IDS.slice(), categories: cats, tricks: objVals(tricks), infos: infos, tags: data.tags || [] };
+  }
+  // Pure: -> null when ok, else the i18n key of the problem.
+  function validatePublishInput(note, label){
+    if(!note) return "publishNoteRequired";
+    if(note.length > PUBLISH_NOTE_MAX) return "publishNoteTooLong";
+    if(label.length > PUBLISH_LABEL_MAX) return "publishLabelInvalid";
+    return null;
+  }
+
+  // Resolves { ok:true, version, label } | { ok:false }. `label` = free-text version name
+  // (e.g. "1.0.3", optional); the integer version still orders everything.
+  function publishSpaceIndexUpdate(note, label){
+    if(!isAdminAccount()) return Promise.resolve({ ok: false });
     note = (note || "").trim();
-    if(!note){ showToast(t("publishNoteRequired"), "error"); return Promise.resolve(); }
+    label = (label == null ? "" : String(label)).trim();
+    var bad = validatePublishInput(note, label);
+    if(bad){ showToast(t(bad), "error"); return Promise.resolve({ ok: false }); }
     var uid = authCurrentUser.uid;
+    var result = { ok: false };
     setSyncing(true);
     return fetchSharedBasePointer().then(function(pointer){
       var newVersion = (pointer.latestVersion || 0) + 1;
-      // The admin's own current, fully-merged space-index content (base +
-      // their not-yet-published diff) becomes the new base wholesale —
-      // "publishing" is exactly that: promoting the admin's working diff
-      // into everyone else's shared base.
-      var snapshot = {
-        categories: categoriesForSpace(SHARED_BASE_TABLE_ID),
-        tricks: tricksForSpace(SHARED_BASE_TABLE_ID),
-        infos: infosForSpace(SHARED_BASE_TABLE_ID),
-        tags: db.tags
-      };
+      // The admin's own current, fully-merged content of 00/01/02 (base + their
+      // not-yet-published diff) becomes the new base wholesale.
+      var snapshot = buildPublishSnapshot(db);
       var ops = buildChunkedOps(sharedVersionPath(newVersion), JSON.stringify(snapshot),
-        { version: newVersion, note: note }, 0, "publishedAt");
+        { version: newVersion, note: note, versionLabel: label }, 0, "publishedAt");
       ops.push({ kind: "set", path: "sharedBase/" + SHARED_BASE_DOC_ID, ts: "publishedAt", bytes: 500,
-        data: { latestVersion: newVersion, latestNote: note } });
+        data: { latestVersion: newVersion, latestNote: note, latestLabel: label } });
       return commitOps(ops).then(function(){
         // Prime the cache with exactly what was just written so the diff
         // save below (which needs this version's base) doesn't need a
         // network round-trip to read back what we just sent.
         baseDataCache[SHARED_BASE_TABLE_ID + "@" + newVersion] = normalizeBaseSnapshot(newVersion, snapshot);
-        _lastSeenPointer = { latestVersion: newVersion, latestNote: note, publishedAt: null };
+        _lastSeenPointer = { latestVersion: newVersion, latestNote: note, latestLabel: label, publishedAt: null };
         _currentViewingVersion = newVersion;
+        result = { ok: true, version: newVersion, label: label };
         return saveUserViewingVersion(uid, newVersion);
       }).then(function(){
         // The admin's diff against this brand-new base is now empty by
@@ -195,10 +224,37 @@
       });
     }).catch(function(err){
       console.error("Publish failed:", err);
-      showToast(t("publishError"), "error");
+      if(!result.ok) showToast(t("publishError"), "error");
     }).then(function(){
       setSyncing(false);
+      return result;
     });
+  }
+
+  function tsToMs(v){
+    if(v && typeof v.toMillis === "function") return v.toMillis();
+    return typeof v === "number" ? v : null;
+  }
+  // -> Promise<{ latestVersion, latestLabel, latestNote, publishedAt (ms or null) }>
+  function getPublishedPointer(){
+    return fetchSharedBasePointer().then(function(p){
+      return { latestVersion: p.latestVersion, latestLabel: p.latestLabel, latestNote: p.latestNote, publishedAt: tsToMs(p.publishedAt) };
+    });
+  }
+  // Newest first, at most `limit` (default 20). Reads version header docs only, never chunks.
+  function listPublishedVersions(limit){
+    limit = limit > 0 ? Math.floor(limit) : 20;
+    return fetchSharedBasePointer().then(function(p){
+      var vs = [];
+      for(var v = p.latestVersion; v >= 1 && vs.length < limit; v--) vs.push(v);
+      return Promise.all(vs.map(function(v){
+        return fbStore.doc(sharedVersionPath(v)).get().then(function(snap){
+          if(!snap.exists) return null;
+          var d = snap.data();
+          return { version: v, label: d.versionLabel || "", note: d.note || "", publishedAt: tsToMs(d.publishedAt) };
+        }).catch(function(){ return null; });
+      }));
+    }).then(function(list){ return list.filter(Boolean); });
   }
 
   function fetchMissedVersionNotes(fromVersionExclusive, toVersionInclusive){
@@ -215,7 +271,8 @@
   }
 
   function hideBaseUpdateBanner(){
-    document.getElementById("baseUpdateBanner").hidden = true;
+    var el = document.getElementById("baseUpdateBanner");
+    if(el) el.hidden = true;
   }
 
   function showBaseUpdateBanner(fromVersionExclusive, toVersionInclusive){
@@ -279,23 +336,6 @@
   /* ------------------------------------------------------------
      Publish modal (admin only) + update banner
   ------------------------------------------------------------ */
-  document.getElementById("publishUpdateBtn").addEventListener("click", function(){
-    document.getElementById("publishNoteInput").value = "";
-    document.getElementById("publishModalOverlay").classList.add("show");
-    document.getElementById("publishNoteInput").focus();
-  });
-  document.getElementById("publishCancelBtn").addEventListener("click", function(){
-    document.getElementById("publishModalOverlay").classList.remove("show");
-  });
-  document.getElementById("publishConfirmBtn").addEventListener("click", function(){
-    var note = document.getElementById("publishNoteInput").value;
-    if(!note.trim()){ showToast(t("publishNoteRequired"), "error"); return; }
-    publishSpaceIndexUpdate(note).then(function(){
-      document.getElementById("publishModalOverlay").classList.remove("show");
-      showToast(t("publishSuccess"));
-      renderSpaceRail();
-      renderColumns();
-    });
-  });
-  document.getElementById("baseUpdateNowBtn").addEventListener("click", applyBaseIndexUpdate);
-  document.getElementById("baseUpdateDismissBtn").addEventListener("click", hideBaseUpdateBanner);
+  function _on(id, fn){ var el = document.getElementById(id); if(el) el.addEventListener("click", fn); }
+  _on("baseUpdateNowBtn", applyBaseIndexUpdate);
+  _on("baseUpdateDismissBtn", hideBaseUpdateBanner);
