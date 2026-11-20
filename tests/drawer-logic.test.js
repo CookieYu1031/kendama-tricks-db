@@ -28,6 +28,15 @@ test("toggleRate: set, switch, clear on repeat, ignore unknown", () => {
   assert.strictEqual(c.toggleRate(t, "bogus"), null);
 });
 
+test("toggleRate: picking a rate marks landed; clearing keeps landed", () => {
+  const c = setup(), t = { landed: false };
+  c.toggleRate(t, "sometimes");
+  assert.strictEqual(t.landed, true);
+  c.toggleRate(t, "sometimes");
+  assert.strictEqual(t.rate, null);
+  assert.strictEqual(t.landed, true);
+});
+
 test("toggleGrip single / togglePart multi in canonical order", () => {
   const c = setup(), t = { grip: null, parts: [] };
   assert.strictEqual(c.toggleGrip(t, "ken"), "ken");

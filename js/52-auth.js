@@ -47,8 +47,9 @@
   /* ------------------------------------------------------------
      UI
   ------------------------------------------------------------ */
+  // Account UI now lives in the settings page (js/14-shell-settings.js);
+  // "closing the menu" just cancels an in-progress nickname edit.
   function closeAuthMenu(){
-    document.getElementById("authUserWidget").classList.remove("open");
     closeNicknameEdit();
   }
 
@@ -83,11 +84,11 @@
     var loginBtn = document.getElementById("authLoginBtn");
     var userWidget = document.getElementById("authUserWidget");
     loginBtn.title = t("authLogin");
+    loginBtn.textContent = t("authLogin");
 
     if(authCurrentUser){
       loginBtn.hidden = true;
       userWidget.hidden = false;
-      applyAvatar(document.getElementById("authAvatarImg"), document.getElementById("authAvatarFallback"));
       applyAvatar(document.getElementById("authMenuAvatarImg"), document.getElementById("authMenuAvatarFallback"));
       document.getElementById("authMenuName").textContent = authCurrentUser.displayName || "";
       document.getElementById("authMenuEmail").textContent = authCurrentUser.email || "";
@@ -104,14 +105,11 @@
     renderSyncUI();
     document.getElementById("publishUpdateBtn").hidden = !isAdminAccount();
     document.getElementById("publishUpdateBtn").title = t("publishUpdate");
+    document.getElementById("publishUpdateBtn").textContent = t("publishUpdate");
+    if(typeof renderSettingsUI === "function") renderSettingsUI(); // admin button visibility
   }
 
   document.getElementById("authLoginBtn").addEventListener("click", authLogin);
-  document.getElementById("authAvatarBtn").addEventListener("click", function(ev){
-    ev.stopPropagation();
-    document.getElementById("authUserWidget").classList.toggle("open");
-    closeNicknameEdit();
-  });
   document.getElementById("authLogoutBtn").addEventListener("click", authLogout);
   document.getElementById("authMenuEditBtn").addEventListener("click", function(ev){
     ev.stopPropagation();
@@ -129,8 +127,4 @@
     ev.stopPropagation();
     if(ev.key === "Enter") authUpdateNickname(ev.target.value);
     else if(ev.key === "Escape") closeNicknameEdit();
-  });
-  document.addEventListener("click", function(ev){
-    var widget = document.getElementById("authUserWidget");
-    if(widget.classList.contains("open") && !widget.contains(ev.target)) closeAuthMenu();
   });

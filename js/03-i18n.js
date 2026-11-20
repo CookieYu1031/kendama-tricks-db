@@ -21,7 +21,7 @@
       selectCategories:"所屬分類",
       savedCategory:"分類已儲存", savedTrick:"招式已儲存",
       deletedCategory:"分類已刪除", deletedTrick:"招式已刪除", newCategory:"新增分類", newTrick:"新增招式",
-      emptyTitle:"從左側選擇一個分類開始", emptyBody:"點擊分類逐層展開，或使用上方搜尋列快速尋找招式。",
+      emptyTitle:"從左側選擇一個分類開始", emptyBody:"點擊分類逐層展開，或點上方「🔍 搜尋」快速尋找招式。",
       backToList:"返回", editModeSub:"開啟後可新增／編輯／刪除分類與招式", instagramNote:"Instagram 連結無法直接內嵌預覽",
       variant:"項目", tricksCount:"招式", subCats:"子分類",
       moveUp:"上移", moveDown:"下移", iconColorLabel:"圖示與顏色", chooseIconColor:"選擇圖示與顏色",
@@ -58,7 +58,13 @@
       publishUpdate:"發布總表更新", publishNoteRequired:"請輸入更新備註", publishError:"發布失敗，請檢查網路連線",
       publishSuccess:"已發布更新", baseUpdateApplied:"已更新總表內容",
       baseUpdateAvailable:"總表有更新", baseUpdateNow:"立即更新", baseUpdateDismiss:"稍後再說",
-      publishNoteLabel:"更新備註", publishConfirm:"發布"
+      publishNoteLabel:"更新備註", publishConfirm:"發布",
+      searchToggle:"搜尋", backHome:"回到首頁", settings:"設定", settingsClose:"關閉",
+      settingsAdminSoon:"管理員面板（即將推出）", comingSoon:"即將推出",
+      themeSystem:"跟隨系統", themeDark:"暗色", themeLight:"亮色",
+      settingsGuide:"操作介紹", settingsNotices:"通知與近期更新",
+      settingsSubmit:"招式投稿／申請協助者", settingsSubmitNote:"欲大量投稿可申請成為協助者",
+      settingsReport:"問題回報"
     },
     jp:{
       appTitle:"けん玉技データベース", searchPlaceholder:"技名を検索（中／日／英）…",
@@ -77,7 +83,7 @@
       selectCategories:"所属カテゴリ",
       savedCategory:"カテゴリを保存しました", savedTrick:"技を保存しました",
       deletedCategory:"カテゴリを削除しました", deletedTrick:"技を削除しました", newCategory:"新規カテゴリ", newTrick:"新規技",
-      emptyTitle:"左側からカテゴリを選択してください", emptyBody:"カテゴリをクリックして階層を展開するか、上の検索バーで技を探せます。",
+      emptyTitle:"左側からカテゴリを選択してください", emptyBody:"カテゴリをクリックして階層を展開するか、上の「🔍 検索」で技を探せます。",
       backToList:"戻る", editModeSub:"オンにするとカテゴリ・技の追加／編集／削除ができます", instagramNote:"Instagramリンクは直接埋め込みできません",
       variant:"項目", tricksCount:"技", subCats:"サブカテゴリ",
       moveUp:"上へ移動", moveDown:"下へ移動", iconColorLabel:"アイコンと色", chooseIconColor:"アイコンと色を選択",
@@ -114,7 +120,13 @@
       publishUpdate:"総表の更新を発行", publishNoteRequired:"更新メモを入力してください", publishError:"発行に失敗しました。ネット接続をご確認ください",
       publishSuccess:"更新を発行しました", baseUpdateApplied:"総表の内容を更新しました",
       baseUpdateAvailable:"総表に更新があります", baseUpdateNow:"今すぐ更新", baseUpdateDismiss:"後で",
-      publishNoteLabel:"更新メモ", publishConfirm:"発行"
+      publishNoteLabel:"更新メモ", publishConfirm:"発行",
+      searchToggle:"検索", backHome:"ホームへ", settings:"設定", settingsClose:"閉じる",
+      settingsAdminSoon:"管理者パネル（近日公開）", comingSoon:"近日公開",
+      themeSystem:"システムに合わせる", themeDark:"ダーク", themeLight:"ライト",
+      settingsGuide:"操作ガイド", settingsNotices:"お知らせと最近の更新",
+      settingsSubmit:"技の投稿／協力者の申請", settingsSubmitNote:"大量に投稿したい場合は協力者に申請できます",
+      settingsReport:"問題を報告"
     },
     en:{
       appTitle:"Kendama Trick Database", searchPlaceholder:"Search trick names (ZH / JP / EN)…",
@@ -133,7 +145,7 @@
       selectCategories:"Categories",
       savedCategory:"Category saved", savedTrick:"Trick saved",
       deletedCategory:"Category deleted", deletedTrick:"Trick deleted", newCategory:"New Category", newTrick:"New Trick",
-      emptyTitle:"Select a category on the left", emptyBody:"Click through categories to drill down, or use the search bar above to find a trick.",
+      emptyTitle:"Select a category on the left", emptyBody:"Click through categories to drill down, or tap “🔍 Search” above to find a trick.",
       backToList:"Back", editModeSub:"Turn on to add, edit, or delete categories and tricks", instagramNote:"Instagram links can't be embedded directly",
       variant:"item", tricksCount:"tricks", subCats:"subcategories",
       moveUp:"Move Up", moveDown:"Move Down", iconColorLabel:"Icon & Color", chooseIconColor:"Choose Icon & Color",
@@ -170,7 +182,13 @@
       publishUpdate:"Publish index update", publishNoteRequired:"Please enter a changelog note", publishError:"Publish failed — check your connection",
       publishSuccess:"Update published", baseUpdateApplied:"Index content updated",
       baseUpdateAvailable:"Index update available", baseUpdateNow:"Update now", baseUpdateDismiss:"Later",
-      publishNoteLabel:"Changelog note", publishConfirm:"Publish"
+      publishNoteLabel:"Changelog note", publishConfirm:"Publish",
+      searchToggle:"Search", backHome:"Home", settings:"Settings", settingsClose:"Close",
+      settingsAdminSoon:"Admin panel (coming soon)", comingSoon:"Coming soon",
+      themeSystem:"Follow system", themeDark:"Dark", themeLight:"Light",
+      settingsGuide:"How to use", settingsNotices:"Notices & recent updates",
+      settingsSubmit:"Submit tricks / Apply as helper", settingsSubmitNote:"To submit many tricks, apply to become a helper",
+      settingsReport:"Report a problem"
     }
   };
 

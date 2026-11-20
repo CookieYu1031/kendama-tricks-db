@@ -7,11 +7,14 @@
     document.getElementById("brandTitle").textContent = t("appTitle");
     document.title = t("appTitle") + " · Kendama Trick DB";
     document.getElementById("searchInput").placeholder = t("searchPlaceholder");
+    document.getElementById("searchToggleLabel").textContent = t("searchToggle");
+    document.getElementById("brandHome").title = t("backHome");
     document.getElementById("iconColorFieldLabel").textContent = t("iconColorLabel");
 
     Array.prototype.forEach.call(document.querySelectorAll(".lang-btn"), function(btn){
       if(btn.hasAttribute("data-lang")) btn.classList.toggle("active", btn.getAttribute("data-lang")===state.lang);
     });
+    if(typeof renderSettingsUI === "function") renderSettingsUI();
 
     localizeModalStatics();
   }

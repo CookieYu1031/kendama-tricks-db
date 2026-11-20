@@ -5,7 +5,7 @@
   ============================================================ */
   // Shared narrow-viewport check — mirrors the `@media (max-width: 860px)`
   // breakpoint used throughout the stylesheets, so JS-side layout branches
-  // (mobile column view, drawer bottom-sheet peek/expand, collapsed search
+  // (mobile column view, drawer slide-in panel, collapsed search
   // bar, cycling language switch) all agree with the CSS.
   var MOBILE_BREAKPOINT = 860;
   function isNarrowViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT; }

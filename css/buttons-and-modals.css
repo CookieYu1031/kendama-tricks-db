@@ -10,7 +10,7 @@
   .btn svg{ width:14px; height:14px; }
   .btn:hover{ background: var(--glass-3); transform: translateY(-1px); }
   .btn:active{ transform: translateY(0); }
-  .btn-primary{ background: var(--lacquer); border-color: var(--lacquer); color: var(--ink); }
+  .btn-primary{ background: var(--lacquer); border-color: var(--lacquer); color: var(--on-accent); }
   .btn-primary:hover{ background: var(--lacquer-bright); border-color: var(--lacquer-bright); }
   .btn-ghost{ background: transparent; }
   .btn-danger{ background: transparent; color: var(--danger-bright); border-color: rgba(var(--danger-rgb),0.45); }
@@ -20,7 +20,7 @@
 
   /* ---------- Modals ---------- */
   .modal-overlay{
-    position:fixed; inset:0; background: rgba(8,9,10,0.5); backdrop-filter: blur(6px);
+    position:fixed; inset:0; background: var(--overlay-bg); backdrop-filter: blur(6px);
     display:flex; align-items:center; justify-content:center; padding:20px;
     opacity:0; pointer-events:none; transition: opacity .22s var(--ease); z-index: 60;
   }
@@ -28,7 +28,7 @@
   #iconPickerOverlay{ z-index: 75; }
   .modal{
     width: 440px; max-width:100%; max-height: 86vh; overflow:hidden;
-    background: linear-gradient(165deg, rgba(40,40,40,0.55), rgba(20,20,20,0.55));
+    background: linear-gradient(165deg, var(--surface-modal-a), var(--surface-modal-b));
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     border:1px solid var(--glass-border-strong); border-radius: 18px; box-shadow: var(--shadow-lg), var(--glass-highlight);
     transform: scale(.94) translateY(8px); transition: transform .26s var(--ease); padding: 0;
@@ -103,7 +103,7 @@
     border-radius:8px; cursor:pointer; border:1px solid transparent; background: transparent; transition: background .15s var(--ease), border-color .15s var(--ease);
   }
   .emoji-cell:hover{ background: var(--ink-4); }
-  .emoji-cell.selected{ border-color: var(--wood); background: rgba(201,160,99,0.14); }
+  .emoji-cell.selected{ border-color: var(--wood); background: var(--wood-tint-cell); }
   .modal-actions-split{ display:flex; justify-content:space-between; align-items:center; margin-top:20px; gap:10px; }
   .form-error{ font-size:12px; color: var(--danger-bright); margin-top: -6px; margin-bottom:12px; display:none; }
   .form-error.show{ display:block; }

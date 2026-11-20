@@ -144,36 +144,53 @@
       document.getElementById("searchInput").value = "";
       document.getElementById("searchClear").classList.remove("show");
       updateSearchInlineCount("");
-      closeSearchSuggest();
+      closeSearchPanel();
       closeDrawer();
       render();
     });
   }
 
-  // Thin horizontal rule between the official tables and 收藏 / custom tables.
+  // Thin horizontal rule between the rail's zones.
   function buildRailDivider(){
     var hr = document.createElement("div");
     hr.className = "space-rail-divider";
     return hr;
   }
+  function buildRailZone(cls){
+    var z = document.createElement("div");
+    z.className = "rail-zone " + cls;
+    return z;
+  }
 
+  // Three zones (see railZones in 20-browse-order.js): top = 00/01/02,
+  // middle = 收藏 + custom tables (+ the edit-mode "new table" button; scrolls
+  // by itself), bottom = function buttons pinned to the bottom.
   function renderSpaceRail(){
     var rail = document.getElementById("spaceRail");
     rail.innerHTML = "";
+    var zones = railZones(db.spaces);
 
-    // t00, t01, t02, divider, fav, custom tables (see railLayout in 20-browse-order.js).
-    var customSpaces = db.spaces.filter(function(s){ return !isDefaultSpaceId(s.id); })
-      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
-    railLayout(db.spaces).forEach(function(entry){
-      if(entry === "divider"){ rail.appendChild(buildRailDivider()); return; }
-      var isCustom = !isDefaultSpaceId(entry.id);
-      var btn = buildSpaceBtn(entry, !isCustom);
-      // Only custom tables are freely reorderable (long-press drag); built-ins stay pinned.
-      if(isCustom && state.editMode) attachSpaceLongPressDrag(btn, entry, customSpaces);
-      bindSpaceNavigate(btn, entry);
-      rail.appendChild(btn);
+    var topZone = buildRailZone("rail-zone-top");
+    zones.top.forEach(function(sp){
+      var btn = buildSpaceBtn(sp, true);
+      bindSpaceNavigate(btn, sp);
+      topZone.appendChild(btn);
     });
+    rail.appendChild(topZone);
 
+    if(!zones.showMiddle) return; // D8: guests see only the top zone
+
+    rail.appendChild(buildRailDivider());
+    var midZone = buildRailZone("rail-zone-mid");
+    var customSpaces = zones.middle.filter(function(s){ return !isDefaultSpaceId(s.id); });
+    zones.middle.forEach(function(sp){
+      var isCustom = !isDefaultSpaceId(sp.id);
+      var btn = buildSpaceBtn(sp, !isCustom);
+      // Only custom tables are freely reorderable (long-press drag); fav stays pinned.
+      if(isCustom && state.editMode) attachSpaceLongPressDrag(btn, sp, customSpaces);
+      bindSpaceNavigate(btn, sp);
+      midZone.appendChild(btn);
+    });
     if(state.editMode){
       var addBtn = document.createElement("button");
       addBtn.type = "button";
@@ -184,11 +201,13 @@
         if(!canAddCustomSpace()){ showToast(t("spaceLimitReached"), "error"); return; }
         openSpaceModal(null);
       });
-      rail.appendChild(addBtn);
+      midZone.appendChild(addBtn);
     }
+    rail.appendChild(midZone);
 
-    if(isGuest()) return; // D8: read-only, no edit mode
-
+    if(!zones.showBottom) return;
+    rail.appendChild(buildRailDivider());
+    var bottomZone = buildRailZone("rail-zone-bottom");
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "");
@@ -198,5 +217,6 @@
       state.editMode = !state.editMode;
       render();
     });
-    rail.appendChild(toggle);
+    bottomZone.appendChild(toggle);
+    rail.appendChild(bottomZone);
   }

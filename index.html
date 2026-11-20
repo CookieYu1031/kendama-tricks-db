@@ -22,76 +22,34 @@
         <div class="brand-mark">
           <img src="assets/brand-icon.png" alt="劍玉招式庫" />
         </div>
-        <div>
+        <div class="brand-text">
           <div class="brand-title" id="brandTitle">劍玉招式庫</div>
           <div class="brand-sub">Kendama Trick Database</div>
         </div>
       </div>
     </div>
 
-    <div class="search-wrap">
+    <button type="button" class="search-toggle" id="searchToggleBtn" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input type="text" class="search-input" id="searchInput" placeholder="搜尋招式名稱（中／日／英）…" autocomplete="off" />
-      <button class="search-clear" id="searchClear">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      </button>
-      <div class="search-suggest" id="searchSuggest"></div>
+      <span id="searchToggleLabel">搜尋</span>
+    </button>
+
+    <!-- Search panel: drops down below the topbar (v0.5 extends it with filters). -->
+    <div class="search-panel" id="searchPanel">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜尋招式名稱（中／日／英）…" autocomplete="off" />
+        <button class="search-clear" id="searchClear">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+        <div class="search-suggest" id="searchSuggest"></div>
+      </div>
     </div>
 
     <div class="topbar-side topbar-side-right">
       <div id="toastContainer"></div>
       <div class="topbar-actions">
-        <div class="lang-switch" id="langSwitch">
-          <button class="lang-btn" data-lang="zh">ZH</button>
-          <button class="lang-btn" data-lang="jp">JP</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-        </div>
-        <button class="icon-btn" id="publishUpdateBtn" title="發布總表更新" hidden>
-          <svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M12 5l-5.5 5.5M12 5l5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="auth-widget" id="authWidget">
-          <button class="icon-btn" id="authLoginBtn" title="登入">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zM4 20.5c0-3.6 3.6-6.5 8-6.5s8 2.9 8 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <div class="auth-user" id="authUserWidget" hidden>
-            <button type="button" class="auth-avatar-btn" id="authAvatarBtn">
-              <img class="auth-avatar-img" id="authAvatarImg" src="" alt="" hidden />
-              <span class="auth-avatar-fallback" id="authAvatarFallback"></span>
-            </button>
-            <div class="auth-menu" id="authMenu">
-              <div class="auth-menu-account" id="authMenuAccount">
-                <span class="auth-menu-avatar-wrap">
-                  <img class="auth-menu-avatar-img" id="authMenuAvatarImg" src="" alt="" hidden />
-                  <span class="auth-menu-avatar-fallback" id="authMenuAvatarFallback"></span>
-                </span>
-                <span class="auth-menu-account-text">
-                  <span class="auth-menu-name-row">
-                    <span class="auth-menu-name" id="authMenuName"></span>
-                    <button type="button" class="auth-menu-edit-btn" id="authMenuEditBtn" title="編輯暱稱" aria-label="編輯暱稱">
-                      <svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 00-3-3L5 17v3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                  </span>
-                  <span class="auth-menu-email" id="authMenuEmail"></span>
-                </span>
-              </div>
-              <div class="auth-menu-name-edit" id="authMenuNameEdit" hidden>
-                <input type="text" class="auth-menu-name-input" id="authMenuNameInput" maxlength="24" />
-                <div class="auth-menu-name-edit-actions">
-                  <button type="button" class="auth-menu-name-cancel" id="authMenuNameCancel">取消</button>
-                  <button type="button" class="auth-menu-name-save" id="authMenuNameSave">儲存</button>
-                </div>
-              </div>
-              <div class="auth-menu-sync" id="authMenuSync">
-                <span class="auth-menu-sync-text" id="authMenuSyncText"></span>
-                <button type="button" class="auth-menu-edit-btn auth-menu-sync-btn" id="authMenuSyncBtn" title="立即同步" aria-label="立即同步">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 01-13.7 5.6M4 12a8 8 0 0113.7-5.6M18 3v4h-4M6 21v-4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
-              <div class="auth-menu-divider"></div>
-              <button type="button" class="auth-menu-logout" id="authLogoutBtn">登出</button>
-            </div>
-          </div>
-        </div>
+        <button type="button" class="icon-btn" id="settingsBtn" title="設定"></button>
       </div>
     </div>
   </header>
@@ -118,6 +76,92 @@
       <div class="app-credit" aria-hidden="true">Designed by @Cookie_Yu_1031</div>
     </div>
     <aside class="detail-drawer" id="detailDrawer"></aside>
+  </div>
+</div>
+
+<!-- Settings Modal (js/14-shell-settings.js; account, theme, language, coming-soon entries) -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal modal-lg settings-modal" id="settingsModal">
+    <div class="settings-head">
+      <div class="modal-title" id="settingsTitle">設定</div>
+      <button type="button" class="btn btn-ghost btn-sm settings-admin-btn" id="settingsAdminBtn" disabled hidden></button>
+      <button type="button" class="icon-btn settings-close" id="settingsCloseBtn"></button>
+    </div>
+    <div class="modal-scroll settings-body">
+      <!-- Row 1: account (id authWidget kept: js/50-sync-core.js toggles .syncing on it) -->
+      <div class="settings-row auth-widget" id="authWidget">
+        <button type="button" class="btn btn-primary" id="authLoginBtn">使用 Gmail 登入</button>
+        <div class="auth-user" id="authUserWidget" hidden>
+          <div class="auth-menu-account" id="authMenuAccount">
+            <span class="auth-menu-avatar-wrap">
+              <img class="auth-menu-avatar-img" id="authMenuAvatarImg" src="" alt="" hidden />
+              <span class="auth-menu-avatar-fallback" id="authMenuAvatarFallback"></span>
+            </span>
+            <span class="auth-menu-account-text">
+              <span class="auth-menu-name-row">
+                <span class="auth-menu-name" id="authMenuName"></span>
+                <button type="button" class="auth-menu-edit-btn" id="authMenuEditBtn" title="編輯暱稱" aria-label="編輯暱稱">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 00-3-3L5 17v3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </span>
+              <span class="auth-menu-email" id="authMenuEmail"></span>
+            </span>
+          </div>
+          <div class="auth-menu-name-edit" id="authMenuNameEdit" hidden>
+            <input type="text" class="auth-menu-name-input" id="authMenuNameInput" maxlength="24" />
+            <div class="auth-menu-name-edit-actions">
+              <button type="button" class="auth-menu-name-cancel" id="authMenuNameCancel">取消</button>
+              <button type="button" class="auth-menu-name-save" id="authMenuNameSave">儲存</button>
+            </div>
+          </div>
+          <div class="auth-menu-sync" id="authMenuSync">
+            <span class="auth-menu-sync-text" id="authMenuSyncText"></span>
+            <button type="button" class="auth-menu-edit-btn auth-menu-sync-btn" id="authMenuSyncBtn" title="立即同步" aria-label="立即同步">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 01-13.7 5.6M4 12a8 8 0 0113.7-5.6M18 3v4h-4M6 21v-4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="settings-account-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="publishUpdateBtn" hidden>發布總表更新</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="authLogoutBtn">登出</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: theme (left) + language (right) -->
+      <div class="settings-row settings-pair">
+        <div class="lang-switch" id="themeSwitch">
+          <button type="button" class="theme-btn" data-theme-pref="system">◐</button>
+          <button type="button" class="theme-btn" data-theme-pref="dark">☾</button>
+          <button type="button" class="theme-btn" data-theme-pref="light">☀</button>
+        </div>
+        <div class="lang-switch" id="langSwitch">
+          <button type="button" class="lang-btn" data-lang="zh">TW</button>
+          <button type="button" class="lang-btn" data-lang="jp">JP</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </div>
+      </div>
+
+      <!-- Rows 3-4: coming soon -->
+      <div class="settings-grid">
+        <button type="button" class="settings-item" disabled>
+          <span class="settings-item-label" id="settingsGuideLabel">操作介紹</span>
+          <span class="settings-soon" data-soon>即將推出</span>
+        </button>
+        <button type="button" class="settings-item" disabled>
+          <span class="settings-item-label" id="settingsNoticesLabel">通知與近期更新</span>
+          <span class="settings-soon" data-soon>即將推出</span>
+        </button>
+        <button type="button" class="settings-item" disabled>
+          <span class="settings-item-label" id="settingsSubmitLabel">招式投稿／申請協助者</span>
+          <span class="settings-item-note" id="settingsSubmitNote">欲大量投稿可申請成為協助者</span>
+          <span class="settings-soon" data-soon>即將推出</span>
+        </button>
+        <button type="button" class="settings-item" disabled>
+          <span class="settings-item-label" id="settingsReportLabel">問題回報</span>
+          <span class="settings-soon" data-soon>即將推出</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -432,6 +476,8 @@
 <script src="js/09-names.js"></script>
 <script src="js/10-shell-breadcrumb.js"></script>
 <script src="js/12-shell-rail.js"></script>
+<script src="js/14-shell-settings.js"></script>
+<script src="js/15-shell-theme.js"></script>
 <script src="js/20-browse-order.js"></script>
 <script src="js/21-browse-columns.js"></script>
 <script src="js/22-browse-drag.js"></script>
