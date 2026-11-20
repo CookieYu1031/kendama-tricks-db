@@ -15,6 +15,12 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Contributors (協助者) are listed by lowercase Gmail in contributors/{email} (v0.7 D2).
+    function isContributor() {
+      return signedIn() && request.auth.token.email != null &&
+        exists(/databases/$(database)/documents/contributors/$(request.auth.token.email.lower()));
+    }
+
     // admins/{uid}: a user may only check their own entry. Never writable
     // from clients; manage in the console.
     match /admins/{uid} {
@@ -113,6 +119,90 @@ service cloud.firestore {
             request.resource.data.data.size() <= 1000000;
         }
       }
+    }
+
+    match /contributors/{emailId} {
+      allow read: if isAdmin() ||
+        (signedIn() && request.auth.token.email != null && request.auth.token.email.lower() == emailId);
+      allow create, update: if isAdmin() &&
+        request.resource.data.keys().hasOnly(['email', 'addedAt', 'color']) &&
+        request.resource.data.email is string &&
+        request.resource.data.email.lower() == emailId &&
+        request.resource.data.color is string &&
+        request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$');
+      allow delete: if isAdmin();
+    }
+    // submissions/{subId}: contributor trick submissions awaiting admin review.
+    match /submissions/{subId} {
+      allow create: if isContributor() &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'trick', 'parentId', 'status', 'createdAt']) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.email == request.auth.token.email.lower() &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.name is string && request.resource.data.name.size() <= 60 &&
+        request.resource.data.parentId is string && request.resource.data.parentId.size() <= 64 &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.trick is map &&
+        request.resource.data.trick.keys().hasOnly(['id', 'name', 'media', 'icon', 'color', 'grip', 'parts', 'officialNote', 'tagIds']) &&
+        request.resource.data.trick.name is map &&
+        request.resource.data.trick.media is list && request.resource.data.trick.media.size() <= 10 &&
+        request.resource.data.trick.officialNote is string && request.resource.data.trick.officialNote.size() <= 2000;
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // reports/{rid}: problem reports, trick submissions from the form, contributor applications (v0.7 D5).
+    // Rate limit: the same batch must stamp rateLimits/{uid}.lastReportAt = now, and the previous stamp must be >60s old.
+    match /reports/{rid} {
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'displayName', 'kind', 'text', 'payload', 'createdAt', 'status']) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.kind in ['bug', 'erratum', 'suggestion', 'other', 'trick', 'apply'] &&
+        request.resource.data.status == 'open' &&
+        request.resource.data.text is string && request.resource.data.text.size() <= 1000 &&
+        request.resource.data.email is string && request.resource.data.email.size() <= 200 &&
+        request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60 &&
+        request.resource.data.payload is map && request.resource.data.payload.keys().size() <= 4 &&
+        request.resource.data.createdAt == request.time &&
+        getAfter(/databases/$(database)/documents/rateLimits/$(request.auth.uid)).data.lastReportAt == request.time &&
+        (!exists(/databases/$(database)/documents/rateLimits/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/rateLimits/$(request.auth.uid)).data.lastReportAt + duration.value(60, 's') < request.time);
+      allow read, update, delete: if isAdmin();
+    }
+    match /rateLimits/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) &&
+        request.resource.data.keys().hasOnly(['lastReportAt']) &&
+        request.resource.data.lastReportAt == request.time;
+      allow delete: if false;
+    }
+    // users/{uid}/inbox/{mid}: admin -> user in-app messages.
+    match /users/{uid}/inbox/{mid} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasOnly(['kind', 'text', 'trickName', 'from', 'createdAt', 'read']) &&
+        request.resource.data.text is string && request.resource.data.text.size() <= 1000 &&
+        (!('trickName' in request.resource.data) ||
+          (request.resource.data.trickName is string && request.resource.data.trickName.size() <= 120)) &&
+        request.resource.data.from == 'admin' && request.resource.data.read == false &&
+        request.resource.data.createdAt == request.time;
+      allow update: if isOwner(uid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+    }
+
+    // userStats/{uid}: per-user aggregate for admin stats (v0.7 D6). Owner writes, admin reads.
+    match /userStats/{uid} {
+      allow get: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if isOwner(uid) &&
+        request.resource.data.keys().hasOnly(['lang', 'favorites', 'landed', 'rates', 'lastActiveAt', 'createdAt']) &&
+        request.resource.data.lang in ['zh', 'jp', 'en'] &&
+        request.resource.data.favorites is list && request.resource.data.favorites.size() <= 2000 &&
+        request.resource.data.landed is list && request.resource.data.landed.size() <= 2000 &&
+        request.resource.data.rates is map && request.resource.data.rates.keys().size() <= 2000 &&
+        (resource == null || !('createdAt' in resource.data) ||
+          request.resource.data.createdAt == resource.data.createdAt);
+      allow delete: if isOwner(uid);
     }
 
     // Everything else stays locked down by default.

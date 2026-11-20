@@ -162,6 +162,25 @@
     return z;
   }
 
+  // Click = edit mode on/off. Admin only: long-press (600ms) = 查看投稿模式 (js/76).
+  var EDIT_TOGGLE_LONG_MS = 600;
+  function bindEditToggle(toggle){
+    var timer = null, fired = false;
+    function cancel(){ if(timer){ clearTimeout(timer); timer = null; } }
+    toggle.addEventListener("pointerdown", function(){
+      fired = false; cancel();
+      if(typeof toggleSubmissionReviewMode !== "function" || !isAdminNow()) return;
+      timer = setTimeout(function(){ timer = null; fired = true; toggleSubmissionReviewMode(); }, EDIT_TOGGLE_LONG_MS);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function(ev){ toggle.addEventListener(ev, cancel); });
+    toggle.addEventListener("contextmenu", function(ev){ ev.preventDefault(); });
+    toggle.addEventListener("click", function(){
+      if(fired){ fired = false; return; }
+      state.editMode = !state.editMode;
+      render();
+    });
+  }
+
   // Three zones (see railZones in 20-browse-order.js): top = 00/01/02,
   // middle = 收藏 + custom tables (+ the edit-mode "new table" button; scrolls
   // by itself), bottom = function buttons pinned to the bottom.
@@ -210,13 +229,11 @@
     var bottomZone = buildRailZone("rail-zone-bottom");
     var toggle = document.createElement("button");
     toggle.type = "button";
-    toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "");
-    toggle.title = t("editMode");
+    var reviewing = typeof isReviewMode === "function" && isReviewMode();
+    toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "") + (reviewing ? " review" : "");
+    toggle.title = reviewing ? t("subReviewBadge") : t("editMode");
     toggle.innerHTML = ICON_EDIT;
-    toggle.addEventListener("click", function(){
-      state.editMode = !state.editMode;
-      render();
-    });
+    bindEditToggle(toggle);
     bottomZone.appendChild(toggle);
     rail.appendChild(bottomZone);
   }

@@ -65,6 +65,9 @@
 | SVG icons | `js/06-icons-svg.js` |
 | 更新頁（通知與近期更新、未讀紅點） | `js/16-shell-updates.js` |
 | 管理員面板（發布、待發布摘要、版本號）| `js/70-admin-panel.js`、`css/admin-panel.css` |
+| 協助者（Gmail 名單、顏色、管理面板區塊、isContributorAccount）| `js/71-contributors.js`、`css/contrib.css` |
+| 投稿（payload 淨化、accept 轉換、審核標記計算、協助者投稿鈕）| `js/72-submissions.js` |
+| 查看投稿模式（列、圓點、唯讀抽屜、收錄/不予收錄）；rail 編輯鈕長按在 `js/12-shell-rail.js` | `js/76-submission-review.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
 | 設定頁（齒輪、帳號列、語言、即將推出項目、管理員面板入口） | `js/14-shell-settings.js` |
@@ -87,6 +90,11 @@
 | Local-first 同步佇列（dirty、觸發點、admins 旗標、使用者快取） | `js/54-sync-queue.js`（快取讀寫在 `js/01-data-model.js`） |
 | 同步衝突（三方合併、三選一彈窗） | `js/55-sync-conflict.js` |
 | 待更新區：未發布紅點、紅叉幽靈列、還原、發布摘要（admin） | `js/56-pending.js`（發布範圍和版本標籤在 `js/51-shared-base.js`） |
+| 使用者統計 payload、變更雜湊、寫入 `userStats/{uid}` | `js/57-user-stats.js`（由 54 同步成功後呼叫） |
+| 管理員統計卡、備份（下載已發布版本 JSON） | `js/75-admin-stats.js`、`css/admin-stats.css` |
+| 管理員郵件箱、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
+| 使用者表單：問題回報、招式投稿／申請協助者、防灌水 | `js/74-forms.js` |
+| 通知與近期更新頁、站內訊息收件、紅點 | `js/16-shell-updates.js` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
 | 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |

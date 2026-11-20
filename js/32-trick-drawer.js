@@ -23,6 +23,7 @@
   ============================================================ */
   function openDrawerFor(trickId){
     state.detailTrickId = trickId;
+    state.reviewSubmissionId = null;
     drawerUi.tagPicker = false; drawerUi.rateHint = false;
     attachDrawerSwipeClose(document.getElementById("detailDrawer"));
     renderColumns();
@@ -31,6 +32,7 @@
   }
   function closeDrawer(){
     state.detailTrickId = null;
+    state.reviewSubmissionId = null;
     document.getElementById("detailDrawer").classList.remove("show");
     renderColumns();
   }
@@ -91,6 +93,7 @@
 
   function renderDrawer(){
     var drawer = document.getElementById("detailDrawer");
+    if(state.reviewSubmissionId && typeof renderSubmissionDrawer === "function"){ renderSubmissionDrawer(drawer); return; } // admin review (76)
     if(!state.detailTrickId){ return; }
     var tr = getTrick(state.detailTrickId);
     if(!tr){ closeDrawer(); return; }
@@ -134,6 +137,9 @@
       idBtn.addEventListener("click", function(){ copyDrawerText(trickIdLabel(tr)); });
       headActions.appendChild(idBtn);
     }
+    // Contributors: 投稿 button on their own custom tricks in 總表 (72).
+    var submitBtn = typeof buildSubmitButton === "function" ? buildSubmitButton(tr) : null;
+    if(submitBtn) headActions.appendChild(submitBtn);
 
     // Quick-toggle: star / un-star (tr.favorite, via toggleFavorite).
     var goalBtn = document.createElement("button");

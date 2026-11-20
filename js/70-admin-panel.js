@@ -106,7 +106,7 @@
                 adminIndexHint:"adminIndexHint", adminIndexLink:"adminIndexLink" };
     Object.keys(map).forEach(function(id){ var el = adminEl(id); if(el) el.textContent = t(map[id]); });
     adminEl("adminMailboxBtn").textContent = t("adminMailbox");
-    adminEl("adminMailboxBtn").title = t("comingSoon");
+    adminEl("adminMailboxBtn").title = t("adminMailbox");
     Array.prototype.forEach.call(document.querySelectorAll("#adminModal [data-soon]"), function(el){ el.textContent = t("comingSoon"); });
     adminEl("adminNote").placeholder = t("adminNotePlaceholder");
     var cb = adminEl("adminCloseBtn");
@@ -124,6 +124,9 @@
   function openAdminPanel(){
     if(typeof isAdminAccount !== "function" || !isAdminAccount()) return;
     renderAdminStatic();
+    if(typeof renderAdminHelpers === "function") renderAdminHelpers(); // 71
+    if(typeof renderAdminStats === "function") renderAdminStats(adminEl("adminStatsBody")); // 75
+    if(typeof renderAdminBackup === "function") renderAdminBackup(adminEl("adminBackupBody")); // 75
     adminPtr = null; adminPending = null; adminBusy = false;
     adminEl("adminNote").value = "";
     adminEl("adminVersion").value = "";

@@ -14,6 +14,9 @@
 <link rel="stylesheet" href="css/detail-drawer.css">
 <link rel="stylesheet" href="css/buttons-and-modals.css">
 <link rel="stylesheet" href="css/admin-panel.css">
+<link rel="stylesheet" href="css/admin-stats.css">
+<link rel="stylesheet" href="css/contrib.css">
+<link rel="stylesheet" href="css/mailbox.css">
 <link rel="stylesheet" href="css/toast-and-utility.css">
 </head>
 <body>
@@ -201,11 +204,12 @@
     </div>
     <div class="modal-scroll admin-grid">
       <div class="admin-area-mail">
-        <button type="button" class="btn btn-ghost btn-sm admin-mailbox-btn" id="adminMailboxBtn" disabled>📫 郵件箱</button>
+        <button type="button" class="btn btn-ghost btn-sm admin-mailbox-btn" id="adminMailboxBtn">📫 郵件箱</button>
       </div>
       <section class="admin-card admin-area-stats">
         <div class="admin-card-title" id="adminStatsTitle">網站統計</div>
-        <div class="admin-soon" data-soon>即將推出</div>
+        <div id="adminStatsBody"></div>
+        <div id="adminBackupBody"></div>
       </section>
       <section class="admin-card admin-area-publish">
         <div class="admin-card-title" id="adminPublishTitle">更新與發布</div>
@@ -548,11 +552,18 @@
 <script src="js/54-sync-queue.js"></script>
 <script src="js/55-sync-conflict.js"></script>
 <script src="js/56-pending.js"></script>
+<script src="js/57-user-stats.js"></script>
 <script src="js/59-auth-state.js"></script>
 <script src="js/60-search-suggest.js"></script>
 <script src="js/61-search-index.js"></script>
 <script src="js/62-search-panel.js"></script>
 <script src="js/70-admin-panel.js"></script>
+<script src="js/71-contributors.js"></script>
+<script src="js/72-submissions.js"></script>
+<script src="js/73-mailbox.js"></script>
+<script src="js/74-forms.js"></script>
+<script src="js/75-admin-stats.js"></script>
+<script src="js/76-submission-review.js"></script>
 <script src="js/90-events-and-init.js"></script>
 </body>
 </html>
