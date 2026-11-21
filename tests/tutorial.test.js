@@ -81,3 +81,18 @@ test("UI file loads, exposes entry points", () => {
   assert.ok(src.includes("function openTutorial") && src.includes("goToTrickLocation") && src.includes('collection("tutorial")'));
   assert.ok(src.includes("isAdminAccount") && src.includes("getEmbedInfo"));
 });
+
+test("v0.14.2: page video link — normalize, validation, override", () => {
+  const c = load(["js/01-data-model.js", "js/01-data-storage.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/19-tutorial-logic.js"], { URL });
+  assert.strictEqual(c.tutorialBlankPage().videoUrl, "");
+  assert.strictEqual(c.tutorialNormalizePage({ videoUrl: "https://youtu.be/abc" }).videoUrl, "https://youtu.be/abc");
+  assert.strictEqual(c.tutorialNormalizePage({ videoUrl: "javascript:alert(1)" }).videoUrl, "");
+  assert.strictEqual(c.tutorialNormalizePage({ videoUrl: 42 }).videoUrl, "");
+  assert.strictEqual(c.tutorialVideoUrlOk(""), true);
+  assert.strictEqual(c.tutorialVideoUrlOk("ftp://x"), false);
+  assert.strictEqual(c.tutorialVideoUrlOk("https://x.com/" + "a".repeat(600)), false);
+  const tr = { media: [{ type: "video", url: "https://youtu.be/trick" }] };
+  assert.strictEqual(c.tutorialPageVideoUrl({ videoUrl: "https://youtu.be/page" }, tr), "https://youtu.be/page");
+  assert.strictEqual(c.tutorialPageVideoUrl({ videoUrl: "" }, tr), "https://youtu.be/trick");
+  assert.strictEqual(c.tutorialPageVideoUrl({ videoUrl: "" }, null), "");
+});

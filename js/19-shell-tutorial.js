@@ -12,7 +12,7 @@
          tutBack:"返回", tutPrev:"上一頁", tutNext:"下一頁", tutLoading:"載入中…", tutLoadFail:"載入失敗",
          tutEmpty:"此頁尚未設定內容", tutGo:"前往招式位置", tutNoVideo:"此招式沒有影片",
          tutOpenVideo:"開啟影片連結", tutEdit:"編輯此頁", tutEditDone:"結束編輯", tutSave:"儲存", tutSaved:"已儲存",
-         tutSaveFail:"儲存失敗", tutTrickLabel:"招式 ID（7 碼或 @ID，可留空）",
+         tutSaveFail:"儲存失敗", tutTrickLabel:"招式 ID（7 碼或 @ID，可留空）", tutVideoLabel:"影片連結（選填）", tutVideoHint:"有填就取代招式本身的影片；影片檔請先上傳到 YouTube（可設不公開）或 Google 雲端再貼連結", tutErrVideo:"請貼 http(s) 開頭的影片連結",
          tutErrFormat:"格式錯誤，請輸入 7 碼 ID", tutErrNotFound:"找不到這個招式",
          tutErrNotPublic:"只能連結 00／01／02 公開分區的招式", tutTrickPicked:"招式：",
          tutTextZh:"解說（中文）", tutTextJp:"解說（日本語）", tutTextEn:"解說（English）",
@@ -23,7 +23,7 @@
          tutBack:"戻る", tutPrev:"前のページ", tutNext:"次のページ", tutLoading:"読み込み中…", tutLoadFail:"読み込みに失敗しました",
          tutEmpty:"このページはまだ設定されていません", tutGo:"技の場所へ移動", tutNoVideo:"この技には動画がありません",
          tutOpenVideo:"動画リンクを開く", tutEdit:"このページを編集", tutEditDone:"編集を終了", tutSave:"保存", tutSaved:"保存しました",
-         tutSaveFail:"保存に失敗しました", tutTrickLabel:"技 ID（7文字または @ID、空欄可）",
+         tutSaveFail:"保存に失敗しました", tutTrickLabel:"技 ID（7文字または @ID、空欄可）", tutVideoLabel:"動画リンク（任意）", tutVideoHint:"入力すると技の動画の代わりに表示。動画ファイルは YouTube（限定公開可）や Google ドライブにアップしてリンクを貼ってください", tutErrVideo:"http(s) で始まる動画リンクを貼ってください",
          tutErrFormat:"形式が正しくありません。7文字の ID を入力してください", tutErrNotFound:"この技は見つかりません",
          tutErrNotPublic:"00／01／02 の公開テーブルの技のみリンクできます", tutTrickPicked:"技：",
          tutTextZh:"解説（中文）", tutTextJp:"解説（日本語）", tutTextEn:"解説（English）",
@@ -34,7 +34,7 @@
          tutBack:"Back", tutPrev:"Previous", tutNext:"Next", tutLoading:"Loading...", tutLoadFail:"Failed to load",
          tutEmpty:"This page has no content yet", tutGo:"Go to trick", tutNoVideo:"This trick has no video",
          tutOpenVideo:"Open video link", tutEdit:"Edit this page", tutEditDone:"Done editing", tutSave:"Save", tutSaved:"Saved",
-         tutSaveFail:"Save failed", tutTrickLabel:"Trick ID (7 chars or @ID, optional)",
+         tutSaveFail:"Save failed", tutTrickLabel:"Trick ID (7 chars or @ID, optional)", tutVideoLabel:"Video link (optional)", tutVideoHint:"Overrides the trick’s own video. For video files, upload to YouTube (unlisted is fine) or Google Drive and paste the link", tutErrVideo:"Paste a video link starting with http(s)",
          tutErrFormat:"Invalid format; enter a 7-character ID", tutErrNotFound:"Trick not found",
          tutErrNotPublic:"Only tricks in the public tables 00/01/02 can be linked", tutTrickPicked:"Trick: ",
          tutTextZh:"Explanation (中文)", tutTextJp:"Explanation (日本語)", tutTextEn:"Explanation (English)",
@@ -183,9 +183,9 @@
   function buildTutPage(page){
     var wrap = tutEl("div", "tut-page");
     var tr = page.trickId ? getTrick(page.trickId) : null;
-    if(!tr){ wrap.appendChild(tutEl("div", "tut-empty", t("tutEmpty"))); return wrap; }
-    wrap.appendChild(tutEl("div", "tut-trick-name", localize(tr.name)));
-    var url = tutorialFirstVideoUrl(tr);
+    if(!tr && !page.videoUrl){ wrap.appendChild(tutEl("div", "tut-empty", t("tutEmpty"))); return wrap; }
+    if(tr) wrap.appendChild(tutEl("div", "tut-trick-name", localize(tr.name)));
+    var url = tutorialPageVideoUrl(page, tr);
     var info = url && typeof getEmbedInfo === "function" ? getEmbedInfo(url) : null;
     if(info && info.embedUrl){
       var fw = tutEl("div", "tut-video");
@@ -205,6 +205,7 @@
       wrap.appendChild(fb);
     }
     wrap.appendChild(tutEl("div", "tut-text", tutorialPageText(page, state.lang)));
+    if(!tr) return wrap;
     var go = tutEl("button", "btn btn-primary tut-go", t("tutGo"));
     go.type = "button";
     go.addEventListener("click", function(){ closeTutorial(); goToTrickLocation(page.trickId); });
@@ -234,6 +235,22 @@
     }
     inp.addEventListener("input", refreshMsg);
     refreshMsg();
+    var fv = tutEl("div", "field");
+    fv.appendChild(tutEl("label", "", t("tutVideoLabel")));
+    var vinp = document.createElement("input");
+    vinp.type = "url"; vinp.className = "tut-video-input"; vinp.value = page.videoUrl || ""; vinp.maxLength = TUTORIAL_VIDEO_MAX;
+    vinp.placeholder = "https://";
+    fv.appendChild(vinp);
+    var vmsg = tutEl("div", "tut-id-msg", t("tutVideoHint"));
+    fv.appendChild(vmsg);
+    form.appendChild(fv);
+    function refreshVideoMsg(){
+      var ok = tutorialVideoUrlOk(vinp.value);
+      vmsg.textContent = t(ok ? "tutVideoHint" : "tutErrVideo");
+      vmsg.className = "tut-id-msg" + (ok ? "" : " field-error");
+      return ok;
+    }
+    vinp.addEventListener("input", refreshVideoMsg);
     var areas = {};
     [["zh", "tutTextZh"], ["jp", "tutTextJp"], ["en", "tutTextEn"]].forEach(function(p){
       var f = tutEl("div", "field");
@@ -249,8 +266,9 @@
     save.addEventListener("click", function(){
       var res = tutorialCheckTrick(inp.value);
       if(!res.ok){ refreshMsg(); return; }
+      if(!refreshVideoMsg()) return;
       var pages = tutState.pages[tutState.track].slice();
-      pages[tutState.page] = tutorialNormalizePage({ trickId: res.id, text: { zh: areas.zh.value, jp: areas.jp.value, en: areas.en.value } });
+      pages[tutState.page] = tutorialNormalizePage({ trickId: res.id, videoUrl: vinp.value.trim(), text: { zh: areas.zh.value, jp: areas.jp.value, en: areas.en.value } });
       save.disabled = true;
       saveTutorialTrack(tutState.track, pages).then(function(){
         tutState.pages[tutState.track] = pages; tutState.editing = false;
