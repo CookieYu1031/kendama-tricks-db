@@ -17,6 +17,18 @@
     if(typeof closeNicknameEdit === "function") closeNicknameEdit();
   }
 
+  // Privacy notice: its own modal, stacked above the settings page (z-index in settings css).
+  function isPrivacyOpen(){
+    return document.getElementById("privacyOverlay").classList.contains("show");
+  }
+  function openPrivacy(){
+    renderSettingsUI();
+    document.getElementById("privacyOverlay").classList.add("show");
+  }
+  function closePrivacy(){
+    document.getElementById("privacyOverlay").classList.remove("show");
+  }
+
   // Topbar settings button face: signed-out -> person icon; signed-in -> photo (or initial letter).
   function settingsBtnState(user){
     if(!user) return { kind: "icon", photoURL: "", initial: "" };
@@ -64,7 +76,7 @@
     });
   }
 
-  // Privacy notice (v0.8, D6 follow-up): what the site stores, shown inline under the grid.
+  // Privacy notice (v0.8, D6 follow-up): what the site stores, shown in its own modal (openPrivacy).
   if(typeof addStrings === "function") addStrings({
     zh: {
       settingsGuide: "快速導覽",
@@ -120,7 +132,12 @@
     setText("settingsSubmitNote", t("settingsSubmitNote"));
     setText("settingsReportLabel", t("settingsReport"));
     setText("settingsPrivacyLabel", t("settingsPrivacy"));
-    setText("settingsPrivacyText", t("privacyBody"));
+    setText("privacyTitle", t("settingsPrivacy"));
+    setText("privacyText", t("privacyBody"));
+    var pcb = document.getElementById("privacyCloseBtn");
+    pcb.title = t("settingsClose");
+    pcb.setAttribute("aria-label", t("settingsClose"));
+    if(!pcb.firstChild) pcb.innerHTML = ICON_X;
     if(typeof renderPwaSettingsRow === "function") renderPwaSettingsRow();
     enableFormItems();
     Array.prototype.forEach.call(document.querySelectorAll("[data-soon]"), function(el){
@@ -146,11 +163,10 @@
     closeSettings();
     if(typeof startTour === "function") startTour("full");
   });
-  document.getElementById("settingsPrivacyBtn").addEventListener("click", function(){
-    var box = document.getElementById("settingsPrivacyText");
-    box.hidden = !box.hidden;
-    this.classList.toggle("active", !box.hidden);
-    if(!box.hidden && box.scrollIntoView) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  document.getElementById("settingsPrivacyBtn").addEventListener("click", openPrivacy);
+  document.getElementById("privacyCloseBtn").addEventListener("click", closePrivacy);
+  document.getElementById("privacyOverlay").addEventListener("click", function(ev){
+    if(ev.target.id === "privacyOverlay") closePrivacy();
   });
   document.getElementById("themeSwitch").addEventListener("click", function(ev){
     var btn = ev.target.closest(".theme-btn");

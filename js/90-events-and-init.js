@@ -146,6 +146,7 @@
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();
     if(isAdminPanelOpen()) return closeAdminPanel();
     if(isUpdatesOpen()) return closeUpdates();
+    if(isPrivacyOpen()) return closePrivacy();
     if(isSettingsOpen()) return closeSettings();
     if(document.getElementById("detailDrawer").classList.contains("show")) return closeDrawer();
   });

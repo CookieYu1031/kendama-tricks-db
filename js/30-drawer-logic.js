@@ -55,20 +55,85 @@
     tr.parts = PART_KEYS.filter(function(p){ return parts.indexOf(p) !== -1; });
     return tr.parts;
   }
-  // [{ id, label }] for the tags on a trick (unknown ids skipped).
-  function trickTagChips(tr){
+  // Tag kind: "class" (招式類別) or "text" (default, incl. old tags without a kind).
+  function tagKind(tag){ return tag && tag.kind === "class" ? "class" : "text"; }
+  // [{ id, label, kind }] for the tags on a trick (unknown ids skipped); kind filters when given.
+  function trickTagChips(tr, kind){
     var out = [];
     (tr.tagIds || []).forEach(function(id){
       var tag = getTag(id);
-      if(tag) out.push({ id: id, label: resolveDisplayName(tag.name).text });
+      if(tag && (!kind || tagKind(tag) === kind)) out.push({ id: id, label: resolveDisplayName(tag.name).text, kind: tagKind(tag) });
     });
     return out;
   }
-  // Existing tags not yet on the trick.
-  function availableTagChips(tr){
+  // Existing tags not yet on the trick (optionally only one kind).
+  function availableTagChips(tr, kind){
     var have = tr.tagIds || [];
-    return (db.tags || []).filter(function(g){ return have.indexOf(g.id) === -1; })
-      .map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text }; });
+    return (db.tags || []).filter(function(g){ return have.indexOf(g.id) === -1 && (!kind || tagKind(g) === kind); })
+      .map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text, kind: tagKind(g) }; });
+  }
+  // Class tags NOT on the trick whose combo fits its grip + parts (suggestion only).
+  // Fits: combo non-empty, combo.grip (if set) == trick grip, every combo part is on the trick.
+  function classTagSuggestions(tr){
+    var have = tr.tagIds || [];
+    var parts = tr.parts || [];
+    return (db.tags || []).filter(function(g){
+      if(tagKind(g) !== "class" || have.indexOf(g.id) !== -1 || !g.combo) return false;
+      var cp = g.combo.parts || [];
+      if(!g.combo.grip && !cp.length) return false;
+      if(g.combo.grip && g.combo.grip !== tr.grip) return false;
+      return cp.every(function(k){ return parts.indexOf(k) !== -1; });
+    }).map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text, kind: "class" }; });
+  }
+  // "持球＋大小皿＋球上" for a combo ("" when empty).
+  function comboLabel(combo){
+    if(!combo) return "";
+    var out = [];
+    if(combo.grip) out.push(t("grip_" + combo.grip));
+    (combo.parts || []).forEach(function(k){ out.push(t("part_" + k)); });
+    return out.join("＋");
+  }
+  // What applying a class tag's combo would change: { grip, parts } (grip only when it differs,
+  // parts = missing ones), or null when the trick already has everything / tag has no combo.
+  function classComboGap(tr, tag){
+    if(!tag || tagKind(tag) !== "class" || !tag.combo) return null;
+    var gripChange = tag.combo.grip && tag.combo.grip !== tr.grip ? tag.combo.grip : null;
+    var missing = (tag.combo.parts || []).filter(function(k){ return (tr.parts || []).indexOf(k) === -1; });
+    return (gripChange || missing.length) ? { grip: gripChange, parts: missing } : null;
+  }
+  // Sets the trick's grip to the combo's and adds the missing parts. Returns true when changed.
+  function applyClassCombo(tr, tag){
+    var gap = classComboGap(tr, tag);
+    if(!gap) return false;
+    if(gap.grip) tr.grip = gap.grip;
+    if(gap.parts.length) tr.parts = PART_KEYS.filter(function(k){ return (tr.parts || []).indexOf(k) !== -1 || gap.parts.indexOf(k) !== -1; });
+    return true;
+  }
+  // Admin tag manager: create / edit / usage. kind "class" takes a combo.
+  function createTag(kind, name, combo){
+    if(!db.tags) db.tags = [];
+    var nm = { zh: (name && name.zh || "").trim(), jp: (name && name.jp || "").trim(), en: (name && name.en || "").trim() };
+    if(!nm.zh && !nm.jp && !nm.en) return null;
+    var tag = { id: newItemId(), name: nm, kind: kind === "class" ? "class" : "text" };
+    if(tag.kind === "class") tag.combo = normalizeCombo(combo);
+    db.tags.push(tag);
+    saveDB();
+    return tag;
+  }
+  function updateTag(id, patch){
+    var tag = getTag(id);
+    if(!tag) return null;
+    if(patch.name){
+      var nm = { zh: (patch.name.zh || "").trim(), jp: (patch.name.jp || "").trim(), en: (patch.name.en || "").trim() };
+      if(!nm.zh && !nm.jp && !nm.en) return null;
+      tag.name = nm;
+    }
+    if(patch.combo && tagKind(tag) === "class") tag.combo = normalizeCombo(patch.combo);
+    saveDB();
+    return tag;
+  }
+  function tagUsageCount(id){
+    return (db.tricks || []).filter(function(tr){ return (tr.tagIds || []).indexOf(id) !== -1; }).length;
   }
   // Adds a tag to the trick; creates it (addTag) unless a tag with the same name exists.
   function addTagToTrick(tr, text, lang){
@@ -82,6 +147,7 @@
       var nm = { zh:"", jp:"", en:"" };
       nm[lang || "zh"] = text;
       tag = addTag(nm);
+      tag.kind = "text";
     }
     tr.tagIds = tr.tagIds || [];
     if(tr.tagIds.indexOf(tag.id) === -1) tr.tagIds.push(tag.id);

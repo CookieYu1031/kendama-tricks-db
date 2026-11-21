@@ -1,18 +1,23 @@
   /* ---------- Detail Drawer ---------- */
   :root{ --drawer-custom-tint: var(--wood-tint-strong); --star:#E0B040; } /* custom:true tricks: warm (--wood) tint on the head */
   :root[data-theme="light"]{ --star:#D69A1E; }
+  /* Card look = .m-col (browse-columns.css): same radius, glass fill/border, shadow.
+     margin 14px 14px 16px 0 mirrors .miller-wrap's padding (14 top, 16 bottom) so the
+     card's top/bottom edges line up with the columns'. Closed: zero size, no margin. */
   .detail-drawer{
-    flex: 0 0 0px; width:0; min-width:0; max-width:0; overflow:hidden;
-    background: linear-gradient(165deg, var(--surface-drawer-a), var(--surface-drawer-b));
-    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    border-left: 1px solid var(--glass-border-strong);
+    flex: 0 0 0px; width:0; min-width:0; max-width:0; overflow:hidden; margin:0;
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
+    border: 0 solid var(--glass-border); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm), var(--glass-highlight);
     display:flex; flex-direction:column;
-    transition: flex-basis .3s var(--ease), width .3s var(--ease), max-width .3s var(--ease);
+    transition: flex-basis .3s var(--ease), width .3s var(--ease), max-width .3s var(--ease), margin .3s var(--ease);
   }
   .detail-drawer.show{
     flex: 0 0 clamp(300px, 32vw, 420px);
     width: clamp(300px, 32vw, 420px);
     min-width:0; max-width:min(420px, 92vw);
+    margin: 14px 14px 16px 0; border-width: 1px;
   }
   .drawer-head{ flex:0 0 auto;
     padding: 18px 20px; border-bottom: 1px solid var(--line); display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
@@ -195,21 +200,17 @@
   /* Mobile: full-width panel under the top bar, slides in from the right
      (spec 3.4). Body scrolls; the proficiency / guest foot stays pinned. */
   @media (max-width: 860px){
-    .detail-drawer{
-      position:fixed; left:0; right:0; top: var(--topbar-h); bottom:0; height:auto;
-      flex:none; width:100%; min-width:0; max-width:100%;
-      border-left:none; border-top:1px solid var(--line-strong); border-radius:0;
-      transform: translateX(100%);
+    /* Card inset like the mobile column (14px sides/top, 16px bottom), under the top bar. */
+    .detail-drawer, .detail-drawer.show{
+      position:fixed; left:14px; right:14px; top: calc(var(--topbar-h) + 14px); bottom:16px; height:auto;
+      flex:none; width:auto; min-width:0; max-width:none; margin:0;
+      border-width:1px;
+      transform: translateX(calc(100% + 28px));
       transition: transform .3s var(--ease);
       z-index: 41; box-shadow: var(--shadow-lg);
       touch-action: pan-y;
     }
-    /* Same specificity as the base ".detail-drawer.show" (which sets flex/width),
-       so restate the full-width values here. */
-    .detail-drawer.show{
-      transform: translateX(0);
-      flex:none; width:100%; min-width:0; max-width:100%;
-    }
+    .detail-drawer.show{ transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce){
     .detail-drawer{ transition: none; }

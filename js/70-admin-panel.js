@@ -109,6 +109,7 @@
     adminEl("adminMailboxBtn").title = t("adminMailbox");
     adminEl("adminBackupBtn").textContent = t("adminBackup"); adminEl("adminBackupBtn").title = t("adminBackup");
     adminEl("adminHelpersBtn").textContent = t("adminHelpers"); adminEl("adminHelpersBtn").title = t("adminHelpers");
+    adminEl("adminTagsBtn").textContent = t("tagMgrTitle"); adminEl("adminTagsBtn").title = t("tagMgrTitle"); // 77
     adminEl("adminNote").placeholder = t("adminNotePlaceholder");
     var cb = adminEl("adminCloseBtn");
     cb.title = t("settingsClose"); cb.setAttribute("aria-label", t("settingsClose"));
@@ -194,7 +195,7 @@
   /* ---------------- Sub-modals (opened from the admin panel's button row) ----------------
      Own overlays inserted before #confirmOverlay (so confirms stack above). The Esc chain in 90 is
      not touched: a capture-phase listener below closes the topmost sub-modal first. */
-  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay"];
+  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay"];
   function adminSubModal(id, titleKey, extraClass){
     var ov = document.getElementById(id);
     if(!ov){

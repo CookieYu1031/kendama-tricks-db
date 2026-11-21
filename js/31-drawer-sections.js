@@ -6,7 +6,7 @@
      renderDrawer() in js/32-trick-drawer.js assembles them.
   ============================================================ */
   // Tag-picker / rate-hint open state for the drawer (reset when another trick opens).
-  var drawerUi = { tagPicker: false, rateHint: false };
+  var drawerUi = { tagPicker: false, rateHint: false, classPickerFor: null }; // buildDrawerTags lives in js/33
 
   function copyDrawerText(text){
     try{
@@ -80,73 +80,6 @@
     });
     icWrap.appendChild(icBtn);
     expandContent.appendChild(icWrap);
-  }
-
-  // Tags: chips on the trick, plus (edit mode) the add-tag picker.
-  function buildDrawerTags(tr, canEditTrick, expandContent){
-    var tagChips = trickTagChips(tr);
-    if(tagChips.length || canEditTrick){
-      expandContent.appendChild(makeLabel(t("tagsLabel")));
-      var tagWrap = document.createElement("div");
-      tagWrap.className = "drawer-chip-row";
-      tagChips.forEach(function(c){
-        var chip;
-        if(canEditTrick){
-          chip = makeChip(c.label + " ×", false, function(){
-            tr.tagIds = (tr.tagIds || []).filter(function(x){ return x !== c.id; });
-            saveDB(); renderDrawer();
-          });
-          chip.title = t("removeTagFromTrick");
-        } else chip = makeChip(c.label, false);
-        tagWrap.appendChild(chip);
-      });
-      if(canEditTrick){
-        tagWrap.appendChild(makeChip("+ " + t("addTag"), drawerUi.tagPicker, function(){
-          drawerUi.tagPicker = !drawerUi.tagPicker; renderDrawer();
-        }));
-      }
-      expandContent.appendChild(tagWrap);
-      if(canEditTrick && drawerUi.tagPicker){
-        var picker = document.createElement("div");
-        picker.className = "drawer-tag-picker";
-        var pickRow = document.createElement("div");
-        pickRow.className = "drawer-chip-row";
-        var isAdmin = typeof isAdminAccount === "function" && isAdminAccount();
-        availableTagChips(tr).forEach(function(c){
-          pickRow.appendChild(makeChip("+ " + c.label, false, function(){
-            tr.tagIds = (tr.tagIds || []).concat([c.id]);
-            saveDB(); renderDrawer();
-          }));
-          if(isAdmin){
-            var delTag = document.createElement("button");
-            delTag.type = "button"; delTag.className = "drawer-chip drawer-chip-danger";
-            delTag.title = t("deleteTagGlobal"); delTag.innerHTML = ICON_TRASH;
-            delTag.addEventListener("click", function(){
-              openConfirm(t("confirmDeleteTagTitle"), t("confirmDeleteTagBody"), function(){
-                removeTag(c.id); renderColumns(); renderDrawer();
-              });
-            });
-            pickRow.appendChild(delTag);
-          }
-        });
-        picker.appendChild(pickRow);
-        var newRow = document.createElement("div");
-        newRow.className = "drawer-tag-new";
-        var newInp = document.createElement("input");
-        newInp.type = "text"; newInp.className = "drawer-inline-input"; newInp.placeholder = t("newTagPlaceholder");
-        var newBtn = document.createElement("button");
-        newBtn.type = "button"; newBtn.className = "col-add-btn";
-        newBtn.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addTag")) + "</span>";
-        var submitTag = function(){
-          if(addTagToTrick(tr, newInp.value, state.lang)) renderDrawer();
-        };
-        newBtn.addEventListener("click", submitTag);
-        newInp.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); submitTag(); } });
-        newRow.appendChild(newInp); newRow.appendChild(newBtn);
-        picker.appendChild(newRow);
-        expandContent.appendChild(picker);
-      }
-    }
   }
 
   // Fills `box` with one .part-group per PART_GROUPS entry; makeBtn(key) returns a chip or null.

@@ -87,7 +87,7 @@
       var dx = m ? parseFloat(m[1]) : 0;
       drawerEl.style.transition = "";
       if(!cancelled && drawerSwipeDecision(dx, 0, vx, w) === "close"){
-        drawerEl.style.transform = "translateX(100%)";
+        drawerEl.style.transform = "translateX(calc(100% + 28px))";
         closeDrawer();
         setTimeout(function(){
           if(!drawerEl.classList.contains("show")) drawerEl.style.transform = "";

@@ -10,6 +10,7 @@
   }
   .admin-card-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
   .admin-card-head .admin-card-title{ margin-bottom:0; }
+  .admin-backup-btn{ flex:0 0 auto; padding:4px 10px; font-size:11.5px; white-space:normal; line-height:1.25; }
   .admin-card-title{ font-family: var(--font-display); font-size:15px; font-weight:700; margin-bottom:10px; }
   .admin-card-subtitle{ font-size:12px; font-weight:600; color: var(--paper-dim); margin: 4px 0 6px; }
   .admin-last{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color: var(--paper-dim); margin-bottom:12px; }

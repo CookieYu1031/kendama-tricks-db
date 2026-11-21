@@ -1,0 +1,24 @@
+/* Tags (v0.9.2): class-tag chips in the drawer, suggestion chips, tag manager. Reuses .drawer-chip. */
+  .drawer-chip.tag-class{
+    background: rgba(var(--lacquer-rgb), 0.14); border-color: rgba(var(--lacquer-rgb), 0.5); color: var(--accent-text);
+  }
+  .drawer-chip.tag-class:hover{ border-color: var(--lacquer-bright); color: var(--accent-text); }
+  .drawer-chip.tag-suggest{ border-style: dashed; background: transparent; }
+  .drawer-chip.tag-apply{ border-style: dashed; color: var(--paper); }
+
+  .tagmgr-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .tagmgr-body{ padding:4px 2px 12px; }
+  .tagmgr-section-title{ font-size:12px; font-weight:600; color: var(--paper-dim); margin: 10px 0 6px; }
+  .tagmgr-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .tagmgr-row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    border:1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-1); padding:8px 12px;
+  }
+  .tagmgr-row-main{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .tagmgr-row-name{ font-size:13px; color: var(--paper); overflow-wrap:anywhere; }
+  .tagmgr-row-sub{ font-size:11.5px; color: var(--paper-dim); }
+  .tagmgr-row-actions{ display:flex; gap:6px; flex:0 0 auto; }
+  .tagmgr-form{ border:1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-1); padding:12px 14px; }
+  .tagmgr-form .field{ margin-bottom:8px; }
+  .tagmgr-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+  .tagmgr-chips{ margin-bottom:10px; }

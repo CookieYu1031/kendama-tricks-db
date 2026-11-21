@@ -51,7 +51,7 @@ test("toggleGrip single / togglePart multi in canonical order", () => {
 
 test("tag chips: localized labels, missing ids skipped, available excludes own", () => {
   const c = setup(), t = { tagIds: ["g1", "gone"] };
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.trickTagChips(t))), [{ id: "g1", label: "標籤" }]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.trickTagChips(t))), [{ id: "g1", label: "標籤", kind: "text" }]);
   assert.deepStrictEqual(Array.from(c.availableTagChips(t)).map(x => x.id), ["g2"]);
   c.state.lang = "en";
   assert.strictEqual(c.trickTagChips(t)[0].label, "Tag");

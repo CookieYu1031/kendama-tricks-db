@@ -6,7 +6,7 @@ const { load } = require("./_load");
 
 function setup(){
   const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
-    "js/06-icons-svg.js", "js/07-id.js", "js/20-browse-order.js", "js/26-browse-fab.js", "js/58-share.js"], { URL });
+    "js/06-icons-svg.js", "js/07-id.js", "js/20-browse-order.js", "js/26-browse-fab.js", "js/58-share.js", "js/58-share-flow.js"], { URL });
   ctx.saveDB = () => {};
   ctx.undoPush = () => {};
   let seq = 0;
@@ -304,7 +304,8 @@ test("colShareTarget: own folders / custom tables yes; locked / default / guest 
 
 test("i18n: every share string exists in zh/jp/en", () => {
   const c = setup();
-  const src = require("fs").readFileSync(require("path").join(__dirname, "..", "js", "58-share.js"), "utf8");
+  const rd = (f) => require("fs").readFileSync(require("path").join(__dirname, "..", "js", f), "utf8");
+  const src = rd("58-share.js") + rd("58-share-flow.js");
   const keys = Array.from(new Set((src.match(/\b(?:t|res\.err)\("(share[A-Za-z]+)"\)|"(share[A-Z][A-Za-z]+)"/g) || []).map((m) => m.replace(/^.*?"(share\w+)".*$/, "$1")))).filter((k) => !/^share(Ex|Sanitize)/.test(k));
   assert.ok(keys.indexOf("shareDup") !== -1 && keys.indexOf("shareAdded") !== -1);
   ["zh", "jp", "en"].forEach((lang) => {
