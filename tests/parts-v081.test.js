@@ -19,14 +19,14 @@ test("PART_GROUPS order and PART_KEYS flatten", () => {
   assert.deepStrictEqual(g.map((x) => x.key), ["ken", "ito", "tama"]);
   assert.deepStrictEqual(g[1].parts, ["string"]);
   assert.deepStrictEqual(arr(c.PART_KEYS), [
-    "kensaki", "kenchou", "saraDo", "sara", "saraEdge", "kenBody", "suberidome", "chuzara", "chuzaraEdge",
-    "string", "tamaTop", "ana", "stringHole"]);
+    "kenchou", "kensaki", "sara", "saraEdge", "junction", "kenBody", "suberidome", "chuzara", "chuzaraEdge",
+    "string", "tamaTop", "tamaPoint", "ana"]);
 });
 
 test("normalizeDB drops old kensakiSide, keeps surviving keys in canonical order", () => {
   const c = setup();
-  const t = c.normalizeDB({ categories: [], tricks: [{ id: "x", parts: ["ana", "kensakiSide", "kensaki", "stringHole"] }] }).tricks[0];
-  assert.deepStrictEqual(arr(t.parts), ["kensaki", "ana", "stringHole"]);
+  const t = c.normalizeDB({ categories: [], tricks: [{ id: "x", parts: ["ana", "kensakiSide", "kensaki", "stringHole", "tamaPoint"] }] }).tricks[0];
+  assert.deepStrictEqual(arr(t.parts), ["kensaki", "tamaPoint", "ana"]);
 });
 
 test("part labels exist for every key in zh/jp/en", () => {
@@ -38,11 +38,16 @@ test("part labels exist for every key in zh/jp/en", () => {
     });
   });
   assert.strictEqual(c.UI.zh.part_kenchou, "劍頂");
-  assert.strictEqual(c.UI.en.part_stringHole, "StringHole");
+  assert.strictEqual(c.UI.en.part_stringHole, undefined);
+  assert.strictEqual(c.UI.zh.part_tamaTop, "球面");
+  assert.strictEqual(c.UI.jp.part_tamaTop, "玉の面");
+  assert.strictEqual(c.UI.en.part_tamaTop, "Ball surface");
+  assert.strictEqual(c.UI.zh.part_tamaPoint, "球上一點");
+  assert.strictEqual(c.UI.zh.part_junction, "交界");
 });
 
 test("search mode labels relabelled", () => {
   const src = fs.readFileSync(path.join(__dirname, "..", "js/62-search-panel.js"), "utf8");
-  assert.ok(src.includes('searchModeAny:"其一", searchModeAll:"精確"'));
-  assert.ok(src.includes('searchModeAny:"Any", searchModeAll:"Exact"'));
+  assert.ok(src.includes('searchModeAny:"其一符合", searchModeAll:"全符合"'));
+  assert.ok(src.includes('searchModeAny:"Match any", searchModeAll:"Match all"'));
 });

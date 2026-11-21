@@ -28,6 +28,7 @@
   });
 
   // { mode:"copy"|"cut", type:"category"|"trick"|"info", id, srcParent (null = table root), srcSpace } | null
+  // External new trick (admin mailbox 複製招式): { mode:"copy", type:"extTrick", ext:{ name, urls, grip, parts, tagIds, note } }.
   var clipboardItem = null;
   var CLIP_NO_SOURCE = "\u0000none"; // never equals a real parent id (forces canReparent's full checks)
 
@@ -54,6 +55,7 @@
   // env: { admin, activeSpace }. Returns { ok:true, op:"ref"|"copyFolder"|"copyInfo"|"move" }
   // or { ok:false, err:<i18n key> }. Reuses canReparent (22) for levels / descendants / virtual targets.
   function clipPlanPaste(clip, targetParentId, env){
+    if(clip && clip.type === "extTrick") return clipPlanExtTrick(clip, targetParentId, env);
     var it = clip ? clipItemOf(clip.type, clip.id) : null;
     if(!it) return { ok:false, err:"clipGone" };
     if(isGuest()) return { ok:false, err:"clipNoPerm" };
@@ -81,6 +83,39 @@
       return { ok:true, op:"ref" };
     }
     return { ok:true, op: it.type === "category" ? "copyFolder" : "copyInfo" };
+  }
+
+  // A trick that exists only in the clipboard (from a submission): pasted as a brand-new trick.
+  function clipPlanExtTrick(clip, targetParentId, env){
+    if(!clip.ext) return { ok:false, err:"clipGone" };
+    if(isGuest()) return { ok:false, err:"clipNoPerm" };
+    var tSpace = env.activeSpace;
+    var sp = getSpace(tSpace);
+    if(!sp) return { ok:false, err:"clipNoPerm" };
+    if(!canCreateIn(targetParentId, tSpace)) return { ok:false, err:"favNoCreate" };
+    var allow = allowedAddButtons(targetParentId, tSpace, env.admin);
+    if(!allow.trick) return { ok:false, err:(canAddChild(targetParentId, "trick") ? "clipNoPerm" : "clipNoFit") };
+    return { ok:true, op:"newTrick" };
+  }
+  // Puts a new trick (data from submissionItemToTrickData, js/72) on the app clipboard so it can be
+  // pasted with Ctrl+V in edit mode. Returns the clipboard item.
+  function clipSetExternalTrick(data){
+    var ext = {
+      name: { zh: (data.name && data.name.zh) || "", jp: (data.name && data.name.jp) || "", en: (data.name && data.name.en) || "" },
+      urls: (data.urls || []).slice(0, MAX_VIDEOS), grip: data.grip || null, parts: (data.parts || []).slice(),
+      tagIds: (data.tagIds || []).slice(), note: data.note || ""
+    };
+    clipboardItem = { mode: "copy", type: "extTrick", id: null, ext: ext, srcParent: null, srcSpace: null };
+    return clipboardItem;
+  }
+  // Brand-new trick record from clipboard data, filed under containerKey.
+  function clipNewTrickRaw(ext, containerKey, custom){
+    var media = (ext.urls || []).map(function(u){
+      return { id: newItemId(), type: "video", title: "", url: u, platform: typeof detectPlatform === "function" ? detectPlatform(u) : "" };
+    });
+    return { id: newItemId(), name: ext.name, media: media.slice(0, MAX_VIDEOS), categoryIds: [containerKey], orderByCategory: {},
+      order: db.tricks.length, icon: "", color: "default", custom: !!custom, grip: ext.grip || null, parts: ext.parts || [],
+      tagIds: (ext.tagIds || []).filter(function(id){ return !!getTag(id); }), note: ext.note || "" };
   }
 
   // Pure (reads db, does not write): deep copy of a folder with fresh ids from idGen().
@@ -115,11 +150,16 @@
   }
 
   function clipApplyPaste(clip, targetParentId, plan, env){
-    var it = clipItemOf(clip.type, clip.id);
+    var it = plan.op === "newTrick" ? null : clipItemOf(clip.type, clip.id);
     var tSpace = env.activeSpace;
     var targetKey = clipKey(targetParentId, tSpace);
-    var newId = it.id, newType = it.type;
-    if(plan.op === "ref"){
+    var newId = it ? it.id : null, newType = it ? it.type : "trick";
+    if(plan.op === "newTrick"){
+      var spc = getSpace(tSpace);
+      var rec = normalizeDB({ categories: [], tricks: [clipNewTrickRaw(clip.ext, targetKey, !(env.admin && spc && spc.locked))] }).tricks[0];
+      db.tricks.push(rec);
+      newId = rec.id;
+    } else if(plan.op === "ref"){
       it.ref.categoryIds.push(targetKey);
     } else if(plan.op === "copyFolder"){
       var cp = clipDeepCopyFolder(it.id, targetParentId, tSpace, newItemId);
@@ -211,7 +251,7 @@
     if(!plan.ok) return clipToast(plan.err);
     if(typeof undoPush === "function") undoPush();
     clipApplyPaste(clipboardItem, target, plan, env);
-    if(plan.op === "move") clipboardItem = null;
+    if(plan.op === "move" || plan.op === "newTrick") clipboardItem = null; // a new trick is pasted once
     clipToast(plan.op === "move" ? "clipMoved" : "clipPasted");
     render();
   }

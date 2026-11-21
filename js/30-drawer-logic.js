@@ -109,6 +109,22 @@
     if(gap.parts.length) tr.parts = PART_KEYS.filter(function(k){ return (tr.parts || []).indexOf(k) !== -1 || gap.parts.indexOf(k) !== -1; });
     return true;
   }
+  // v0.9.3: adding a class tag OVERWRITES the trick's grip / parts with the tag's combo (each only when
+  // the combo specifies it; a combo without grip keeps the grip, one without parts keeps the parts).
+  // Returns true when grip or parts changed. Removing a class tag never touches grip / parts.
+  function overwriteWithClassCombo(tr, tag){
+    if(!tag || tagKind(tag) !== "class" || !tag.combo) return false;
+    var before = (tr.grip || "") + "|" + (tr.parts || []).join(",");
+    if(tag.combo.grip) tr.grip = tag.combo.grip;
+    var cp = tag.combo.parts || [];
+    if(cp.length) tr.parts = PART_KEYS.filter(function(k){ return cp.indexOf(k) !== -1; });
+    return before !== (tr.grip || "") + "|" + (tr.parts || []).join(",");
+  }
+  // Adds a tag id to the trick (no duplicate); for a class tag also overwrites grip / parts (above).
+  function putTagOnTrick(tr, tagId){
+    if((tr.tagIds || []).indexOf(tagId) === -1) tr.tagIds = (tr.tagIds || []).concat([tagId]);
+    return overwriteWithClassCombo(tr, getTag(tagId));
+  }
   // Admin tag manager: create / edit / usage. kind "class" takes a combo.
   function createTag(kind, name, combo){
     if(!db.tags) db.tags = [];
@@ -134,25 +150,6 @@
   }
   function tagUsageCount(id){
     return (db.tricks || []).filter(function(tr){ return (tr.tagIds || []).indexOf(id) !== -1; }).length;
-  }
-  // Adds a tag to the trick; creates it (addTag) unless a tag with the same name exists.
-  function addTagToTrick(tr, text, lang){
-    text = (text || "").trim();
-    if(!text) return null;
-    var low = text.toLowerCase();
-    var tag = (db.tags || []).find(function(g){
-      return ["zh", "jp", "en"].some(function(l){ return g.name[l] && g.name[l].toLowerCase() === low; });
-    });
-    if(!tag){
-      var nm = { zh:"", jp:"", en:"" };
-      nm[lang || "zh"] = text;
-      tag = addTag(nm);
-      tag.kind = "text";
-    }
-    tr.tagIds = tr.tagIds || [];
-    if(tr.tagIds.indexOf(tag.id) === -1) tr.tagIds.push(tag.id);
-    saveDB();
-    return tag;
   }
   // Location codes of a trick, e.g. ["001a-tr-00"]; one per placement in a table that has a code.
   function trickLocCodes(tr){
@@ -183,4 +180,23 @@
   }
   function trickTableId(tr){
     return containerSpaceId((tr.categoryIds || [])[0]);
+  }
+
+  // Which body sections the drawer renders (v0.9.3 C8). View mode: only sections with data.
+  // Edit mode: video slots / grip+parts / tags follow `canEdit` (the trick itself may be
+  // modified); the note is always shown in edit mode (it is the user's own data).
+  function drawerSections(tr, editMode, canEdit){
+    var videos = (tr.media || []).filter(function(m){ return m.type === "video"; }).length;
+    var tagN = (tr.tagIds || []).length;
+    var gp = !!tr.grip || !!(tr.parts && tr.parts.length);
+    var note = typeof tr.note === "string" && tr.note.trim() !== "";
+    return {
+      names: !!canEdit || ["zh", "jp", "en"].some(function(l){ return !!(tr.name && tr.name[l]); }),
+      videos: !!canEdit || videos > 0,
+      flow: !canEdit && (tagN > 0 || gp),   // not editable here: tags + grip + parts on one wrapping line
+      gripParts: !!canEdit,
+      diagram: !canEdit && !!(tr.parts && tr.parts.length), // view mode: part diagram only when parts exist
+      tags: !!canEdit,
+      note: !!editMode || note
+    };
   }

@@ -93,3 +93,16 @@ test("privacy: own modal, no inline expand; Esc closes it first; drawer card css
   const css = fs.readFileSync("css/detail-drawer.css", "utf8");
   assert.ok(/margin: 14px 14px 16px 0/.test(css) && /border-radius: var\(--radius\)/.test(css));
 });
+
+test("nickname: own modal, inline editor removed, Esc closes it before settings", () => {
+  const fs = require("node:fs");
+  const html = fs.readFileSync("index.html", "utf8");
+  assert.ok(html.includes('id="nicknameOverlay"') && html.includes('id="nicknameInput"'));
+  assert.ok(!html.includes("authMenuNameEdit") && !html.includes("authMenuNameInput"));
+  const css = fs.readFileSync("css/shell-topbar-rail.css", "utf8");
+  assert.ok(!css.includes("auth-menu-name-edit") && !css.includes("auth-menu-name-input"));
+  const js = fs.readFileSync("js/52-auth.js", "utf8");
+  assert.ok(js.includes("function isNicknameEditOpen") && !js.includes("authMenuNameSave"));
+  const ev = fs.readFileSync("js/90-events-and-init.js", "utf8");
+  assert.ok(ev.indexOf("isNicknameEditOpen()") !== -1 && ev.indexOf("isNicknameEditOpen()") < ev.indexOf("isSettingsOpen()"));
+});

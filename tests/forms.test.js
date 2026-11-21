@@ -34,9 +34,38 @@ test("trick submission: name + video required", () => {
   assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameEn: "x", url: "https://evil.com/a" }).error, "formErrUrlHost");
   const r = ctx.buildReportDoc(user, "trick", { nameEn: "Ohzara", url: "https://youtu.be/x" });
   assert.ok(r.ok);
-  assert.strictEqual(r.doc.payload.url, "https://youtu.be/x");
+  assert.deepStrictEqual([...r.doc.payload.trick.urls], ["https://youtu.be/x"]);
   assert.strictEqual(ctx.buildReportDoc(user, "trick", { url: "https://youtu.be/x" }).field, "formNameZh");
   assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameZh: "a" }).field, "formUrl");
+});
+
+test("trick submission payload: grip, parts, tags, up to 3 videos nested in payload.trick", () => {
+  const r = ctx.buildReportDoc(user, "trick", {
+    nameZh: "大皿", urls: ["https://youtu.be/a", "", "https://x.com/b", "https://youtu.be/c", "https://youtu.be/d"],
+    grip: "ken", parts: ["tamaTop", "bogus", "sara"], text: "memo",
+    tagList: [{ id: "c1", kind: "class", label: "基礎" }, { id: "t1", kind: "text", label: "入門" }]
+  });
+  assert.ok(r.ok);
+  assert.strictEqual(r.doc.text, "memo");
+  assert.deepStrictEqual(Object.keys(r.doc.payload), ["trick"]);
+  const p = r.doc.payload.trick;
+  assert.strictEqual(p.urls.length, 3);
+  assert.strictEqual(p.grip, "ken");
+  assert.deepStrictEqual([...p.parts], ["sara", "tamaTop"]);
+  assert.deepStrictEqual([...p.tagIds], ["c1", "t1"]);
+  assert.deepStrictEqual([...p.classes], ["基礎"]);
+  assert.deepStrictEqual([...p.tags], ["入門"]);
+  assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameZh: "a", urls: ["https://youtu.be/a", "https://evil.com/x"] }).error, "formErrUrlHost");
+  assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameZh: "a", urls: ["", ""] }).error, "formErrUrlReq");
+  assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameZh: "a", url: "https://youtu.be/a", grip: "bad" }).doc.payload.trick.grip, undefined);
+  // single form -> mailbox item
+  const it = ctx.submissionItemsOf({ kind: "trick", text: "memo", payload: r.doc.payload });
+  assert.strictEqual(it.length, 1);
+  assert.strictEqual(it[0].note, "memo");
+  assert.strictEqual(it[0].grip, "ken");
+  assert.deepStrictEqual([...it[0].tagIds], ["c1", "t1"]);
+  const d = ctx.submissionItemToTrickData(it[0], [{ id: "t1", name: { zh: "入門" } }]);
+  assert.deepStrictEqual([...d.tagIds], ["t1"]);
 });
 
 test("hasSubmissionName", () => {
@@ -67,14 +96,16 @@ test("apply: name, gmail, reason required", () => {
   assert.ok(Object.keys(r.doc.payload).length <= 4);
 });
 
-test("contributor trick validation", () => {
-  const v = ctx.validateSubmissionTrick;
-  const ok = { name: { zh: "x" }, media: [{ type: "video", url: "https://youtu.be/a" }] };
-  assert.strictEqual(v(ok), "");
-  assert.strictEqual(v({ name: {}, media: ok.media }), "formErrNames");
-  assert.strictEqual(v({ name: { zh: "x" }, media: [] }), "formErrUrlReq");
-  assert.strictEqual(v({ name: { zh: "x" }, media: [{ type: "video", url: "https://evil.com/a" }] }), "formErrUrlHost");
-  assert.strictEqual(v({ name: { zh: "x" }, media: [{ type: "video", url: "https://evil.com/a" }, { type: "video", url: "https://youtu.be/a" }] }), "");
+test("招式投稿 entry: single form only; apply form + link exist", () => {
+  assert.strictEqual(typeof ctx.openApplyForm, "function");
+  const src = require("fs").readFileSync(require("path").join(__dirname, "..", "js", "74-forms.js"), "utf8");
+  assert.ok(!/name="formMode"/.test(src));
+  assert.match(src, /form-head-link/);
+  assert.ok(!/form-below/.test(src));
+  ["zh", "jp", "en"].forEach((l) => { ctx.state.lang = l; assert.notStrictEqual(ctx.t("formApplyLink"), "formApplyLink"); });
+  ctx.state.lang = "zh";
+  assert.strictEqual(ctx.t("formApplyLink"), "欲大量投稿者，可申請成為協助者");
+  assert.strictEqual(ctx.t("formSubmitTitle"), "招式投稿");
 });
 
 test("i18n keys exist in all langs", () => {

@@ -249,8 +249,7 @@
     return newLevel <= max;
   }
 
-  // A trick's personal note is a single free-text field (tr.note); officialNote is the
-  // admin's text shown before it.
+  // A trick's personal note is a single free-text field (tr.note).
   function getTrickNote(tr){ return typeof tr.note === "string" ? tr.note : ""; }
   // Adds a soft colored halo around a trick's icon element, colored by its
   // landing rate (see RATE_COLORS) — no glow while rate is null. Layered on top of the

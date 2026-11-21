@@ -1,7 +1,7 @@
 "use strict";
 
   /* ============================================================
-     CONTRIBUTORS (協助者) — 企劃書 §三.8 / §四.2.
+     CONTRIBUTORS (協助者) — 企劃書 §三.8.
      Admin adds helpers by Gmail in the admin panel; Firestore doc
      contributors/{emailLowercase} = { email, addedAt, color }.
      A signed-in user is a contributor when their own doc exists
@@ -10,15 +10,15 @@
   addStrings({
     zh:{ contribEmailPlaceholder:"協助者的 Gmail", contribAdd:"新增", contribEmpty:"還沒有協助者", contribRemove:"移除協助者",
          contribEmailBad:"請輸入有效的 Email", contribExists:"這個 Email 已經是協助者", contribAdded:"已新增協助者", contribRemoved:"已移除協助者",
-         contribFail:"操作失敗，請檢查網路連線", contribLoading:"載入中…", contribReviewBtn:"查看投稿模式",
+         contribFail:"操作失敗，請檢查網路連線", contribLoading:"載入中…",
          contribRemoveTitle:"移除協助者？", contribRemoveBody:"{email} 之後無法再投稿，已送出的投稿不受影響。" },
     jp:{ contribEmailPlaceholder:"協力者の Gmail", contribAdd:"追加", contribEmpty:"協力者はまだいません", contribRemove:"協力者を外す",
          contribEmailBad:"有効なメールアドレスを入力してください", contribExists:"このメールは既に協力者です", contribAdded:"協力者を追加しました", contribRemoved:"協力者を外しました",
-         contribFail:"失敗しました。ネット接続をご確認ください", contribLoading:"読み込み中…", contribReviewBtn:"投稿確認モード",
+         contribFail:"失敗しました。ネット接続をご確認ください", contribLoading:"読み込み中…",
          contribRemoveTitle:"協力者を外しますか？", contribRemoveBody:"{email} は今後投稿できません。送信済みの投稿は残ります。" },
     en:{ contribEmailPlaceholder:"Helper's Gmail", contribAdd:"Add", contribEmpty:"No helpers yet", contribRemove:"Remove helper",
          contribEmailBad:"Enter a valid email", contribExists:"This email is already a helper", contribAdded:"Helper added", contribRemoved:"Helper removed",
-         contribFail:"Failed — check your connection", contribLoading:"Loading…", contribReviewBtn:"Review submissions",
+         contribFail:"Failed — check your connection", contribLoading:"Loading…",
          contribRemoveTitle:"Remove helper?", contribRemoveBody:"{email} can no longer submit. Existing submissions are kept." }
   });
 
@@ -55,15 +55,10 @@
   function refreshContributorFlag(user){
     user = user || (typeof authCurrentUser !== "undefined" ? authCurrentUser : null);
     contribState.isContributor = false;
-    if(!user || !user.email || typeof fbStore === "undefined"){
-      if(typeof refreshSubmissionUi === "function") refreshSubmissionUi();
-      return Promise.resolve(false);
-    }
+    if(!user || !user.email || typeof fbStore === "undefined") return Promise.resolve(false);
     return fbStore.collection("contributors").doc(normalizeEmail(user.email)).get().then(function(snap){
       contribState.isContributor = !!snap.exists;
-      if(typeof loadOwnSubmissions === "function" && contribState.isContributor) return loadOwnSubmissions();
     }).catch(function(){ contribState.isContributor = false; }).then(function(){
-      if(typeof refreshSubmissionUi === "function") refreshSubmissionUi();
       return contribState.isContributor;
     });
   }
@@ -156,21 +151,15 @@
       body.innerHTML =
         '<div class="contrib-form"><input type="email" id="contribEmailInput" autocomplete="off" maxlength="254">' +
         '<button type="button" class="btn btn-primary btn-sm" id="contribAddBtn"></button></div>' +
-        '<div class="contrib-list" id="contribList"></div>' +
-        '<button type="button" class="btn btn-ghost btn-sm btn-block contrib-review-btn" id="contribReviewBtn"></button>';
+        '<div class="contrib-list" id="contribList"></div>';
       card.appendChild(body);
       document.getElementById("contribAddBtn").addEventListener("click", submitContribForm);
       document.getElementById("contribEmailInput").addEventListener("keydown", function(ev){
         if(ev.key === "Enter"){ ev.preventDefault(); submitContribForm(); }
       });
-      document.getElementById("contribReviewBtn").addEventListener("click", function(){
-        if(typeof closeAdminPanel === "function") closeAdminPanel(); // also closes this sub-modal
-        if(typeof toggleSubmissionReviewMode === "function") toggleSubmissionReviewMode(true);
-      });
     }
     document.getElementById("contribEmailInput").placeholder = t("contribEmailPlaceholder");
     document.getElementById("contribAddBtn").textContent = t("contribAdd");
-    document.getElementById("contribReviewBtn").textContent = t("contribReviewBtn");
     renderContribList();
     loadContributors().then(renderContribList).catch(function(){ showToast(t("contribFail"), "error"); });
   }

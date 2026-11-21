@@ -27,7 +27,11 @@
 
   function authUpdateNickname(newName){
     newName = (newName || "").trim();
-    if(!newName){ showToast(t("authNicknameEmpty"), "error"); return; }
+    if(!newName){
+      showNicknameError(t("authNicknameEmpty"));
+      showToast(t("authNicknameEmpty"), "error");
+      return;
+    }
     if(!authCurrentUser) return;
     var editBtn = document.getElementById("authMenuEditBtn");
     editBtn.disabled = true;
@@ -48,23 +52,32 @@
      UI
   ------------------------------------------------------------ */
   // Account UI now lives in the settings page (js/14-shell-settings.js);
-  // "closing the menu" just cancels an in-progress nickname edit.
+  // "closing the menu" just closes the nickname modal if open.
   function closeAuthMenu(){
     closeNicknameEdit();
   }
 
+  // Nickname edit: its own modal (#nicknameOverlay), stacked above settings.
+  function isNicknameEditOpen(){
+    return document.getElementById("nicknameOverlay").classList.contains("show");
+  }
+  function showNicknameError(msg){
+    var el = document.getElementById("nicknameError");
+    el.textContent = msg || "";
+    el.classList.toggle("show", !!msg);
+  }
   function openNicknameEdit(){
-    var input = document.getElementById("authMenuNameInput");
+    var input = document.getElementById("nicknameInput");
     input.placeholder = t("authNicknamePlaceholder");
     input.value = (authCurrentUser && authCurrentUser.displayName) || "";
-    document.getElementById("authMenuAccount").hidden = true;
-    document.getElementById("authMenuNameEdit").hidden = false;
+    showNicknameError("");
+    document.getElementById("nicknameOverlay").classList.add("show");
     input.focus();
     input.select();
   }
   function closeNicknameEdit(){
-    document.getElementById("authMenuAccount").hidden = false;
-    document.getElementById("authMenuNameEdit").hidden = true;
+    document.getElementById("nicknameOverlay").classList.remove("show");
+    showNicknameError("");
   }
 
   function applyAvatar(imgEl, fallbackEl){
@@ -93,8 +106,13 @@
       document.getElementById("authMenuName").textContent = authCurrentUser.displayName || "";
       document.getElementById("authMenuEmail").textContent = authCurrentUser.email || "";
       document.getElementById("authMenuEditBtn").title = t("authEditNickname");
-      document.getElementById("authMenuNameSave").textContent = t("authNicknameSave");
-      document.getElementById("authMenuNameCancel").textContent = t("authNicknameCancel");
+      document.getElementById("nicknameTitle").textContent = t("authEditNickname");
+      document.getElementById("nicknameSaveBtn").textContent = t("authNicknameSave");
+      document.getElementById("nicknameCancelBtn").textContent = t("authNicknameCancel");
+      var ncb = document.getElementById("nicknameCloseBtn");
+      ncb.title = t("settingsClose");
+      ncb.setAttribute("aria-label", t("settingsClose"));
+      if(!ncb.firstChild) ncb.innerHTML = ICON_X;
       document.getElementById("authLogoutBtn").textContent = t("authLogout");
     } else {
       loginBtn.hidden = false;
@@ -112,16 +130,14 @@
     ev.stopPropagation();
     openNicknameEdit();
   });
-  document.getElementById("authMenuNameCancel").addEventListener("click", function(ev){
-    ev.stopPropagation();
-    closeNicknameEdit();
+  document.getElementById("nicknameCancelBtn").addEventListener("click", closeNicknameEdit);
+  document.getElementById("nicknameCloseBtn").addEventListener("click", closeNicknameEdit);
+  document.getElementById("nicknameOverlay").addEventListener("click", function(ev){
+    if(ev.target.id === "nicknameOverlay") closeNicknameEdit();
   });
-  document.getElementById("authMenuNameSave").addEventListener("click", function(ev){
-    ev.stopPropagation();
-    authUpdateNickname(document.getElementById("authMenuNameInput").value);
+  document.getElementById("nicknameSaveBtn").addEventListener("click", function(){
+    authUpdateNickname(document.getElementById("nicknameInput").value);
   });
-  document.getElementById("authMenuNameInput").addEventListener("keydown", function(ev){
-    ev.stopPropagation();
-    if(ev.key === "Enter") authUpdateNickname(ev.target.value);
-    else if(ev.key === "Escape") closeNicknameEdit();
+  document.getElementById("nicknameInput").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter"){ ev.preventDefault(); authUpdateNickname(ev.target.value); }
   });

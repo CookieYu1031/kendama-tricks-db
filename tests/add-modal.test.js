@@ -109,7 +109,7 @@ test("createFolderRecord / createInfoRecord", () => {
 
 test("createTrickRecord: fields, video, custom flag, root placement", () => {
   const c = setup(); lock(c, false);
-  const tr = c.createTrickRecord("c1", "t00", { jp: "技", url: "https://youtu.be/x", grip: "ken", parts: ["sara", "ana", "bogus"], tagIds: ["g"], note: "n", officialNote: "o" }, true);
+  const tr = c.createTrickRecord("c1", "t00", { jp: "技", url: "https://youtu.be/x", grip: "ken", parts: ["sara", "ana", "bogus"], tagIds: ["g"], note: "n" }, true);
   assert.strictEqual(tr.name.jp, "技");
   assert.strictEqual(tr.custom, true);
   assert.deepStrictEqual(Array.from(tr.categoryIds), ["c1"]);
@@ -118,7 +118,7 @@ test("createTrickRecord: fields, video, custom flag, root placement", () => {
   assert.strictEqual(tr.grip, "ken");
   assert.deepStrictEqual(Array.from(tr.parts), ["sara", "ana"]);
   assert.strictEqual(tr.note, "n");
-  assert.strictEqual(tr.officialNote, "o");
+  assert.strictEqual(tr.officialNote, undefined);
   assert.ok(c.getTrick(tr.id));
   const plainTr = c.createTrickRecord(null, "t00", { zh: "根" }, false);
   assert.strictEqual(plainTr.custom, false);
@@ -162,4 +162,39 @@ test("addNameEmpty", () => {
   const c = setup();
   assert.ok(c.addNameEmpty(c.addNameObj({ zh: "  " })));
   assert.ok(!c.addNameEmpty(c.addNameObj({ en: "x" })));
+});
+
+test("detectAddName: zh / jp / en / id / mixed / empty", () => {
+  const c = setup();
+  const d = (s) => JSON.parse(JSON.stringify(c.detectAddName(s)));
+  assert.deepStrictEqual(d(""), { kind: "empty" });
+  assert.deepStrictEqual(d("   "), { kind: "empty" });
+  assert.deepStrictEqual(d("大皿"), { kind: "name", lang: "zh" });
+  assert.deepStrictEqual(d("飛機 3 次"), { kind: "name", lang: "zh" });
+  assert.deepStrictEqual(d("けん玉"), { kind: "name", lang: "jp" });
+  assert.deepStrictEqual(d("トリック"), { kind: "name", lang: "jp" });
+  assert.deepStrictEqual(d("Around the World"), { kind: "name", lang: "en" });
+  assert.deepStrictEqual(d("Lunar-1, 2!"), { kind: "name", lang: "en" });
+  assert.deepStrictEqual(d("Spinner"), { kind: "name", lang: "en" }); // 7 chars but no such trick id
+  assert.deepStrictEqual(d("Tricks 大皿"), { kind: "name", lang: "zh" }); // mixed Latin + CJK
+  assert.deepStrictEqual(d("Lunar 大皿 かな"), { kind: "name", lang: "jp" }); // kana wins
+  assert.deepStrictEqual(d("a000000"), { kind: "link", id: "a000000", explicit: false });
+  assert.deepStrictEqual(d(" @d000000 "), { kind: "link", id: "d000000", explicit: true });
+  assert.deepStrictEqual(d("@zzzzzzz"), { kind: "link", id: "zzzzzzz", explicit: true });
+});
+
+test("createTrickRecord from a detected single name: only that language is filled", () => {
+  const c = setup();
+  const det = c.detectAddName("けん玉");
+  const f = {}; f[det.lang] = "けん玉";
+  const rec = c.createTrickRecord("c1", "t00", f, false);
+  assert.strictEqual(rec.name.jp, "けん玉");
+  assert.strictEqual(rec.name.zh, "");
+  assert.strictEqual(rec.name.en, "");
+});
+
+test("add modal markup: trick form has no grip/parts/tags/video/note fields", () => {
+  const html = require("fs").readFileSync(require("path").join(__dirname, "..", "index.html"), "utf8");
+  ["addGripRow", "addPartsRow", "addTagsRow", "addVideoUrl", "addNote\""].forEach((id) => assert.ok(html.indexOf("id=\"" + id.replace("\"", "") + "\"") === -1, id));
+  assert.ok(html.indexOf('id="addNameHint"') !== -1);
 });

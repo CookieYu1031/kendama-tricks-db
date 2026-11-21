@@ -105,7 +105,11 @@
       case "prev": kbdMove(-1); return true;
       case "next": kbdMove(1); return true;
       case "open": kbdOpen(); return true;
-      case "toggleEdit": state.editMode = !state.editMode; render(); return true;
+      case "toggleEdit":
+        // view <-> edit (same as the rail button).
+        if(typeof setRailMode === "function") setRailMode(currentRailMode() === "view" ? "edit" : "view");
+        else { state.editMode = !state.editMode; render(); }
+        return true;
       case "add":
         if(typeof openAddModal === "function") openAddModal(kbdDeepestParentId());
         return true;

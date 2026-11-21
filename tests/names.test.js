@@ -77,7 +77,7 @@ test("looksLikeRomaji", () => {
 test("otherNames hides empty and the shown language", () => {
   const c = fresh("zh");
   assert.deepStrictEqual(JSON.parse(JSON.stringify(c.otherNames({ zh:"中", jp:"にほん", en:"" }))), [["JP", "にほん"]]);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.otherNames({ zh:"中", jp:"にほん", en:"Jp" }, "en"))), [["ZH", "中"], ["JP", "にほん"]]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.otherNames({ zh:"中", jp:"にほん", en:"Jp" }, "en"))), [["TW", "中"], ["JP", "にほん"]]);
   // romaji shown: raw jp still listed
   assert.deepStrictEqual(JSON.parse(JSON.stringify(c.otherNames({ zh:"", jp:"とめ", en:"" }, "en"))), [["JP", "とめ"]]);
   assert.strictEqual(c.otherNames(null).length, 0);

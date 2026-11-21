@@ -136,6 +136,7 @@
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
     if(isSearchPanelOpen()) return closeSearchPanel();
+    if(isNicknameEditOpen()) return closeNicknameEdit();
     if(document.getElementById("videoModalOverlay").classList.contains("show")) return closeVideoModal();
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();

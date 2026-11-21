@@ -1,13 +1,15 @@
 "use strict";
-// v0.7 D2: contributors, submissions, review-mode marks.
+// v0.7 D2 contributors + v0.9.3 bulk submission (js/72): template columns, row validation, payload, admin conversion.
 const test = require("node:test");
 const assert = require("node:assert");
 const { load } = require("./_load");
 const eq = (a, b) => assert.strictEqual(JSON.stringify(a), JSON.stringify(b));
 
+const dummyEl = { addEventListener(){}, classList:{ add(){}, remove(){}, toggle(){}, contains(){ return false; } }, closest(){ return null; } };
+const doc = { getElementById: () => dummyEl, querySelector: () => null, querySelectorAll: () => [], addEventListener(){}, createElement: () => ({ style:{}, classList:{ add(){}, remove(){}, toggle(){} }, appendChild(){}, setAttribute(){}, addEventListener(){} }) };
 function ctx(){
   return load(["js/01-data-model.js","js/02-constants-colors-icons.js","js/03-i18n.js","js/04-state.js","js/05-data-helpers.js",
-    "js/71-contributors.js","js/72-submissions.js","js/76-submission-review.js"]);
+    "js/16-shell-updates.js","js/71-contributors.js","js/72-submissions.js","js/73-mailbox.js","js/74-forms.js","js/79-xlsx.js"], { URL, document: doc, TextEncoder, TextDecoder });
 }
 
 test("email normalization + validation", () => {
@@ -32,77 +34,112 @@ test("color assignment: fixed palette, least-used first", () => {
   assert.ok(!c.isContribColor("red"));
 });
 
-const trick = () => ({
-  id: "abc1234", name: { zh: "測試", jp: "", en: "Test" }, categoryIds: ["catA"], order: 3, custom: true,
-  landed: true, rate: "most", favorite: true, note: "private note", officialNote: "official", tagIds: ["x"],
-  grip: "ken", parts: ["ken"], icon: "", color: "red",
-  media: [{ id: "m1", type: "video", title: "v", url: "https://y.t/1", platform: "youtube" }, { id: "m2", type: "note", content: "n" }]
-});
+const HEAD = ["中文名稱","日文名稱","英文名稱","影片1","影片2","影片3","握持","部位","招式類別","標籤","備註","建議位置"];
+const row = (o) => HEAD.map((h) => o[h] || "");
+const good = { "中文名稱": "大皿", "英文名稱": "Ohzara", "影片1": "https://youtu.be/abc", "握持": "持劍", "部位": "sara、kensaki", "標籤": "基礎、入門", "備註": "n", "建議位置": "基礎/大皿" };
 
-test("submission payload has no personal fields", () => {
+test("bulk: valid row -> item; lists split on 、; grip/part keys", () => {
   const c = ctx();
-  const p = c.buildSubmissionPayload(trick(), { uid: "u1", email: "Me@Gmail.com", displayName: "Me" }, "catA");
-  eq(Object.keys(p).sort(), ["email", "name", "parentId", "status", "trick", "uid"]);
-  assert.strictEqual(p.email, "me@gmail.com");
-  assert.strictEqual(p.status, "pending");
-  ["landed", "rate", "favorite", "note", "categoryIds", "custom", "order"].forEach((k) => assert.ok(!(k in p.trick), k));
-  eq(p.trick.tagIds, []);
-  assert.strictEqual(p.trick.media.length, 1);
-  assert.strictEqual(p.trick.officialNote, "official");
+  const r = c.bulkParseSheet([HEAD, row(good)]);
+  assert.ok(r.ok);
+  assert.strictEqual(r.bad.length, 0);
+  const it = r.items[0];
+  assert.strictEqual(it.names.zh, "大皿");
+  assert.strictEqual(it.grip, "ken");
+  eq(it.parts, ["sara", "kensaki"]);
+  eq(it.tags, ["基礎", "入門"]);
+  assert.strictEqual(it.location, "基礎/大皿");
+  eq(it.urls, ["https://youtu.be/abc"]);
 });
 
-test("submission text is length capped", () => {
+test("bulk: per-row errors (name, video required, host whitelist, grip, part)", () => {
   const c = ctx();
-  const t = trick(); t.name.zh = "x".repeat(500); t.officialNote = "y".repeat(5000);
-  const s = c.sanitizeSubmissionTrick(t);
-  assert.strictEqual(s.name.zh.length, 80);
-  assert.strictEqual(s.officialNote.length, 2000);
+  const rows = [HEAD,
+    row({ "影片1": "https://youtu.be/a" }),                                   // 2: no name
+    row({ "中文名稱": "x" }),                                                  // 3: no video
+    row({ "中文名稱": "x", "影片1": "https://evil.com/a" }),                   // 4: bad host
+    row({ "中文名稱": "x", "影片1": "https://youtu.be/a", "握持": "手" }),     // 5: grip
+    row({ "中文名稱": "x", "影片1": "https://youtu.be/a", "部位": "zzz" }),    // 6: part
+    row({ "中文名稱": "x", "影片1": "https://youtu.be/a", "影片2": "https://evil.com/b" }), // 7: second url bad
+    row(good)];
+  const r = c.bulkParseSheet(rows);
+  eq(r.bad.map((b) => b.row), [2, 3, 4, 5, 6, 7]);
+  eq(r.bad.map((b) => b.errors[0].key), ["formErrNames", "formErrUrlReq", "formErrUrlHost", "bulkErrGrip", "bulkErrPart", "formErrUrlHost"]);
+  assert.strictEqual(r.items.length, 1);
 });
 
-test("submissionParentId picks first placement inside t00", () => {
+test("bulk: header search, notes row and blank rows skipped, no header -> error", () => {
   const c = ctx();
-  const spaceOf = (id) => ({ fav: "fav", catA: "t00", catB: "t00" }[id] || null);
-  assert.strictEqual(c.submissionParentId({ categoryIds: ["fav", "catB", "catA"] }, spaceOf), "catB");
-  assert.strictEqual(c.submissionParentId({ categoryIds: ["fav"] }, spaceOf), null);
+  const r = c.bulkParseSheet([[], HEAD, ["※ 說明"], [], row(good)]);
+  assert.ok(r.ok);
+  assert.strictEqual(r.items.length, 1);
+  assert.strictEqual(c.bulkParseSheet([["a", "b"], ["x", "y"]]).error, "bulkNoHeader");
+  assert.strictEqual(c.bulkParseSheet([HEAD, ["※ x"]]).error, "bulkNoRows");
 });
 
-test("review marks: rows by parent, ancestor dots, distinct colors", () => {
+test("bulk: columns mapped by header text, any order", () => {
   const c = ctx();
-  const parents = { leaf: "mid", mid: "top", top: "t00" };
-  const subs = [
-    { id: "s1", parentId: "leaf", email: "a@x.com" },
-    { id: "s2", parentId: "leaf", email: "b@x.com" },
-    { id: "s3", parentId: "top", email: "a@x.com" },
-    { id: "s4", parentId: "t00", email: "c@x.com" }
-  ];
-  const col = { "a@x.com": "#111111", "b@x.com": "#222222", "c@x.com": "#333333" };
-  const m = c.computeReviewMarks(subs, (id) => parents[id] || null, (e) => col[e]);
-  eq(m.rows.leaf.map((s) => s.id), ["s1", "s2"]);
-  eq(m.rows.t00.map((s) => s.id), ["s4"]);
-  eq(m.dots.leaf, ["#111111", "#222222"]);
-  eq(m.dots.mid, ["#111111", "#222222"]);
-  eq(m.dots.top, ["#111111", "#222222"]);
-  eq(m.dots.t00, ["#111111", "#222222", "#333333"]);
+  const r = c.bulkParseSheet([["影片1", "中文名稱"], ["https://youtu.be/a", "甲"]]);
+  assert.strictEqual(r.items[0].names.zh, "甲");
 });
 
-test("accept transform: new id, official, filed under parentId, personal fields empty", () => {
+test("bulk: row cap 200", () => {
   const c = ctx();
-  const sub = { uid: "u1", email: "a@x.com", parentId: "catA", trick: c.sanitizeSubmissionTrick(trick()) };
-  const raw = c.acceptTransform(sub, "NEWID01");
-  assert.strictEqual(raw.id, "NEWID01");
-  assert.strictEqual(raw.custom, false);
-  eq(raw.categoryIds, ["catA"]);
-  assert.strictEqual(raw.rate, null);
-  assert.strictEqual(raw.favorite, false);
-  assert.strictEqual(raw.note, "");
-  const rec = c.normalizeDB({ categories: [], tricks: [raw] }).tricks[0];
-  assert.strictEqual(rec.custom, false);
-  assert.strictEqual(rec.name.en, "Test");
-  assert.strictEqual(rec.media.length, 1);
+  const rows = [HEAD];
+  for (let i = 0; i < 205; i++) rows.push(row(good));
+  const r = c.bulkParseSheet(rows);
+  assert.strictEqual(r.items.length, 200);
+  assert.strictEqual(r.truncated, true);
 });
 
-test("contributor gating without login", () => {
+test("bulk report doc: kind trick, payload keys <= 4, size cap", () => {
+  const c = ctx();
+  const user = { uid: "u1", email: "A@x.com", displayName: "A" };
+  const items = c.bulkParseSheet([HEAD, row(good)]).items;
+  const r = c.buildBulkReportDoc(user, items);
+  assert.ok(r.ok);
+  assert.strictEqual(r.doc.kind, "trick");
+  assert.strictEqual(r.doc.status, "open");
+  assert.strictEqual(r.doc.text, "");
+  assert.ok(Object.keys(r.doc.payload).length <= 4);
+  assert.strictEqual(r.doc.payload.bulk, true);
+  assert.strictEqual(c.buildBulkReportDoc(null, items).error, "formNeedLogin");
+  assert.strictEqual(c.buildBulkReportDoc(user, []).error, "bulkNeedOk");
+  const fat = { names: { zh: "x" }, urls: [], note: "漢".repeat(1000), location: "漢".repeat(200), tags: Array(12).fill("漢".repeat(60)) };
+  assert.strictEqual(c.buildBulkReportDoc(user, Array(200).fill(fat)).error, "bulkPayloadBig");
+});
+
+test("admin side: single + bulk reports -> items; item -> clipboard trick data (tags matched by name)", () => {
+  const c = ctx();
+  const single = c.submissionItemsOf({ kind: "trick", text: "desc", payload: { names: { zh: "甲" }, url: "https://youtu.be/a" } });
+  assert.strictEqual(single.length, 1);
+  assert.strictEqual(single[0].note, "desc");
+  eq(single[0].urls, ["https://youtu.be/a"]);
+  assert.strictEqual(c.submissionItemsOf({ payload: { bulk: true, items: [{}, {}] } }).length, 2);
+  const d = c.submissionItemToTrickData({ names: { zh: "甲" }, urls: ["https://youtu.be/a"], grip: "ken", parts: ["sara"], classes: ["基礎"], tags: ["nope"], note: "n" },
+    [{ id: "t1", name: { zh: "基礎", jp: "", en: "" } }]);
+  eq(d.tagIds, ["t1"]);
+  assert.strictEqual(d.name.zh, "甲");
+  assert.strictEqual(d.grip, "ken");
+});
+
+test("template rows: header = column labels + notes row", () => {
+  const c = ctx();
+  const rows = c.bulkTemplateRows();
+  eq(rows[0], HEAD);
+  assert.ok(rows[1][0].charAt(0) === "※");
+});
+
+test("i18n: bulk + mailbox keys exist in all langs", () => {
+  const c = ctx();
+  ["bulkTplBtn", "bulkUploadBtn", "bulkSend", "bulkNoHeader", "bulkErrGrip", "mbCopyTrick", "mbCopied", "mbReject", "formApplyLink", "formApplyTitle", "formSubmitTitle"]
+    .forEach((k) => ["zh", "jp", "en"].forEach((l) => assert.ok(c.UI[l][k], l + ":" + k)));
+});
+
+test("contributor gating without login; review mode and 投稿 entry points are gone", () => {
   const c = ctx();
   assert.strictEqual(c.isContributorAccount(), false);
-  assert.strictEqual(c.isReviewMode(), false);
+  assert.strictEqual(typeof c.isReviewMode, "undefined");
+  assert.strictEqual(typeof c.submitTrickToAdmin, "undefined");
+  assert.strictEqual(typeof c.buildSubmitButton, "undefined");
 });

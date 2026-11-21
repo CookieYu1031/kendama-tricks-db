@@ -66,8 +66,9 @@
 | 更新頁（通知與近期更新、未讀紅點） | `js/16-shell-updates.js` |
 | 管理員面板（發布、待發布摘要、版本號）| `js/70-admin-panel.js`、`css/admin-panel.css` |
 | 協助者（Gmail 名單、顏色、管理面板區塊、isContributorAccount）| `js/71-contributors.js`、`css/contrib.css` |
-| 投稿（payload 淨化、accept 轉換、審核標記計算、協助者投稿鈕）| `js/72-submissions.js` |
-| 查看投稿模式（列、圓點、唯讀抽屜、收錄/不予收錄）；rail 編輯鈕長按在 `js/12-shell-rail.js` | `js/76-submission-review.js` |
+| 協助者批量投稿（.xlsx 範本／上傳解析／逐列驗證／預覽／送出為單一 reports 文件；管理員端投稿項目轉換） | `js/72-submissions.js`、`css/contrib.css` |
+| 極簡 XLSX 讀寫（STORED zip 寫、deflate-raw 讀，無依賴） | `js/79-xlsx.js` |
+| rail 底部編輯鈕（編輯／完成編輯 切換） | `js/12-shell-rail.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
 | 設定頁（齒輪、帳號列、語言、快速導覽、隱私說明、管理員面板入口） | `js/14-shell-settings.js` |
@@ -86,7 +87,9 @@
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
-| 抽屜各區塊 builder（圖示、標籤、持法部位、影片備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
+| 抽屜各區塊 builder（頭部圖示、持法部位、備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
+| 抽屜影片欄位（3 格、貼連結、網址偵測來源網站與圖示 `videoSourceOf`） | `js/34-drawer-videos.js` |
+| 部位圖（SVG 劍玉、可點部位、與文字 chips 同步；`partDiagramSvg`） | `js/35-part-diagram.js` |
 | 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
 | 管理員標籤管理（握持＋部位唯讀／招式類別／文字標籤，admin 子視窗） | `js/77-admin-tags.js`、`css/tags.css`（入口鈕在 `js/70-admin-panel.js`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
@@ -101,8 +104,9 @@
 | 待更新區：未發布紅點、紅叉幽靈列、還原、發布摘要（admin） | `js/56-pending.js`（發布範圍和版本標籤在 `js/51-shared-base.js`） |
 | 使用者統計 payload、變更雜湊、寫入 `userStats/{uid}` | `js/57-user-stats.js`（由 54 同步成功後呼叫） |
 | 管理員統計卡、備份（下載已發布版本 JSON） | `js/75-admin-stats.js`、`css/admin-stats.css` |
-| 管理員郵件箱、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
-| 使用者表單：問題回報、招式投稿／申請協助者、防灌水 | `js/74-forms.js` |
+| 標籤管理（管理員子視窗）、更新搜尋索引引導（版本比對、輪詢）| `js/77-admin-tags.js`、`css/tags.css`；`js/78-admin-index-guide.js` |
+| 管理員郵件箱（含投稿預覽、複製招式到剪貼簿、不予收錄）、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
+| 使用者表單：問題回報、招式投稿（下方連結申請協助者）、防灌水 | `js/74-forms.js` |
 | 通知與近期更新頁、站內訊息收件、紅點 | `js/16-shell-updates.js` |
 | 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`（純邏輯）、`js/58-share-flow.js`（送出／接收、Firestore）、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |

@@ -79,7 +79,7 @@ test("formatPendingCounts + lastVersionLabel + date", () => {
 
 test("admin sub-modal ids + i18n keys in 3 languages", () => {
   const c = ctx();
-  assert.deepStrictEqual(Array.from(c.ADMIN_SUB_IDS), ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay"]);
+  assert.deepStrictEqual(Array.from(c.ADMIN_SUB_IDS), ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay", "adminIndexOverlay"]);
   assert.strictEqual(typeof c.topAdminSubModal, "function");
   ["adminBackup", "adminHelpers", "adminMailbox"].forEach(k => {
     ["zh", "jp", "en"].forEach(l => assert.ok(c.UI[l][k], l + "." + k));

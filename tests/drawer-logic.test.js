@@ -57,17 +57,6 @@ test("tag chips: localized labels, missing ids skipped, available excludes own",
   assert.strictEqual(c.trickTagChips(t)[0].label, "Tag");
 });
 
-test("addTagToTrick reuses same-named tag, creates new otherwise", () => {
-  const c = setup(), t = { tagIds: [] };
-  assert.strictEqual(c.addTagToTrick(t, " tag ", "zh").id, "g1");
-  assert.strictEqual(c.db.tags.length, 2);
-  const n = c.addTagToTrick(t, "New", "en");
-  assert.strictEqual(c.db.tags.length, 3);
-  assert.strictEqual(n.name.en, "New");
-  assert.deepStrictEqual(Array.from(t.tagIds), ["g1", n.id]);
-  assert.strictEqual(c.addTagToTrick(t, "  ", "zh"), null);
-});
-
 test("trickLocCodes: code for table-placed trick, none for favorites-only", () => {
   const c = setup();
   const a = c.getTrick("a000000"), b = c.getTrick("b000000");
@@ -78,7 +67,7 @@ test("trickLocCodes: code for table-placed trick, none for favorites-only", () =
 
 test("drawer strings registered in zh/jp/en", () => {
   const c = setup();
-  ["tagsLabel", "gripLabel", "partsLabel", "rateLabel", "officialNoteLabel", "personalNoteLabel", "confirmDeleteTagBody"].forEach(k => {
+  ["tagsLabel", "gripLabel", "partsLabel", "rateLabel", "personalNoteLabel", "confirmDeleteTagBody"].forEach(k => {
     ["zh", "jp", "en"].forEach(l => { c.state.lang = l; assert.notStrictEqual(c.t(k), k); });
   });
 });

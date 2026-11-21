@@ -19,8 +19,10 @@
   ============================================================ */
   function showToast(msg, type){
     var container = document.getElementById("toastContainer");
-    // Only one line of space next to the search box now, so a new toast
-    // replaces whatever is currently showing instead of stacking underneath it.
+    // Toast sits centered in the topbar. The topbar is its own stacking context (z 45, below
+    // modals at 60/75), so lift the container to <body> (z 80) to stay visible over modals.
+    if(container.parentNode !== document.body) document.body.appendChild(container);
+    // One line only: a new toast replaces whatever is currently showing.
     container.innerHTML = "";
     var toast = document.createElement("div");
     toast.className = "toast" + (type==="error" ? " error" : "");

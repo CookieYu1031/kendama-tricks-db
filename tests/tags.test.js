@@ -79,7 +79,7 @@ test("class tag -> apply combo sets grip and adds missing parts only", () => {
   const moon = c.getTag("moon");
   const tr = { grip: "ken", parts: ["ana"], tagIds: ["moon"] };
   assert.deepStrictEqual(J(c.classComboGap(tr, moon)), { grip: "tama", parts: ["sara", "tamaTop"] });
-  assert.strictEqual(c.comboLabel(moon.combo), "持球＋大小皿＋球上");
+  assert.strictEqual(c.comboLabel(moon.combo), "持球＋大小皿＋球面");
   assert.strictEqual(c.applyClassCombo(tr, moon), true);
   assert.strictEqual(tr.grip, "tama");
   assert.deepStrictEqual(Array.from(tr.parts), ["sara", "tamaTop", "ana"]);
@@ -87,6 +87,21 @@ test("class tag -> apply combo sets grip and adds missing parts only", () => {
   assert.strictEqual(c.applyClassCombo(tr, moon), false);
   assert.strictEqual(c.classComboGap(tr, c.getTag("kwc")), null);
   assert.strictEqual(c.classComboGap(tr, c.getTag("empty")), null);
+});
+
+test("adding a class tag overwrites grip + parts; removing leaves them", () => {
+  const c = setup(); seedTags(c);
+  const tr = { grip: "ken", parts: ["ana", "kenchou"], tagIds: [] };
+  assert.strictEqual(c.putTagOnTrick(tr, "moon"), true);
+  assert.deepStrictEqual(Array.from(tr.tagIds), ["moon"]);
+  assert.strictEqual(tr.grip, "tama");
+  assert.deepStrictEqual(Array.from(tr.parts), ["sara", "tamaTop"]);   // overwritten, not merged
+  c.putTagOnTrick(tr, "moon");
+  assert.deepStrictEqual(Array.from(tr.tagIds), ["moon"]);             // no duplicate
+  const keep = { grip: "ken", parts: ["ana"], tagIds: [] };
+  c.putTagOnTrick(keep, "kwc");                                       // text tag: no combo, untouched
+  assert.strictEqual(keep.grip, "ken");
+  assert.deepStrictEqual(Array.from(keep.parts), ["ana"]);
 });
 
 test("createTag / updateTag / usage / removeTag cleanup", () => {
@@ -111,11 +126,6 @@ test("createTag / updateTag / usage / removeTag cleanup", () => {
   c.removeTag(txt.id);
   assert.deepStrictEqual(c.db.tricks.map((t) => Array.from(t.tagIds)), [[cls.id], []]);
   assert.strictEqual(c.getTag(txt.id), undefined);
-});
-
-test("addTagToTrick creates text-kind tags", () => {
-  const c = setup(); c.db.tags = []; const tr = { tagIds: [] };
-  assert.strictEqual(c.addTagToTrick(tr, "New", "en").kind, "text");
 });
 
 test("publish snapshot keeps kind/combo; pending counts a combo change", () => {
@@ -144,7 +154,7 @@ test("normalizeDB round-trips a published class tag", () => {
 
 test("tag manager strings registered in zh/jp/en", () => {
   const c = setup();
-  ["tagMgrTitle", "tagTabGrip", "tagTabClass", "tagTabText", "classTagsLabel", "applyComboBtn", "tagMgrUsed"].forEach((k) => {
+  ["tagMgrTitle", "tagTabGrip", "tagTabClass", "tagTabText", "classTagsLabel", "tagMgrUsed"].forEach((k) => {
     ["zh", "jp", "en"].forEach((l) => { c.state.lang = l; assert.notStrictEqual(c.t(k), k, k + " " + l); });
   });
 });

@@ -93,7 +93,8 @@
     if(filters.grip && e.grip !== filters.grip) return false;
     var parts = filters.parts || [];
     if(parts.length){
-      var has = function(p){ return e.parts.indexOf(p) !== -1; };
+      // partMatches (js/01): a 劍頂 filter also matches 劍尖 tags, 中皿 matches 中皿邊.
+      var has = function(p){ return typeof partMatches === "function" ? partMatches(e.parts, p) : e.parts.indexOf(p) !== -1; };
       if(filters.partsMode === "all" ? !parts.every(has) : !parts.some(has)) return false;
     }
     var qtags = (query && query.tags) || [];
@@ -119,6 +120,21 @@
   function searchHasCriteria(query, filters){
     filters = filters || {};
     return !!(query.text || query.tags.length || filters.grip || (filters.parts && filters.parts.length));
+  }
+
+  // Results list shows only after the user interacted (typed / clicked a chip, tag, diagram region, grip, mode);
+  // the default grip alone must not trigger a listing.
+  function searchShouldShowResults(query, filters, interacted){
+    return !!interacted && searchHasCriteria(query, filters);
+  }
+
+  // Class tag (kind "class", combo {grip, parts}) picked in the search: OVERWRITES the grip / parts
+  // filters, each only when the combo specifies it. Mutates + returns filters; false-y tag = no-op.
+  function searchApplyClassTag(filters, tag){
+    if(!tag || tag.kind !== "class" || !tag.combo) return filters;
+    if(tag.combo.grip) filters.grip = tag.combo.grip;
+    if(tag.combo.parts && tag.combo.parts.length) filters.parts = tag.combo.parts.slice();
+    return filters;
   }
 
   // -> matching ids; name-prefix hits first, otherwise index order. No criteria = [].

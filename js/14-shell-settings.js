@@ -58,6 +58,11 @@
     btn.appendChild(img);
   }
 
+  // 招式投稿 entry: only the trick form now (helper application is a link inside it, js/74).
+  if(typeof addStrings === "function") addStrings({
+    zh:{ settingsSubmit:"招式投稿" }, jp:{ settingsSubmit:"技の投稿" }, en:{ settingsSubmit:"Submit a trick" }
+  });
+
   // Row 4 buttons ship disabled in index.html ("coming soon"); wire them up here
   // (forms live in js/74-forms.js, both require sign-in and check it themselves).
   function enableFormItems(){
@@ -129,7 +134,6 @@
     setText("settingsGuideLabel", t("settingsGuide"));
     setText("settingsNoticesLabel", t("settingsNotices"));
     setText("settingsSubmitLabel", t("settingsSubmit"));
-    setText("settingsSubmitNote", t("settingsSubmitNote"));
     setText("settingsReportLabel", t("settingsReport"));
     setText("settingsPrivacyLabel", t("settingsPrivacy"));
     setText("privacyTitle", t("settingsPrivacy"));

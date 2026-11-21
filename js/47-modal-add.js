@@ -9,27 +9,30 @@
     zh:{ addTypeTrick:"招式", addTypeFolder:"資料夾", addTypeInfo:"資訊", addTitleBtn:"新增",
          addNameLabel:"名稱", addLinkNote:"將連結既有招式：",
          addVideoLabel:"影片連結（選填）", addTagsLabel:"標籤", addNoTags:"（尚無標籤）",
-         addContentLabel:"內容", addOfficialNoteLabel:"官方備註",
+         addContentLabel:"內容",
          addErrName:"請至少輸入一種語言的名稱", addErrVideo:"影片連結必須以 http:// 或 https:// 開頭",
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
-         addLinkedToast:"已連結招式" },
+         addLinkedToast:"已連結招式",
+         addHintZh:"將建立中文名稱", addHintJp:"將建立日文名稱", addHintEn:"將建立英文名稱", addHintEmpty:"輸入名稱，或輸入既有招式 ID 來連結" },
     jp:{ addTypeTrick:"技", addTypeFolder:"フォルダ", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
-         addContentLabel:"内容", addOfficialNoteLabel:"公式メモ",
+         addContentLabel:"内容",
          addErrName:"少なくとも1つの言語で名前を入力してください", addErrVideo:"動画リンクは http:// または https:// で始めてください",
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
-         addLinkedToast:"技をリンクしました" },
+         addLinkedToast:"技をリンクしました",
+         addHintZh:"中国語名で作成します", addHintJp:"日本語名で作成します", addHintEn:"英語名で作成します", addHintEmpty:"名前、または既存の技IDでリンク" },
     en:{ addTypeTrick:"Trick", addTypeFolder:"Folder", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
-         addContentLabel:"Content", addOfficialNoteLabel:"Official note",
+         addContentLabel:"Content",
          addErrName:"Enter a name in at least one language", addErrVideo:"Video link must start with http:// or https://",
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
-         addLinkedToast:"Trick linked" }
+         addLinkedToast:"Trick linked",
+         addHintZh:"Will create a Chinese name", addHintJp:"Will create a Japanese name", addHintEn:"Will create an English name", addHintEmpty:"Type a name, or an existing trick ID to link" }
   });
 
   /* ---------------- Pure logic ---------------- */
@@ -88,6 +91,21 @@
     return null;
   }
 
+  // Trick name box: classify what the user typed.
+  // -> { kind:"empty" } | { kind:"link", id, explicit } | { kind:"name", lang:"zh"|"jp"|"en" }
+  // A bare 7-char id links only when that trick exists; "@id" always tries to link.
+  function detectAddName(raw){
+    var str = (typeof raw === "string" ? raw : "").trim();
+    if(!str) return { kind: "empty" };
+    var at = parseAtId(str);
+    if(at) return { kind: "link", id: at, explicit: true };
+    if(/^[0-9A-Za-z]{7}$/.test(str) && getTrick(str)) return { kind: "link", id: str, explicit: false };
+    if(/[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF66-\uFF9F]/.test(str)) return { kind: "name", lang: "jp" };
+    if(/[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFF65]/.test(str)) return { kind: "name", lang: "zh" };
+    if(/[^\x00-\u024F\u2000-\u206F]/.test(str)) return { kind: "name", lang: "zh" };
+    return { kind: "name", lang: "en" };
+  }
+
   // ArrowUp/Down between text fields. Returns the target index, or -1 to leave the key alone.
   // f: { key, multiline, value, selStart, selEnd, idx, count, composing }
   // Textareas only hand focus over when the caret sits on the first (Up) / last (Down) line.
@@ -122,14 +140,14 @@
     db.infos.push(rec);
     return rec;
   }
-  // f: { zh, jp, en, icon, color, url, grip, parts, tagIds, note, officialNote }
+  // f: { zh, jp, en, icon, color, url, grip, parts, tagIds, note }
   function createTrickRecord(parentId, spaceId, f, custom){
     var media = [];
     if(f.url) media.push({ id: newItemId(), type: "video", title: "", url: f.url, platform: detectPlatform(f.url) });
     var rec = normalizeDB({ categories: [], tricks: [{ id: newItemId(), name: addNameObj(f), media: media.slice(0, MAX_VIDEOS),
       categoryIds: [addEffectiveParent(parentId, spaceId)], orderByCategory: {}, order: db.tricks.length,
       icon: f.icon || "", color: f.color || "default", custom: !!custom, grip: f.grip || null, parts: f.parts || [],
-      tagIds: f.tagIds || [], note: f.note || "", officialNote: f.officialNote || "" }] }).tricks[0];
+      tagIds: f.tagIds || [], note: f.note || "" }] }).tricks[0];
     db.tricks.push(rec);
     return rec;
   }
@@ -156,74 +174,29 @@
     sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_FOLDER);
   }
 
-  function addNameValues(){
-    return [addEl("addMainName").value, addEl("addAlt1").value, addEl("addAlt2").value];
+  function addDetected(){
+    return addForm && addForm.type === "trick" ? detectAddName(addEl("addMainName").value) : { kind: "empty" };
   }
-  // Link target id typed as "@id" in any name field (trick type only), else null.
+  // Link target id (trick type only), else null.
   function addLinkTarget(){
-    return addForm && addForm.type === "trick" ? findLinkTarget(addNameValues()) : null;
+    var d = addDetected();
+    return d.kind === "link" ? d.id : null;
   }
   function addIsLinking(){ return !!addLinkTarget(); }
-  function addNoteEl(){
-    var n = addEl("addLinkNote");
-    if(!n){
-      n = document.createElement("div");
-      n.id = "addLinkNote"; n.className = "field-hint add-link-note"; n.hidden = true;
-      var row = addEl("addMainName").closest(".add-name-row");
-      row.parentNode.insertBefore(n, row.nextSibling);
-    }
-    return n;
-  }
-
-  function renderAddChips(){
-    var gripRow = addEl("addGripRow"), partsRow = addEl("addPartsRow"), tagsRow = addEl("addTagsRow");
-    var fake = { grip: addForm.grip, parts: addForm.parts };
-    function chip(text, on, fn){
-      var b = makeChip(text, on, fn);
-      return b;
-    }
-    gripRow.innerHTML = ""; partsRow.innerHTML = ""; tagsRow.innerHTML = "";
-    GRIP_KEYS.forEach(function(k){
-      gripRow.appendChild(chip(t("grip_" + k), fake.grip === k, function(){ addForm.grip = toggleGrip(fake, k); renderAddChips(); }));
-    });
-    fillPartGroups(partsRow, function(k){
-      return chip(t("part_" + k), fake.parts.indexOf(k) !== -1, function(){ addForm.parts = togglePart(fake, k).slice(); renderAddChips(); });
-    });
-    if(!(db.tags || []).length){
-      var none = document.createElement("span");
-      none.className = "field-hint"; none.textContent = t("addNoTags");
-      tagsRow.appendChild(none);
-    }
-    // Class tags (招式類別) first with their tint, then text tags.
-    var sortedTags = (db.tags || []).slice().sort(function(a, b){
-      return (tagKind(a) === "class" ? 0 : 1) - (tagKind(b) === "class" ? 0 : 1);
-    });
-    sortedTags.forEach(function(g){
-      var on = addForm.tagIds.indexOf(g.id) !== -1;
-      var el = chip(resolveDisplayName(g.name).text, on, function(){
-        addForm.tagIds = on ? addForm.tagIds.filter(function(x){ return x !== g.id; }) : addForm.tagIds.concat([g.id]);
-        renderAddChips();
-      });
-      if(tagKind(g) === "class") el.classList.add("tag-class");
-      tagsRow.appendChild(el);
-    });
-  }
+  function addNoteEl(){ return addEl("addNameHint"); }
 
   function applyAddType(type){
     addForm.type = type;
     var isTrick = type === "trick";
     addEl("addInfoSection").hidden = type !== "info";
-    addEl("addTrickSection").hidden = !isTrick;
     addEl("addIconBtn").hidden = type === "info";
     Array.prototype.forEach.call(addEl("addTypeSwitch").children, function(b){
       b.classList.toggle("active", b.dataset.type === type);
     });
-    if(isTrick){
-      var admOfficial = !addForm.types.customTrick && !!(getSpace(addForm.spaceId) || {}).locked && isAdminNow();
-      addEl("addOfficialField").hidden = !admOfficial;
-    }
-    // Row 3: folder / trick = the other two language names; info = the content box instead.
-    addEl("addAltRow").hidden = type === "info";
+    // Trick: one auto-detected name box. Folder: three names. Info: one title + content.
+    addEl("addAltRow").hidden = type !== "folder";
+    addEl("addMainLabel").textContent = isTrick ? t("addNameLabel") : addForm.mainLabel;
+    addEl("addMainName").placeholder = isTrick ? t("addHintEmpty") : "";
     updateAddIconPreview();
     syncAddLinking();
     addShowError("");
@@ -235,9 +208,12 @@
     var id = addLinkTarget();
     var key = "";
     note.classList.remove("form-error", "show");
-    if(!id){ note.hidden = true; note.textContent = ""; return; }
+    note.hidden = addForm.type !== "trick";
+    if(addForm.type !== "trick"){ note.textContent = ""; return; }
+    var d = addDetected();
+    if(d.kind === "name"){ note.textContent = t(d.lang === "jp" ? "addHintJp" : d.lang === "en" ? "addHintEn" : "addHintZh"); return; }
+    if(!id){ note.textContent = ""; return; }
     key = validateLinkTrick(id, addForm.parentId, addForm.spaceId, isAdminNow());
-    note.hidden = false;
     if(key){
       note.textContent = t(key);
       note.classList.add("form-error", "show");
@@ -274,7 +250,7 @@
       if(!canCreateIn(parentId, spaceId)) showToast(t("favNoCreate"));
       return;
     }
-    addForm = { type: types.def, parentId: parentId == null ? null : parentId, spaceId: spaceId, types: types, grip: null, parts: [], tagIds: [] };
+    addForm = { type: types.def, parentId: parentId == null ? null : parentId, spaceId: spaceId, types: types };
     state.addDraftIcon = "";
     state.addDraftColor = "default";
 
@@ -293,27 +269,20 @@
     var names = { zh: t("categoryNameZh"), jp: t("categoryNameJp"), en: t("categoryNameEn") };
     var alts = langs.filter(function(l){ return l !== state.lang; });
     addForm.mainLang = state.lang; addForm.alt1Lang = alts[0]; addForm.alt2Lang = alts[1];
-    addEl("addMainLabel").textContent = names[state.lang];
+    addForm.mainLabel = names[state.lang];
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
-    ["addMainName", "addAlt1", "addAlt2", "addVideoUrl", "addNote", "addOfficialNote", "addContent"].forEach(function(id){ addEl(id).value = ""; });
+    ["addMainName", "addAlt1", "addAlt2", "addContent"].forEach(function(id){ addEl(id).value = ""; });
     if(!addInputsBound){
       addInputsBound = true;
       addEl("addModal").addEventListener("keydown", onAddArrowKey);
-      // Linking an existing trick: type "@id" in a name field.
-      ["addMainName", "addAlt1", "addAlt2"].forEach(function(id){ addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); }); });
+      // Trick name box: live language / ID-link detection.
+      addEl("addMainName").addEventListener("input", function(){ if(addForm) syncAddLinking(); });
     }
-    addEl("addVideoLabel").textContent = t("addVideoLabel");
-    addEl("addTagsLabel").textContent = t("addTagsLabel");
-    addEl("addOfficialLabel").textContent = t("addOfficialNoteLabel");
-    addEl("addNoteLabel").textContent = t("personalNoteLabel");
     addEl("addContentLabel").textContent = t("addContentLabel");
-    addEl("addNote").placeholder = t("mediaContentPlaceholder");
-    addEl("addOfficialNote").placeholder = t("mediaContentPlaceholder");
     addEl("addCancelBtn").textContent = t("cancel");
     addEl("addSaveBtn").textContent = t("save");
     addEl("addCloseBtn").innerHTML = ICON_X;
-    renderAddChips();
     applyAddType(types.def);
     addEl("addModalOverlay").classList.add("show");
     setTimeout(function(){ addEl("addMainName").focus(); }, 80);
@@ -339,9 +308,14 @@
     }
 
     var f = {};
-    f[addForm.mainLang] = addEl("addMainName").value;
-    f[addForm.alt1Lang] = addEl("addAlt1").value;
-    f[addForm.alt2Lang] = addEl("addAlt2").value;
+    if(type === "trick"){
+      var det = detectAddName(addEl("addMainName").value);
+      if(det.kind === "name") f[det.lang] = addEl("addMainName").value;
+    } else {
+      f[addForm.mainLang] = addEl("addMainName").value;
+      f[addForm.alt1Lang] = addEl("addAlt1").value;
+      f[addForm.alt2Lang] = addEl("addAlt2").value;
+    }
     if(addNameEmpty(addNameObj(f))) return addShowError("addErrName");
     if(type !== "info" && !iconTextFits(state.addDraftIcon)) return addShowError("iconTextTooLong");
     f.icon = state.addDraftIcon; f.color = state.addDraftColor;
@@ -355,13 +329,11 @@
       createInfoRecord(parentId, spaceId, f);
       showToast(t("savedInfo"));
     } else {
-      var url = addEl("addVideoUrl").value.trim();
-      if(url && !isSafeHttpUrl(url)) return addShowError("addErrVideo");
-      f.url = url; f.grip = addForm.grip; f.parts = addForm.parts; f.tagIds = addForm.tagIds;
-      f.note = addEl("addNote").value;
-      f.officialNote = addEl("addOfficialField").hidden ? "" : addEl("addOfficialNote").value;
-      createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);
+      var rec = createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);
       showToast(t("savedTrick"));
+      // Continue in the drawer (edit mode): grip, parts, tags, videos, note live there.
+      saveDB(); closeAddModal(); state.editMode = true; render(); openDrawerFor(rec.id);
+      return;
     }
     saveDB(); closeAddModal(); render();
   }

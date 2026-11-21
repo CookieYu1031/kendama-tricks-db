@@ -40,8 +40,8 @@ test("trick submission: names, url safety", () => {
   assert.strictEqual(ctx.buildReportDoc(user, "trick", { nameZh: "x", url: "javascript:alert(1)" }).error, "formErrUrl");
   const r = ctx.buildReportDoc(user, "trick", { nameZh: "大皿", nameEn: "Ohzara", text: "", url: "https://youtu.be/x" });
   assert.ok(r.ok);
-  assert.deepStrictEqual({ ...r.doc.payload.names }, { zh: "大皿", en: "Ohzara" });
-  assert.strictEqual(r.doc.payload.url, "https://youtu.be/x");
+  assert.deepStrictEqual({ ...r.doc.payload.trick.names }, { zh: "大皿", en: "Ohzara" });
+  assert.deepStrictEqual([...r.doc.payload.trick.urls], ["https://youtu.be/x"]);
   assert.strictEqual(r.doc.text, "");
 });
 
@@ -91,7 +91,7 @@ test("mailbox filter tabs", () => {
 
 test("i18n keys exist in all languages", () => {
   ["zh", "jp", "en"].forEach((l) => {
-    ["formNeedLogin", "formReportTitle", "mbTitle", "mbKind_apply", "inboxTitle", "formSubmitNote"].forEach((k) => {
+    ["formNeedLogin", "formReportTitle", "mbTitle", "mbKind_apply", "inboxTitle", "formApplyLink", "mbCopyTrick", "mbReject"].forEach((k) => {
       assert.ok(ctx.UI[l][k], l + ":" + k);
     });
   });
