@@ -2,7 +2,7 @@
    860px  narrow layout (tablet / phone: single column, drawer overlay)
    600px  small phone
    380px  very narrow phone
-   Large screens: html zoom 1.1 at >=1280px, 1.2 at >=1680px (see bottom of this file). */
+   UI size: user preference x1 / x1.1 / x1.2 via html[data-ui-zoom] (js/15; see bottom of this file). */
   :root{
     --ink:#121212;
     --ink-2:#191919;
@@ -30,7 +30,7 @@
     --font-display: 'Zen Maru Gothic', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     --font-body: 'Noto Sans TC', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-    --ui-zoom: 1; /* mirrors the html zoom set at file bottom; divide viewport units by it */
+    --ui-zoom: 1; /* mirrors html[data-ui-zoom] (file bottom); divide viewport units by it */
     --topbar-h: 64px;
     --crumb-h: 52px;
     /* --- iOS-style liquid glass surfaces --- */
@@ -128,5 +128,5 @@
   /* ---------- Large-screen scale ----------
      Whole UI is scaled via html zoom. --ui-zoom mirrors it so 100vw/100dvh-based
      sizes can compensate: use calc(100dvh / var(--ui-zoom)). (vw/vh scale with zoom in Chrome.) */
-  @media (min-width:1280px){ :root{ --ui-zoom:1.1; } html{ zoom:1.1; } }
-  @media (min-width:1680px){ :root{ --ui-zoom:1.2; } html{ zoom:1.2; } }
+  html[data-ui-zoom="1.1"]{ --ui-zoom:1.1; zoom:1.1; }
+  html[data-ui-zoom="1.2"]{ --ui-zoom:1.2; zoom:1.2; }

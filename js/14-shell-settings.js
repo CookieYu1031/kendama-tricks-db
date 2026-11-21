@@ -85,6 +85,7 @@
   if(typeof addStrings === "function") addStrings({
     zh: {
       settingsGuide: "快速導覽",
+      settingsTutorial: "新手教學",
       settingsPrivacy: "隱私說明",
       privacyBody: "・登入使用 Google 帳號，只用來辨識你的資料，名稱和信箱不會公開。\n" +
         "・你的成招、成招率、收藏、自訂表和備註存在你自己的雲端資料，只有你能讀寫。\n" +
@@ -94,6 +95,7 @@
     },
     jp: {
       settingsGuide: "クイックガイド",
+      settingsTutorial: "はじめてガイド",
       settingsPrivacy: "プライバシー",
       privacyBody: "・ログインには Google アカウントを使い、データの識別のみに使用します。名前とメールは公開されません。\n" +
         "・成功記録、成功率、お気に入り、カスタム表、メモはあなた専用のクラウドデータに保存され、あなただけが読み書きできます。\n" +
@@ -103,6 +105,7 @@
     },
     en: {
       settingsGuide: "Quick tour",
+      settingsTutorial: "Beginner tutorial",
       settingsPrivacy: "Privacy",
       privacyBody: "- Sign-in uses your Google account, only to identify your data. Your name and email are never shown publicly.\n" +
         "- Your landed tricks, rates, favourites, custom tables and notes are stored in your own cloud data; only you can read or write them.\n" +
@@ -111,6 +114,23 @@
         "- Nothing is sold or shared with third parties. To delete your data, tell us via \"Report a problem\"."
     }
   });
+
+  // Small "· 隱私說明" text link appended to the "Designed by" credit line (built once).
+  function renderPrivacyLink(){
+    var credit = document.querySelector(".settings-credit");
+    if(!credit) return;
+    var link = credit.querySelector(".credit-privacy");
+    if(!link){
+      var sep = document.createElement("span");
+      sep.className = "credit-sep"; sep.textContent = "·";
+      link = document.createElement("button");
+      link.type = "button"; link.className = "credit-privacy";
+      link.addEventListener("click", openPrivacy);
+      credit.appendChild(sep);
+      credit.appendChild(link);
+    }
+    link.textContent = t("settingsPrivacy");
+  }
 
   function renderSettingsUI(){
     function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
@@ -135,7 +155,10 @@
     setText("settingsNoticesLabel", t("settingsNotices"));
     setText("settingsSubmitLabel", t("settingsSubmit"));
     setText("settingsReportLabel", t("settingsReport"));
-    setText("settingsPrivacyLabel", t("settingsPrivacy"));
+    // index.html keeps the old ids: settingsPrivacyBtn/Label now hold 新手教學 (v0.14);
+    // privacy opens from a small link built next to the credit line.
+    setText("settingsPrivacyLabel", "🔰 " + t("settingsTutorial"));
+    renderPrivacyLink();
     setText("privacyTitle", t("settingsPrivacy"));
     setText("privacyText", t("privacyBody"));
     var pcb = document.getElementById("privacyCloseBtn");
@@ -156,6 +179,14 @@
       btn.title = titles[p];
       btn.setAttribute("aria-label", titles[p]);
     });
+
+    var zoom = typeof getUiZoomPref === "function" ? getUiZoomPref() : "1";
+    var zsw = document.getElementById("zoomSwitch");
+    if(zsw){ zsw.title = t("uiZoom"); zsw.setAttribute("aria-label", t("uiZoom")); }
+    Array.prototype.forEach.call(document.querySelectorAll(".zoom-btn"), function(btn){
+      btn.classList.toggle("active", btn.getAttribute("data-ui-zoom") === zoom);
+      btn.title = t("uiZoom") + " " + btn.textContent;
+    });
   }
 
   document.getElementById("settingsBtn").addEventListener("click", openSettings);
@@ -167,11 +198,20 @@
     closeSettings();
     if(typeof startTour === "function") startTour("full");
   });
-  document.getElementById("settingsPrivacyBtn").addEventListener("click", openPrivacy);
+  document.getElementById("settingsPrivacyBtn").addEventListener("click", function(){
+    closeSettings();
+    if(typeof openTutorial === "function") openTutorial();
+  });
   document.getElementById("privacyCloseBtn").addEventListener("click", closePrivacy);
   document.getElementById("privacyOverlay").addEventListener("click", function(ev){
     if(ev.target.id === "privacyOverlay") closePrivacy();
   });
+  var zoomSwitchEl = document.getElementById("zoomSwitch");
+  if(zoomSwitchEl) zoomSwitchEl.addEventListener("click", function(ev){
+    var btn = ev.target.closest(".zoom-btn");
+    if(btn && typeof setUiZoomPref === "function") setUiZoomPref(btn.getAttribute("data-ui-zoom"));
+  });
+  if(typeof addStrings === "function") addStrings({ zh:{ uiZoom:"介面大小" }, jp:{ uiZoom:"表示サイズ" }, en:{ uiZoom:"UI size" } });
   document.getElementById("themeSwitch").addEventListener("click", function(ev){
     var btn = ev.target.closest(".theme-btn");
     if(btn) setThemePref(btn.getAttribute("data-theme-pref"));

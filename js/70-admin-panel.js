@@ -9,7 +9,7 @@
   addStrings({
     zh:{ adminTitle:"管理員面板", adminOpen:"管理員面板", adminMailbox:"📫 郵件箱", adminStats:"網站統計", adminHelpers:"管理協助者", adminBackup:"過往版本與備份",
          adminPublishTitle:"更新與發布", adminLastVersion:"上次版本", adminNoVersion:"尚未發布", adminVersionLabel:"版本號", adminNoteLabel:"更新備註",
-         adminNotePlaceholder:"這次更新了什麼？（所有使用者都會看到）", adminPendingTitle:"待發布的變更", adminPendingNone:"沒有待發布的變更",
+         adminNotePlaceholder:"這次更新了什麼？（所有使用者都會看到）", adminPendingTitle:"待發布的變更", adminPendingBtn:"待發布的變更（{n}）", adminPendingNone:"沒有待發布的變更",
          adminPendingLoading:"計算中…", adminAdded:"新增", adminModified:"變動", adminRemoved:"移除", adminTags:"標籤",
          adminPublishBtn:"發布更新", adminPublishing:"發布中…", adminConfirmTitle:"發布更新？", adminConfirmBody:"版本 {label}：{counts}",
          adminLabelEmpty:"請輸入版本號", adminLabelBad:"版本號只能用英數字、. - _ 和空格，最多 32 字", adminNoteEmpty:"請輸入更新備註",
@@ -17,7 +17,7 @@
          adminIndexHint:"發布後，請手動執行搜尋索引更新：" },
     jp:{ adminTitle:"管理者パネル", adminOpen:"管理者パネル", adminMailbox:"📫 受信箱", adminStats:"サイト統計", adminHelpers:"協力者の管理", adminBackup:"過去のバージョンとバックアップ",
          adminPublishTitle:"更新と発行", adminLastVersion:"前回のバージョン", adminNoVersion:"未発行", adminVersionLabel:"バージョン", adminNoteLabel:"更新メモ",
-         adminNotePlaceholder:"今回の更新内容は？（全ユーザーに表示されます）", adminPendingTitle:"未発行の変更", adminPendingNone:"未発行の変更はありません",
+         adminNotePlaceholder:"今回の更新内容は？（全ユーザーに表示されます）", adminPendingTitle:"未発行の変更", adminPendingBtn:"未発行の変更（{n}）", adminPendingNone:"未発行の変更はありません",
          adminPendingLoading:"集計中…", adminAdded:"追加", adminModified:"変更", adminRemoved:"削除", adminTags:"タグ",
          adminPublishBtn:"更新を発行", adminPublishing:"発行中…", adminConfirmTitle:"更新を発行しますか？", adminConfirmBody:"バージョン {label}：{counts}",
          adminLabelEmpty:"バージョンを入力してください", adminLabelBad:"英数字・. - _・空白のみ、32文字以内", adminNoteEmpty:"更新メモを入力してください",
@@ -25,7 +25,7 @@
          adminIndexHint:"発行後、検索インデックスを手動で更新してください：" },
     en:{ adminTitle:"Admin panel", adminOpen:"Admin panel", adminMailbox:"📫 Mailbox", adminStats:"Site stats", adminHelpers:"Manage helpers", adminBackup:"Past versions & backup",
          adminPublishTitle:"Updates & publishing", adminLastVersion:"Last version", adminNoVersion:"Nothing published yet", adminVersionLabel:"Version", adminNoteLabel:"Changelog note",
-         adminNotePlaceholder:"What changed? (visible to everyone)", adminPendingTitle:"Pending changes", adminPendingNone:"No pending changes",
+         adminNotePlaceholder:"What changed? (visible to everyone)", adminPendingTitle:"Pending changes", adminPendingBtn:"Pending changes ({n})", adminPendingNone:"No pending changes",
          adminPendingLoading:"Calculating…", adminAdded:"Added", adminModified:"Modified", adminRemoved:"Removed", adminTags:"Tags",
          adminPublishBtn:"Publish update", adminPublishing:"Publishing…", adminConfirmTitle:"Publish update?", adminConfirmBody:"Version {label}: {counts}",
          adminLabelEmpty:"Enter a version label", adminLabelBad:"Letters, digits, . - _ and spaces only, max 32 chars", adminNoteEmpty:"Please enter a changelog note",
@@ -80,19 +80,37 @@
     return String(s).replace(/\{(\w+)\}/g, function(_, k){ return vars[k] != null ? vars[k] : ""; });
   }
 
-  function renderAdminPending(){
-    var box = adminEl("adminPending");
-    var p = adminPending;
-    if(!p){ box.innerHTML = '<div class="field-hint">' + escapeHtml(t("adminPendingLoading")) + '</div>'; return; }
-    if(!p.total){ box.innerHTML = '<div class="field-hint">' + escapeHtml(t("adminPendingNone")) + '</div>'; return; }
+  // Popup body: counts line + grouped lists (added / modified / removed).
+  function pendingDetailHtml(p){
     var html = '<div class="admin-counts">' + escapeHtml(formatPendingCounts(p)) + '</div>';
     [["added","adminAdded"],["modified","adminModified"],["removed","adminRemoved"]].forEach(function(k){
       var list = p.lists[k[0]];
       if(!list.length) return;
-      html += '<details class="admin-details"><summary>' + escapeHtml(t(k[1])) + ' (' + list.length + ')</summary><ul>' +
-        list.map(function(n){ return '<li>' + escapeHtml(n) + '</li>'; }).join("") + '</ul></details>';
+      html += '<div class="admin-card-subtitle">' + escapeHtml(t(k[1])) + ' (' + list.length + ')</div><ul class="admin-pending-list">' +
+        list.map(function(n){ return '<li>' + escapeHtml(n) + '</li>'; }).join("") + '</ul>';
     });
-    box.innerHTML = html;
+    return html;
+  }
+  function renderAdminPending(){
+    var box = adminEl("adminPending");
+    var p = adminPending;
+    var n = p ? p.total : 0;
+    var label = p ? adminFmt(t("adminPendingBtn"), { n: n }) : t("adminPendingLoading");
+    box.innerHTML = '<button type="button" class="btn btn-ghost btn-block admin-pending-btn" id="adminPendingBtn"' +
+      (n ? '' : ' disabled') + '>' + escapeHtml(label) + '</button>';
+    var ov = document.getElementById("adminPendingOverlay");
+    if(ov && ov.classList.contains("show")) fillAdminPendingPopup(ov);
+  }
+  function fillAdminPendingPopup(ov){
+    var p = adminPending;
+    ov.querySelector(".modal-scroll").innerHTML = (p && p.total) ? pendingDetailHtml(p)
+      : '<div class="field-hint">' + escapeHtml(t(p ? "adminPendingNone" : "adminPendingLoading")) + '</div>';
+  }
+  function openAdminPending(){
+    if(!adminPending || !adminPending.total) return;
+    var ov = adminSubModal("adminPendingOverlay", "adminPendingTitle", "admin-sub-modal admin-pending-modal");
+    fillAdminPendingPopup(ov);
+    ov.classList.add("show");
   }
 
   function updateAdminPublishState(){
@@ -196,7 +214,7 @@
   /* ---------------- Sub-modals (opened from the admin panel's button row) ----------------
      Own overlays inserted before #confirmOverlay (so confirms stack above). The Esc chain in 90 is
      not touched: a capture-phase listener below closes the topmost sub-modal first. */
-  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay", "adminIndexOverlay"];
+  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay", "adminIndexOverlay", "adminPendingOverlay"];
   function adminSubModal(id, titleKey, extraClass){
     var ov = document.getElementById(id);
     if(!ov){
@@ -257,4 +275,7 @@
   adminEl("adminCloseBtn").addEventListener("click", closeAdminPanel);
   adminEl("adminOverlay").addEventListener("click", function(ev){ if(ev.target.id === "adminOverlay") closeAdminPanel(); });
   adminEl("adminPublishBtn").addEventListener("click", publishFromAdminPanel);
+  adminEl("adminPending").addEventListener("click", function(ev){
+    if(ev.target && ev.target.closest && ev.target.closest("#adminPendingBtn")) openAdminPending();
+  });
   adminEl("settingsAdminBtn").addEventListener("click", openAdminPanel);
