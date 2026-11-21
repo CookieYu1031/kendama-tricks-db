@@ -255,3 +255,27 @@ test("guest load replaces covered tables only (old snapshot keeps t01/t02)", asy
   assert.ok(ids.indexOf("a") !== -1 && ids.indexOf("zz") === -1);
   assert.ok(ids.indexOf("s01jka") !== -1 && ids.indexOf("s02kwc") !== -1);
 });
+
+test("computePendingStatus v0.8.2: order-only change flags the folder, not the siblings", () => {
+  const c = setup();
+  const base = baseOf(c);
+  const data = J(base);
+  // reorder inside folder "a": sub-folder b gets a new order, trick k1 a new orderByCategory
+  data.categories.find((x) => x.id === "b").order = 5;
+  data.tricks.find((x) => x.id === "k1").orderByCategory = { a: 7 };
+  const r = J(c.computePendingStatus(base, data));
+  assert.deepStrictEqual(r.byId, { a: "modified" });
+  assert.strictEqual(r.summary.modified, 1);
+});
+
+test("computePendingStatus v0.8.2: content change still flags the item; order alone never does", () => {
+  const c = setup();
+  const base = baseOf(c);
+  const data = J(base);
+  data.tricks.find((x) => x.id === "k2").name = { zh: "changed" };
+  data.tricks.find((x) => x.id === "k2").orderByCategory = { b: 3 };
+  const r = J(c.computePendingStatus(base, data));
+  assert.strictEqual(r.byId.k2, "modified");
+  assert.strictEqual(r.byId.b, "modified");   // its order changed inside b
+  assert.strictEqual(r.byId.k1, undefined);
+});

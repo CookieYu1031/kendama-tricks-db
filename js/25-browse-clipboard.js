@@ -204,6 +204,7 @@
     var env = { admin: isAdminNow(), activeSpace: state.activeSpace };
     var plan = clipPlanPaste(clipboardItem, target, env);
     if(!plan.ok) return clipToast(plan.err);
+    if(typeof undoPush === "function") undoPush();
     clipApplyPaste(clipboardItem, target, plan, env);
     if(plan.op === "move") clipboardItem = null;
     clipToast(plan.op === "move" ? "clipMoved" : "clipPasted");

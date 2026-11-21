@@ -233,12 +233,9 @@
   // clears a previously-applied glow instead of leaving it stale.
   function applyTrickGlow(iconEl, trickRef){
     var rate = trickRef.rate;
-    if(!rate || !RATE_COLORS[rate]){
-      iconEl.style.boxShadow = "var(--glass-highlight)";
-      return;
-    }
-    var glowHex = RATE_COLORS[rate];
-    iconEl.style.boxShadow = "var(--glass-highlight), 0 0 0 1px " + hexToRgba(glowHex, 0.4) + ", 0 0 14px 2px " + hexToRgba(glowHex, 0.55);
+    // Glow uses var(--rate-*) via color-mix, so it follows theme changes live.
+    var glow = rateGlowShadow(rate);
+    iconEl.style.boxShadow = glow ? "var(--glass-highlight), " + glow : "var(--glass-highlight)";
   }
 
   // Re-applies the rate glow on every currently-rendered icon for one trick without a

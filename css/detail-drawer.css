@@ -108,6 +108,21 @@
     background: linear-gradient(165deg, var(--pf-active-a, rgba(var(--lacquer-rgb),0.95)), var(--pf-active-b, rgba(var(--lacquer-rgb),0.68)));
     color: var(--on-accent);
   }
+  /* Landing-rate steps: inactive = tinted, active = solid step color + matching ink. */
+  .proficiency-btn[data-rate]{
+    --pf-c: var(--rate-none); --pf-ink: var(--rate-none-ink);
+    background: color-mix(in srgb, var(--pf-c) 45%, transparent); color: var(--paper-dim);
+  }
+  .proficiency-btn[data-rate]:hover{ background: color-mix(in srgb, var(--pf-c) 70%, transparent); }
+  .proficiency-btn[data-rate].active{
+    background: linear-gradient(165deg, var(--pf-c), color-mix(in srgb, var(--pf-c) 88%, var(--ink)));
+    color: var(--pf-ink);
+  }
+  .proficiency-btn[data-rate="rare"]{ --pf-c: var(--rate-rare); --pf-ink: var(--rate-rare-ink); }
+  .proficiency-btn[data-rate="sometimes"]{ --pf-c: var(--rate-sometimes); --pf-ink: var(--rate-sometimes-ink); }
+  .proficiency-btn[data-rate="most"]{ --pf-c: var(--rate-most); --pf-ink: var(--rate-most-ink); }
+  .proficiency-btn[data-rate="mastered"]{ --pf-c: var(--rate-mastered); --pf-ink: var(--rate-mastered-ink); }
+  .rate-swatch{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:baseline; border:1px solid var(--glass-border-strong); }
 
   /* ---------- v0.2 drawer additions ---------- */
   /* custom:true tricks get a warm tint on the head */
@@ -134,9 +149,11 @@
   /* Chips (tags / grip / parts) — same pill as .chip */
   .drawer-chip-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:16px; }
   /* Parts grouped ken / ito / tama: one wrapped line-group each, thin divider between groups. */
-  .drawer-chip-row.part-groups{ flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:8px; }
+  /* Parts: ken parts on row 1, string + ball parts share row 2. No divider lines. */
+  .drawer-chip-row.part-groups{ flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px; }
   .part-group{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-  .part-group + .part-group{ padding-top:8px; border-top:1px solid var(--glass-border); }
+  .part-group[data-group="ken"]{ flex:0 0 100%; }
+  .part-group[data-group="ito"], .part-group[data-group="tama"]{ display:contents; }
   .drawer-chip{
     font-family:inherit; font-size:11px; padding: 3px 9px; border-radius:999px; background: var(--glass-2); color: var(--paper-dim);
     border:1px solid var(--glass-border); cursor:pointer; transition: all .15s var(--ease);

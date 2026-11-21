@@ -49,6 +49,13 @@
     --body-glow-2: rgba(91,138,166,0.10);
     --body-glow-3: rgba(201,160,99,0.10);
     --body-glow-4: rgba(62,155,224,0.09);
+    /* Landing-rate steps (none < rare < sometimes < most < mastered): one blue family,
+       contrast vs the background rises with the rate. -ink = text on the filled step. */
+    --rate-none:#1E293B; --rate-none-ink:#CBD5E1;
+    --rate-rare:#1E3A8A; --rate-rare-ink:#DBEAFE;
+    --rate-sometimes:#0369A1; --rate-sometimes-ink:#F0F9FF;
+    --rate-most:#0EA5E9; --rate-most-ink:#082F49;
+    --rate-mastered:#7DD3FC; --rate-mastered-ink:#082F49;
     color-scheme: dark;
     --glass-blur: blur(30px) saturate(190%);
     --glass-blur-soft: blur(18px) saturate(165%);
@@ -65,6 +72,11 @@
     --glass-1: rgba(255,255,255,0.55); --glass-2: rgba(255,255,255,0.72); --glass-3: rgba(255,255,255,0.88);
     --glass-border: rgba(30,30,30,0.10); --glass-border-strong: rgba(30,30,30,0.18);
     --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.05);
+    --rate-none:#E6ECF2; --rate-none-ink:#475569;
+    --rate-rare:#BAE6FD; --rate-rare-ink:#0C4A6E;
+    --rate-sometimes:#38BDF8; --rate-sometimes-ink:#082F49;
+    --rate-most:#0277B6; --rate-most-ink:#FFFFFF;
+    --rate-mastered:#1E3A8A; --rate-mastered-ink:#FFFFFF;
     --accent-text:#1F6FB0;
     --on-accent:#fff; --on-accent-2:#fff;
     --overlay-bg: rgba(40,35,25,0.28);

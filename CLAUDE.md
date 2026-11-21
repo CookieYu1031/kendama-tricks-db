@@ -81,6 +81,8 @@
 | 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
 | 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp` 在 `js/23-browse-gestures.js` |
 | 快捷鍵 | `js/24-browse-keys.js` |
+| 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
+| 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（圖示、標籤、持法部位、影片備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
