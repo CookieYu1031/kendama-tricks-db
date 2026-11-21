@@ -236,8 +236,7 @@
     var dot = document.createElement("span");
     dot.className = "pending-dot";
     dot.title = t("pendingChanged");
-    // Dot sits on the icon's top-right corner (not the row's), so contrib.css's
-    // ".item.has-pending .sub-dots" offset is no longer needed: the class is not added.
+    // Dot sits on the icon top-right corner (not the row).
     var icon = row.querySelector(".item-icon");
     if(icon){ icon.classList.add("pending-host"); icon.appendChild(dot); }
     else row.appendChild(dot);

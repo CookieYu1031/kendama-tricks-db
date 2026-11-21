@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("./_load");
 
 function setup(guest){
-  const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
     "js/07-id.js", "js/09-names.js", "js/61-search-index.js"]);
   if(guest) ctx.isLoggedIn = () => false;
   const nm = (zh, jp, en) => ({ zh: zh || "", jp: jp || "", en: en || "" });

@@ -4,7 +4,7 @@ const assert = require("node:assert");
 const { load } = require("./_load");
 
 function setup(){
-  return load(["js/01-data-model.js", "js/50-sync-core.js", "js/55-sync-conflict.js"],
+  return load(["js/01-data-model.js", "js/01-data-storage.js", "js/50-sync-core.js", "js/55-sync-conflict.js"],
     { localize: (n) => n && n.zh, addStrings: () => {} });
 }
 const J = (x) => JSON.parse(JSON.stringify(x));

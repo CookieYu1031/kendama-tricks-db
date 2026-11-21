@@ -34,7 +34,7 @@
   // Icon text limit: 2 width units (full-width = 2, half-width = 1), counted per code point.
   // Emoji (any sequence), image icons ("img:...") and empty always fit. Checked on save /
   // picker close, never while typing (truncating mid-input breaks IME composition).
-  // Needs isLikelyEmojiIcon / charDisplayWidth from 05-data-helpers.js (resolved at call time).
+  // Needs isLikelyEmojiIcon / charDisplayWidth from 05-data-util.js (resolved at call time).
   var ICON_TEXT_MAX_UNITS = 2;
   function iconTextFits(str){
     str = String(str == null ? "" : str).trim();

@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("./_load");
 
 function setup(){
-  const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
     "js/07-id.js", "js/09-names.js", "js/20-browse-order.js", "js/30-drawer-logic.js", "js/31-drawer-sections.js", "js/32-trick-drawer.js", "js/47-modal-add.js"]);
   ctx.saveDB = () => {};
   const nm = (z) => ({ zh: z, jp: "", en: "" });

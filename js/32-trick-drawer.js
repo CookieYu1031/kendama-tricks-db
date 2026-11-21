@@ -38,7 +38,6 @@
     if(drawerCloseTimer){ clearTimeout(drawerCloseTimer); drawerCloseTimer = null; }
     el.classList.remove("closing");
     state.detailTrickId = trickId;
-    state.reviewSubmissionId = null;
     drawerUi.tagPicker = false; drawerUi.rateHint = false; drawerUi.videoEdit = null;
     attachDrawerSwipeClose(el);
     renderColumns();
@@ -48,7 +47,6 @@
   function closeDrawer(){
     var el = document.getElementById("detailDrawer");
     state.detailTrickId = null;
-    state.reviewSubmissionId = null;
     if(el.classList.contains("show") && !el.classList.contains("closing") && !isNarrowViewport()){
       el.classList.add("closing");
       drawerCloseTimer = setTimeout(function(){
@@ -117,7 +115,6 @@
 
   function renderDrawer(){
     var drawer = document.getElementById("detailDrawer");
-    if(state.reviewSubmissionId && typeof renderSubmissionDrawer === "function"){ renderSubmissionDrawer(drawer); return; } // admin review (76)
     if(!state.detailTrickId){ return; }
     var tr = getTrick(state.detailTrickId);
     if(!tr){ closeDrawer(); return; }

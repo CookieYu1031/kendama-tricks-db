@@ -95,7 +95,7 @@ test("client: gating + merge", () => {
 });
 
 test("client: getSearchIndex uses json only when usable", () => {
-  const c = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
+  const c = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
     "js/07-id.js", "js/09-names.js", "js/61-search-index.js"]);
   c.isLoggedIn = () => false;
   c.db = c.normalizeDB(JSON.parse(JSON.stringify(snapshot)));

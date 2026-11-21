@@ -10,8 +10,8 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const DOC_ID = "space-index"; // SHARED_BASE_DOC_ID in js/50-sync-core.js
-const LOAD_FILES = ["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
-  "js/05-data-helpers.js", "js/07-id.js", "js/09-names.js", "js/61-search-index.js"];
+const LOAD_FILES = ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
+  "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/07-id.js", "js/09-names.js", "js/61-search-index.js"];
 
 function readConfig(){
   const src = fs.readFileSync(path.join(ROOT, "js/00-firebase-config.js"), "utf8");

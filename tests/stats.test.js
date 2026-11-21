@@ -3,21 +3,20 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { load } = require("./_load");
 
-const FILES = ["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
-  "js/05-data-helpers.js", "js/57-user-stats.js", "js/75-admin-stats.js"];
+const FILES = ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
+  "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/57-user-stats.js", "js/75-admin-stats.js"];
 const ctx = load(FILES, {});
 const DAY = 86400000;
 
 const inPub = (tr, sid) => (tr.sp || []).indexOf(sid) !== -1;
 const mk = (id, o) => Object.assign({ id, sp: ["t00"] }, o || {});
 
-test("payload: only public tables, favorites and rates", () => {
+test("payload: only public tables and favorites", () => {
   const tricks = [mk("a", { favorite: true, rate: "most" }), mk("b", { rate: "rare" }), mk("c", { sp: ["t05"], favorite: true, rate: "mastered" }),
     mk("d", { sp: ["t02"], favorite: true }), mk("e", { rate: "bogus" })];
   const p = ctx.buildUserStatsPayload(tricks, inPub, "jp");
   assert.deepStrictEqual(Array.from(p.favorites), ["a", "d"]);
-  assert.deepStrictEqual(Array.from(p.landed), ["a", "b"]);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(p.rates)), { a: "most", b: "rare" });
+  assert.deepStrictEqual(Object.keys(p).sort(), ["favorites", "lang"]);
   assert.strictEqual(p.lang, "jp");
   assert.strictEqual(ctx.buildUserStatsPayload([], inPub, "xx").lang, "zh");
 });
@@ -27,14 +26,12 @@ test("payload: 2000 limit", () => {
   for(let i = 0; i < 2500; i++) tricks.push(mk("t" + i, { favorite: true, rate: "rare" }));
   const p = ctx.buildUserStatsPayload(tricks, inPub, "en");
   assert.strictEqual(p.favorites.length, 2000);
-  assert.strictEqual(p.landed.length, 2000);
-  assert.strictEqual(Object.keys(p.rates).length, 2000);
 });
 
 test("hash changes with content, stable for same content; daily refresh", () => {
   const a = ctx.buildUserStatsPayload([mk("a", { favorite: true })], inPub, "zh");
   const a2 = ctx.buildUserStatsPayload([mk("a", { favorite: true })], inPub, "zh");
-  const b = ctx.buildUserStatsPayload([mk("a", { favorite: true, rate: "rare" })], inPub, "zh");
+  const b = ctx.buildUserStatsPayload([mk("a", { favorite: true }), mk("b", { favorite: true })], inPub, "zh");
   const h = ctx.userStatsHash(a);
   assert.strictEqual(h, ctx.userStatsHash(a2));
   assert.notStrictEqual(h, ctx.userStatsHash(b));

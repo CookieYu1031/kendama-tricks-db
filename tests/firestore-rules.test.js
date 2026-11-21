@@ -54,18 +54,16 @@ test("hasOnly field lists exact", function () {
     "latestVersion,latestNote,latestLabel,publishedAt",
     "version,note,versionLabel,publishedAt,chunks",
     "email,addedAt,color",
-    "uid,email,name,trick,parentId,status,createdAt",
-    "id,name,media,icon,color,grip,parts,officialNote,tagIds",
     "uid,email,displayName,kind,text,payload,createdAt,status",
     "lastReportAt",
     "kind,text,trickName,from,createdAt,read",
     "read",
-    "lang,favorites,landed,rates,lastActiveAt,createdAt",
+    "lang,favorites,lastActiveAt,createdAt",
     "ownerUid,itemId,createdAt,kind,title,payload,v"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 16); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 14); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -100,7 +98,7 @@ test("default deny is last", function () {
 });
 
 test("v0.7 collections present with admin-gated reads", function () {
-  ["contributors/{emailId}", "submissions/{subId}", "reports/{rid}", "rateLimits/{uid}", "users/{uid}/inbox/{mid}", "userStats/{uid}"].forEach(function (p) {
+  ["contributors/{emailId}", "reports/{rid}", "rateLimits/{uid}", "users/{uid}/inbox/{mid}", "userStats/{uid}"].forEach(function (p) {
     assert.ok(src.indexOf("match /" + p) !== -1, p);
   });
   assert.match(src, /function isContributor\(\)/);
@@ -111,7 +109,7 @@ test("v0.7 collections present with admin-gated reads", function () {
 
 test("catch-all deny stays last", function () {
   var last = src.lastIndexOf("match /{document=**}");
-  ["match /userStats/", "match /reports/", "match /submissions/"].forEach(function (p) {
+  ["match /userStats/", "match /reports/"].forEach(function (p) {
     assert.ok(src.indexOf(p) < last, p);
   });
 });
@@ -140,4 +138,13 @@ test("shares: public read, owner-only create/delete, immutable, size caps, befor
   assert.match(b, /kind in \['folder', 'trick'\]/);
   assert.match(b, /itemId\.matches\('\^\[0-9A-Za-z_-\]\{1,40\}\$'\)/);
   assert.match(b, /shareId == request\.auth\.uid \+ '_' \+ request\.resource\.data\.itemId/);
+});
+
+test("v0.10: no submissions collection, no officialNote, userStats has no landed/rates", function () {
+  assert.ok(src.indexOf("/submissions") < 0);
+  assert.ok(src.indexOf("officialNote") < 0);
+  var b = src.slice(src.indexOf("match /userStats/{uid}"));
+  b = b.slice(0, b.indexOf("match /shares/"));
+  assert.ok(!/landed|rates/.test(b));
+  assert.match(b, /hasOnly\(\['lang', 'favorites', 'lastActiveAt', 'createdAt'\]\)/);
 });

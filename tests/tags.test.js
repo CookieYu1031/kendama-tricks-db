@@ -8,7 +8,7 @@ function stubEl(){
   return { addEventListener(){}, classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } }, setAttribute(){}, style: {} };
 }
 function setup(){
-  const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
     "js/07-id.js", "js/08-loc-code.js", "js/09-names.js", "js/30-drawer-logic.js", "js/50-sync-core.js", "js/51-shared-base.js",
     "js/53-sync-chunks.js", "js/56-pending.js", "js/32-trick-drawer.js", "js/33-drawer-tags.js", "js/77-admin-tags.js"], {
     document: { getElementById: stubEl, querySelector: () => null, querySelectorAll: () => [], addEventListener(){}, createElement: stubEl },

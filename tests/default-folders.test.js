@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("./_load");
 
 function setup(){
-  return load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
+  return load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
     "js/06-icons-svg.js", "js/07-id.js", "js/08-loc-code.js", "js/09-names.js"]);
 }
 const names = (ctx, sid) => ctx.db.categories.filter((c) => c.spaceId === sid).map((c) => c.name.zh);
