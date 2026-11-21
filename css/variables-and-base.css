@@ -1,3 +1,8 @@
+/* Breakpoints (only these three; plus min-width:861px as the wide counterpart of 860):
+   860px  narrow layout (tablet / phone: single column, drawer overlay)
+   600px  small phone
+   380px  very narrow phone
+   Large screens: html zoom 1.1 at >=1280px, 1.2 at >=1680px (see bottom of this file). */
   :root{
     --ink:#121212;
     --ink-2:#191919;
@@ -6,8 +11,8 @@
     --line: rgba(240,237,230,0.09);
     --line-strong: rgba(240,237,230,0.16);
     --paper:#F0EDE6;
-    --paper-dim: rgba(240,237,230,0.62);
-    --paper-faint: rgba(240,237,230,0.36);
+    --paper-dim: rgba(240,237,230,0.74);
+    --paper-faint: rgba(240,237,230,0.52);
     --lacquer:#3E9BE0;
     --lacquer-bright:#7DD8FF;
     --lacquer-rgb: 62,155,224;
@@ -20,10 +25,12 @@
     --shadow-sm: 0 8px 20px -12px rgba(0,0,0,0.55);
     --radius: 20px;
     --radius-sm: 14px;
+    --radius-xs: 10px;
     --ease: cubic-bezier(.22,1,.36,1);
-    --font-display: 'Zen Maru Gothic', 'Varela Round', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-    --font-body: 'Zen Maru Gothic', 'Varela Round', 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-display: 'Zen Maru Gothic', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-body: 'Noto Sans TC', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --ui-zoom: 1; /* mirrors the html zoom set at file bottom; divide viewport units by it */
     --topbar-h: 64px;
     --crumb-h: 52px;
     /* --- iOS-style liquid glass surfaces --- */
@@ -63,7 +70,7 @@
   :root[data-theme="light"]{
     color-scheme: light;
     --ink:#D9DCE1; --ink-2:#D1D5DB; --ink-3:#C8CCD3; --ink-4:#BDC2CA;
-    --paper:#1A1D22; --paper-dim: rgba(26,29,34,0.74); --paper-faint: rgba(26,29,34,0.56);
+    --paper:#1A1D22; --paper-dim: rgba(26,29,34,0.84); --paper-faint: rgba(26,29,34,0.66);
     --line: rgba(26,29,34,0.12); --line-strong: rgba(26,29,34,0.20);
     --lacquer:#2F86CC; --lacquer-bright:#5BB8F0; --lacquer-rgb: 47,134,204;
     --wood:#A87B3C; --string:#4A7590;
@@ -109,7 +116,7 @@
   }
   ::selection{ background: var(--lacquer); color:#fff; }
   ::-webkit-scrollbar{ width:8px; height:8px; }
-  ::-webkit-scrollbar-thumb{ background: var(--line-strong); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line-strong); border-radius:var(--radius-xs); }
   ::-webkit-scrollbar-track{ background: transparent; }
   button{ font-family: inherit; }
   input, select, textarea{ font-family: inherit; }
@@ -117,3 +124,9 @@
   #app{ height:100%; display:flex; flex-direction:column; }
   .body-row{ flex:1 1 auto; display:flex; min-height:0; overflow:hidden; }
   .main-col{ flex:1 1 auto; display:flex; flex-direction:column; min-width:0; overflow:hidden; position:relative; }
+
+  /* ---------- Large-screen scale ----------
+     Whole UI is scaled via html zoom. --ui-zoom mirrors it so 100vw/100dvh-based
+     sizes can compensate: use calc(100dvh / var(--ui-zoom)). (vw/vh scale with zoom in Chrome.) */
+  @media (min-width:1280px){ :root{ --ui-zoom:1.1; } html{ zoom:1.1; } }
+  @media (min-width:1680px){ :root{ --ui-zoom:1.2; } html{ zoom:1.2; } }

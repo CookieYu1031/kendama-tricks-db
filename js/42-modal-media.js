@@ -14,10 +14,13 @@
     if(!mediaId && (tr.media||[]).length >= MAX_VIDEOS) return; // B9: at most MAX_VIDEOS videos
     var item = mediaId ? (tr.media||[]).find(function(m){ return m.id===mediaId; }) : null;
     document.getElementById("mediaModalTitle").textContent = mediaId ? t("editMedia") : t("addMedia");
+    // Title label/placeholder set here (the language pass in js/10 only knows the old "name" strings).
+    document.getElementById("mediaNameLabel").textContent = t("videoTitleLabel");
+    document.getElementById("mediaName").placeholder = t("videoTitlePlaceholder");
     document.getElementById("mediaName").value = item ? (item.title||"") : "";
     document.getElementById("mediaUrl").value = item ? (item.url||"") : "";
     document.getElementById("mediaModalOverlay").classList.add("show");
-    setTimeout(function(){ document.getElementById("mediaName").focus(); }, 80);
+    setTimeout(function(){ document.getElementById("mediaUrl").focus(); }, 80);
   }
   function closeMediaModal(){
     document.getElementById("mediaModalOverlay").classList.remove("show");
@@ -29,28 +32,13 @@
     if(!tr) return closeMediaModal();
     var name = document.getElementById("mediaName").value.trim();
     var url = document.getElementById("mediaUrl").value.trim();
-
-    if(!url){
-      document.getElementById("mediaFormError").textContent = t("mediaUrlRequired");
+    var r = saveDrawerVideo(tr, state.editingMediaId, url, name); // validates URL + title length (never truncates)
+    if(r === "full") return closeMediaModal();
+    if(r !== "ok"){
+      var key = r === "empty" ? "mediaUrlRequired" : r === "titleTooLong" ? "videoTitleTooLong" : "mediaUrlInvalid";
+      document.getElementById("mediaFormError").textContent = t(key);
       document.getElementById("mediaFormError").classList.add("show");
       return;
-    }
-    if(!isSafeHttpUrl(url)){
-      document.getElementById("mediaFormError").textContent = t("mediaUrlInvalid");
-      document.getElementById("mediaFormError").classList.add("show");
-      return;
-    }
-
-    tr.media = tr.media || [];
-    if(state.editingMediaId){
-      var existing = tr.media.find(function(m){ return m.id===state.editingMediaId; });
-      if(existing){
-        existing.title = name;
-        existing.url = url; existing.platform = detectPlatform(url);
-      }
-    } else {
-      if(tr.media.length >= MAX_VIDEOS) return closeMediaModal();
-      tr.media.push({ id: newItemId(), type: "video", title: name, url: url, platform: detectPlatform(url) });
     }
     saveDB();
     closeMediaModal();

@@ -15,9 +15,9 @@
   /* Desktop: the card keeps its final size and slides in from the right edge (transform only);
      the columns reflow at once. .closing (set by closeDrawer) plays the slide back out. */
   .detail-drawer.show{
-    flex: 0 0 clamp(300px, 32vw, 420px);
-    width: clamp(300px, 32vw, 420px);
-    min-width:0; max-width:min(420px, 92vw);
+    flex: 0 0 clamp(300px, calc(32vw / var(--ui-zoom)), 420px);
+    width: clamp(300px, calc(32vw / var(--ui-zoom)), 420px);
+    min-width:0; max-width:min(420px, calc(92vw / var(--ui-zoom)));
     margin: 14px 14px 16px 0; border-width: 1px;
     animation: drawerSlideIn .34s var(--ease) both;
   }
@@ -27,10 +27,10 @@
   .drawer-head{ flex:0 0 auto;
     padding: 14px 16px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
-  .drawer-eyebrow{ font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color: var(--string); margin-bottom:6px; }
+  .drawer-eyebrow{ font-family: var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color: var(--string); margin-bottom:6px; }
   .drawer-head-left{ flex:1 1 auto; min-width:0; }
   .drawer-title{ font-family: var(--font-display); font-size:20px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
-  .drawer-head-icon{ width:40px; height:40px; border-radius:12px; font-size:20px; border:0; padding:0; flex:0 0 auto; font-family:inherit; }
+  .drawer-head-icon{ width:40px; height:40px; border-radius:var(--radius-xs); font-size:20px; border:0; padding:0; flex:0 0 auto; font-family:inherit; }
   .drawer-head-edit{ display:inline-flex; align-items:center; gap:10px; max-width:100%; padding:0; border:0; background:transparent; color: var(--paper-dim); font-family:inherit; font-size:12px; cursor:pointer; transition: color .15s var(--ease); }
   .drawer-head-edit:hover{ color: var(--paper); }
   .drawer-head-edit:hover .drawer-head-icon{ box-shadow: 0 0 0 2px var(--lacquer); }
@@ -41,14 +41,14 @@
   .drawer-head-icon svg{ width:22px; height:22px; }
   /* Unique ID (edit mode), left of the star */
   .drawer-id-btn{
-    font-family: var(--font-mono); font-size:11px; letter-spacing:.02em; padding: 4px 6px; border-radius:8px;
+    font-family: var(--font-mono); font-size:12px; letter-spacing:.02em; padding: 4px 6px; border-radius:var(--radius-xs);
     background: transparent; color: var(--paper-faint); border:none; cursor:pointer; white-space:nowrap;
     transition: color .15s var(--ease);
   }
   .drawer-id-btn:hover{ color: var(--paper); }
   .drawer-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
   .drawer-close{
-    width:32px; height:32px; border-radius:9px; border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper-dim);
+    width:32px; height:32px; border-radius:var(--radius-xs); border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper-dim);
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
   }
   .drawer-close:hover{ color:#fff; background: var(--danger); border-color: var(--danger); }
@@ -57,7 +57,7 @@
      filed into that bucket) gets a lacquer-tinted fill so its state reads at
      a glance without needing a label. */
   .drawer-quick-btn{
-    width:32px; height:32px; border-radius:9px; border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper-dim);
+    width:32px; height:32px; border-radius:var(--radius-xs); border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper-dim);
     display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
     font-size:15px; line-height:1; transition: all .18s var(--ease);
   }
@@ -75,7 +75,7 @@
   .name-table.pair .name-val{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .name-row{ display:flex; align-items:baseline; gap:10px; padding: 9px 0; }
   .name-table.editing .name-row{ align-items:center; padding:0; }
-  .name-row .lang-tag{ font-family: var(--font-mono); font-size:10px; color: var(--paper-faint); width:26px; flex:0 0 auto; text-transform:uppercase; }
+  .name-row .lang-tag{ font-family: var(--font-mono); font-size:12px; color: var(--paper-faint); width:26px; flex:0 0 auto; text-transform:uppercase; }
   .name-row .name-val{ font-size:15px; }
   .video-block{
     border-radius: var(--radius); overflow:hidden; border:1px solid var(--line); background: var(--ink);
@@ -89,7 +89,7 @@
   }
   .video-block:hover .play-badge{ transform: scale(1.08); }
   .play-badge svg{ width:20px; height:20px; color:#fff; margin-left:3px; }
-  .drawer-cats-label{ font-family: var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color: var(--paper-faint); margin-bottom:10px; }
+  .drawer-cats-label{ font-family: var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color: var(--paper-faint); margin-bottom:10px; }
   .drawer-foot{ padding: 16px 20px; border-top:1px solid var(--line); display:flex; gap:10px; }
 
   /* ---------- Proficiency segmented control ---------- */
@@ -112,7 +112,7 @@
   .proficiency-btn{
     flex: 1 1 0; min-width:0; margin:0; padding: 8px 3px; border:0; border-radius:0;
     background: transparent; color: var(--paper-dim);
-    font-family:inherit; font-size:10px; font-weight:600; line-height:1.2; text-align:center;
+    font-family:inherit; font-size:12px; font-weight:600; line-height:1.2; text-align:center;
     white-space:normal; word-break:break-word; overflow-wrap:break-word;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; transition: background .18s var(--ease), color .18s var(--ease);
@@ -137,7 +137,7 @@
 
   /* Edit-mode inline inputs (names, new tag) — same look as .note-field-input */
   .drawer-inline-input{
-    flex:1 1 auto; min-width:0; background:transparent; border:1px solid var(--line); border-radius:10px;
+    flex:1 1 auto; min-width:0; background:transparent; border:1px solid var(--line); border-radius:var(--radius-xs);
     padding:6px 10px; color: var(--paper); font-family:inherit; font-size:14px; outline:none;
     transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
   }
@@ -147,7 +147,7 @@
   /* ID + location codes (edit mode) */
   .drawer-meta{ display:flex; flex-wrap:wrap; gap:6px; margin: -8px 0 18px; }
   .drawer-meta-code{
-    font-family: var(--font-mono); font-size:11px; letter-spacing:.04em; padding: 3px 9px; border-radius:999px;
+    font-family: var(--font-mono); font-size:12px; letter-spacing:.04em; padding: 3px 9px; border-radius:999px;
     background: transparent; color: var(--paper-faint); border:1px solid var(--line); cursor:pointer;
     transition: all .15s var(--ease);
   }
@@ -162,7 +162,7 @@
   .part-group[data-group="ken"]{ flex:0 0 100%; }
   .part-group[data-group="ito"], .part-group[data-group="tama"]{ display:contents; }
   .drawer-chip{
-    font-family:inherit; font-size:11px; padding: 3px 9px; border-radius:999px; background: var(--glass-2); color: var(--paper-dim);
+    font-family:inherit; font-size:12px; padding: 3px 9px; border-radius:999px; background: var(--glass-2); color: var(--paper-dim);
     border:1px solid var(--glass-border); cursor:pointer; transition: all .15s var(--ease);
   }
   .drawer-chip:hover{ border-color: var(--wood); color: var(--wood); }
@@ -184,16 +184,10 @@
   .vid-slots{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:6px; margin-bottom:16px; }
   .vid-slot{ display:flex; align-items:stretch; min-width:0; height:32px; border-radius:999px; border:1px solid var(--glass-border); background: var(--glass-2); overflow:hidden; }
   .vid-slot.empty{ border-style:dashed; }
-  .vid-slot-main{ flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 6px; background:transparent; border:0; color: var(--paper-dim); cursor:pointer; font-family:inherit; font-size:10.5px; transition: color .15s var(--ease), background .15s var(--ease); }
+  .vid-slot-main{ flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 6px; background:transparent; border:0; color: var(--paper-dim); cursor:pointer; font-family:inherit; font-size:12px; transition: color .15s var(--ease), background .15s var(--ease); }
   .vid-slot-main span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .vid-slot-main:hover{ color: var(--paper); background: var(--glass-3); }
   .vid-slot-main svg{ width:15px; height:15px; flex:0 0 auto; }
-  .vid-slot-tool{ flex:0 0 18px; width:18px; padding:0; border:0; border-left:1px solid var(--glass-border); background: transparent; color: var(--paper-faint); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .vid-slot-tool svg{ width:11px; height:11px; }
-  .vid-slot-tool:hover{ color: var(--paper); background: var(--glass-3); }
-  .vid-input-row{ margin: -6px 0 16px; flex-wrap:wrap; }
-  .vid-input-row .drawer-inline-input{ flex:1 1 100%; }
-  .vid-input-row .col-add-btn{ flex:1 1 0; width:auto; justify-content:center; }
   .drawer-flow{ margin-bottom:16px; }
 
   /* Rate label row + "i" hint button/popover */
@@ -205,7 +199,7 @@
   }
   .drawer-info-btn:hover, .drawer-info-btn.active{ color: var(--paper); }
   .drawer-rate-hint{
-    font-size:11.5px; line-height:1.7; color: var(--paper-dim); margin-bottom:8px; padding: 8px 12px;
+    font-size:12px; line-height:1.7; color: var(--paper-dim); margin-bottom:8px; padding: 8px 12px;
     border:1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--glass-2);
     backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
   }
@@ -225,6 +219,10 @@
       touch-action: pan-y;
     }
     .detail-drawer.show{ transform: translateX(0); }
+  }
+  /* Tablet (601–860px): drawer is a right-side panel so the two columns stay visible on the left. */
+  @media (min-width: 601px) and (max-width: 860px){
+    .detail-drawer, .detail-drawer.show{ left:auto; width:min(460px, calc(100% - 120px)); }
   }
   @media (prefers-reduced-motion: reduce){
     .detail-drawer, .detail-drawer.show, .detail-drawer.show.closing{ transition: none; animation: none; }

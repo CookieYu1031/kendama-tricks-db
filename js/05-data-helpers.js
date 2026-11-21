@@ -9,6 +9,12 @@
   // bar, cycling language switch) all agree with the CSS.
   var MOBILE_BREAKPOINT = 860;
   function isNarrowViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT; }
+  // Phone (<=600px): one column + swipe-back. Tablet (601-860px): last two columns
+  // side by side. Wider: full miller chain. Mirrors css/browse-columns.css.
+  var PHONE_BREAKPOINT = 600;
+  function isPhoneViewport(){ return window.innerWidth <= PHONE_BREAKPOINT; }
+  function isTabletViewport(){ return window.innerWidth > PHONE_BREAKPOINT && window.innerWidth <= MOBILE_BREAKPOINT; }
+  function visibleColumnCount(){ return isPhoneViewport() ? 1 : (isTabletViewport() ? 2 : 0); } // 0 = all
 
   // Lazily-built lookup index (id -> record, parentId -> categories/infos,
   // containerId -> tricks) so lookups don't linearly scan db on every call.

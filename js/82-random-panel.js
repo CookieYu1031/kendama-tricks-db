@@ -121,7 +121,9 @@
       mode.appendChild(b);
     });
     partsBox.appendChild(rnd.diagram); partsBox.appendChild(mode);
-    host.appendChild(rndRow(t("rndParts"), partsBox));
+    var condRow = document.createElement("div"); condRow.className = "rnd-cond-row";
+    condRow.appendChild(rndRow(t("rndParts"), partsBox));
+    host.appendChild(condRow);
 
     var classes = (db.tags || []).filter(function(g){ return tagKind(g) === "class"; });
     if(c.classId && !classes.some(function(g){ return g.id === c.classId; })) c.classId = null;
@@ -134,7 +136,8 @@
           rndChanged();
         }, "tag-class"));
       });
-      host.appendChild(rndRow(t("rndClass"), cr));
+      var classField = rndRow(t("rndClass"), cr); classField.className += " rnd-class-field";
+      condRow.appendChild(classField);
     }
 
     if(!isGuest()){

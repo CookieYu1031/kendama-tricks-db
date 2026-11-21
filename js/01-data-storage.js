@@ -167,7 +167,7 @@
       var media = [];
       (Array.isArray(t.media) ? t.media : []).forEach(function(m){
         if(m.type === "note"){ if(m.content) legacyNotes.push(m.content); return; }
-        media.push({ id: m.id || newItemId(), type:"video", title: m.title || "", url: m.url || "",
+        media.push({ id: m.id || newItemId(), type:"video", title: typeof m.title === "string" ? m.title : "", url: m.url || "",
           platform: m.platform || (typeof detectPlatform === "function" ? detectPlatform(m.url || "") : "") });
       });
       // Migrate the legacy single videoUrl field (pre media[] versions) into one video entry.

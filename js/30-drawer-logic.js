@@ -2,24 +2,8 @@
 
   /* ============================================================
      DRAWER LOGIC — pure helpers for the trick drawer (js/31, js/32).
-     Unit-tested in tests/drawer-logic.test.js, tests/drawer-slide.test.js.
+     Unit-tested in tests/drawer-logic.test.js.
   ============================================================ */
-  // Swipe-right-to-close decision (mobile slide-in panel). Pure, unit-tested in
-  // tests/drawer-slide.test.js.
-  //   dx / dy: finger travel since touchstart (px, +dx = rightward)
-  //   velocityX: rightward speed at release (px/ms)
-  //   width: panel width (px)
-  // "ignore": mostly vertical or leftward (let the body scroll / nothing to do)
-  // "close": dragged past 30% of the width, or a fast rightward flick
-  // "back": otherwise, spring back to open
-  var DRAWER_SWIPE_RATIO = 0.3, DRAWER_FLICK_VELOCITY = 0.5, DRAWER_FLICK_MIN_DX = 24;
-  function drawerSwipeDecision(dx, dy, velocityX, width){
-    if(!(dx > 0) || Math.abs(dy) > Math.abs(dx)) return "ignore";
-    if(width > 0 && dx >= width * DRAWER_SWIPE_RATIO) return "close";
-    if(velocityX >= DRAWER_FLICK_VELOCITY && dx >= DRAWER_FLICK_MIN_DX) return "close";
-    return "back";
-  }
-
   /* ---------- Pure helpers (unit-tested in tests/drawer-logic.test.js) ---------- */
   // Landing rate: a level, or null (「無」). `landed` is derived from it.
   // Re-selecting the active option is a no-op; 無 is the way to clear.

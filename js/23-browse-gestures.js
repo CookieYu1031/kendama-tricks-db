@@ -3,7 +3,7 @@
   /* ============================================================
      BROWSE — "up one level" helper (swipe-back handle lives in js/27)
   ============================================================ */
-  // Shared "up one level" used by swipe and keyboard. Returns true if it did something.
+  // Shared "up one level" used by the swipe-back handle (js/27). Returns true if it did something.
   function browseGoUp(){
     if(state.detailTrickId && typeof closeDrawer === "function"){ closeDrawer(); return true; }
     if(!state.path.length) return false;

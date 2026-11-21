@@ -58,7 +58,8 @@
     wrap.classList.remove("search-results");
 
     var columns = buildColumnChain();
-    var isMobile = isNarrowViewport();
+    var isMobile = isPhoneViewport();
+    var isTablet = isTabletViewport();
     var focusIdx = findFocusColumnIndex(columns);
 
     // Reuse existing column DOM nodes (matched by position + parentId) instead of
@@ -77,7 +78,9 @@
       var colEl = wrap.children[colIndex];
       colEl.innerHTML = "";
 
-      var collapsed = !isMobile && focusIdx !== -1 && colIndex <= focusIdx - 2;
+      // Tablet: only the last two levels stay open; earlier ones fold to the icon strip (tap to jump up).
+      var collapsed = isTablet ? colIndex <= columns.length - 3
+        : (!isMobile && focusIdx !== -1 && colIndex <= focusIdx - 2);
       colEl.className = "m-col" + (collapsed ? " collapsed" : "") + (isMobile && colIndex === columns.length-1 ? " mobile-active" : "") + (isMobile && columns.length > 1 && colIndex === columns.length-2 ? " mobile-under" : "");
 
       // Removed-but-unpublished items stay in place as ghost rows (56); drag/reorder only sees real rows.

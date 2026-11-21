@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192-white.png" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Varela+Round&family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/variables-and-base.css">
 <link rel="stylesheet" href="css/shell-topbar-rail.css">
 <link rel="stylesheet" href="css/search-panel.css">
@@ -381,13 +381,13 @@
   <div class="modal" id="mediaModal">
     <div class="modal-scroll">
       <div class="modal-title" id="mediaModalTitle">新增影片</div>
-      <div class="field">
-        <label id="mediaNameLabel">名稱</label>
-        <input type="text" id="mediaName" placeholder="例如：正面示範" />
-      </div>
       <div class="field" id="mediaUrlField">
         <label id="mediaUrlLabel">影片連結 (YouTube／Instagram／Facebook／TikTok…)</label>
         <input type="url" id="mediaUrl" placeholder="https://..." />
+      </div>
+      <div class="field">
+        <label id="mediaNameLabel">標題（選填，最多 12 字）</label>
+        <input type="text" id="mediaName" placeholder="例如：正面示範" />
       </div>
       <div class="form-error" id="mediaFormError">請完整填寫</div>
     </div>

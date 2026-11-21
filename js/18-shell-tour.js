@@ -22,9 +22,9 @@
       tourTouchTitle:"手勢",
       tourTouchBody:"<b>右滑</b>返回上一層。<br>編輯模式下<b>長按拖曳</b>可排序或換層。",
       tourKeysTitle:"快捷鍵",
-      tourKeysBody:"<kbd>/</kbd> 搜尋<br><kbd>↑</kbd><kbd>↓</kbd> 選取<br><kbd>→</kbd> 或 <kbd>Enter</kbd> 開啟<br><kbd>←</kbd> 或 <kbd>Backspace</kbd> 返回<br><kbd>e</kbd> 編輯　<kbd>n</kbd> 新增<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 復原　<kbd>Del</kbd> 刪除　<kbd>?</kbd> 說明",
+      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd> 複製、剪下、貼上（編輯模式）<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 復原　<kbd>Del</kbd> 刪除選取項目<br><kbd>Esc</kbd> 關閉視窗",
       tourSettingsTitle:"設定",
-      tourSettingsBody:"在這裡登入、切換主題與語言。想再看一次導覽，可在設定裡點「快速導覽」；也能安裝 App。",
+      tourSettingsBody:"在這裡登入、切換主題與語言。想再看一次導覽，可在設定裡點「快速導覽」；也能加到主畫面（電腦為建立桌面捷徑）。",
       tourMemberIntroTitle:"登入後的功能",
       tourMemberIntroBody:"登入之後，你可以記錄自己的成招率、收藏招式、建立自訂表。接下來快速介紹。",
       tourRateTitle:"成招率與收藏",
@@ -47,9 +47,9 @@
       tourTouchTitle:"ジェスチャー",
       tourTouchBody:"<b>右スワイプ</b>で一つ前の階層へ。<br>編集モードでは<b>長押しドラッグ</b>で並べ替えや階層移動ができます。",
       tourKeysTitle:"ショートカット",
-      tourKeysBody:"<kbd>/</kbd> 検索<br><kbd>↑</kbd><kbd>↓</kbd> 選択<br><kbd>→</kbd> または <kbd>Enter</kbd> 開く<br><kbd>←</kbd> または <kbd>Backspace</kbd> 戻る<br><kbd>e</kbd> 編集　<kbd>n</kbd> 追加<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 元に戻す　<kbd>Del</kbd> 削除　<kbd>?</kbd> ヘルプ",
+      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd> コピー・切り取り・貼り付け（編集モード）<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 元に戻す　<kbd>Del</kbd> 選択項目を削除<br><kbd>Esc</kbd> ウィンドウを閉じる",
       tourSettingsTitle:"設定",
-      tourSettingsBody:"ここでログイン、テーマと言語の切り替えができます。もう一度見たいときは設定の「クイックツアー」から。アプリのインストールも可能です。",
+      tourSettingsBody:"ここでログイン、テーマと言語の切り替えができます。もう一度見たいときは設定の「クイックツアー」から。ホーム画面への追加（PCはデスクトップショートカット作成）も可能です。",
       tourMemberIntroTitle:"ログイン後の機能",
       tourMemberIntroBody:"ログインすると、成功率の記録、お気に入り、カスタム表の作成ができます。簡単に紹介します。",
       tourRateTitle:"成功率とお気に入り",
@@ -72,9 +72,9 @@
       tourTouchTitle:"Gestures",
       tourTouchBody:"<b>Swipe right</b> to go up a level.<br>In edit mode, <b>long-press and drag</b> to reorder or move between levels.",
       tourKeysTitle:"Shortcuts",
-      tourKeysBody:"<kbd>/</kbd> search<br><kbd>↑</kbd><kbd>↓</kbd> select<br><kbd>→</kbd> or <kbd>Enter</kbd> open<br><kbd>←</kbd> or <kbd>Backspace</kbd> back<br><kbd>e</kbd> edit &nbsp;<kbd>n</kbd> add<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo &nbsp;<kbd>Del</kbd> delete &nbsp;<kbd>?</kbd> help",
+      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd> copy, cut, paste (edit mode)<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo &nbsp;<kbd>Del</kbd> delete selected<br><kbd>Esc</kbd> close window",
       tourSettingsTitle:"Settings",
-      tourSettingsBody:"Sign in, change theme and language here. Replay this tour any time from Settings (Quick tour). You can also install the app.",
+      tourSettingsBody:"Sign in, change theme and language here. Replay this tour any time from Settings (Quick tour). You can also add it to your Home Screen (or create a desktop shortcut on PC).",
       tourMemberIntroTitle:"When you sign in",
       tourMemberIntroBody:"Signed in, you can track success rates, favourite tricks and build your own tables. A quick look follows.",
       tourRateTitle:"Success rate and favourites",
@@ -176,11 +176,19 @@
     if(!r || r.width < 1 || r.height < 1) return null;
     var cs = window.getComputedStyle(el);
     if(cs.display === "none" || cs.visibility === "hidden") return null;
-    return r;
+    // Under html{zoom} (>=1280px, css/variables-and-base.css) rects come back in zoomed px while
+    // style.left/top are CSS px: convert so the card and hole land on the target.
+    var z = tourZoom();
+    if(z === 1) return r;
+    return { left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z };
+  }
+  function tourZoom(){
+    var z = parseFloat(window.getComputedStyle(document.documentElement).zoom);
+    return z > 0 ? z : 1;
   }
 
   function tourPlaceCard(rect, card){
-    var vw = window.innerWidth, vh = window.innerHeight, G = 16;
+    var z = tourZoom(), vw = window.innerWidth / z, vh = window.innerHeight / z, G = 16; // CSS px (see tourTargetRect)
     var cw = Math.min(360, vw - G * 2);
     card.style.width = cw + "px";
     var ch = card.offsetHeight;

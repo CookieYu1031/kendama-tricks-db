@@ -39,7 +39,6 @@
     el.classList.remove("closing");
     state.detailTrickId = trickId;
     drawerUi.tagPicker = false; drawerUi.rateHint = false; drawerUi.videoEdit = null;
-    attachDrawerSwipeClose(el);
     renderColumns();
     renderDrawer();
     el.classList.add("show");
@@ -57,60 +56,6 @@
       el.classList.remove("show");
     }
     renderColumns();
-  }
-
-  // Mobile only (checked live per gesture). The panel follows the finger
-  // horizontally (rightward only) once the gesture is clearly horizontal;
-  // vertical motion is left to the scrolling body. Attached once per element.
-  function attachDrawerSwipeClose(drawerEl){
-    if(!drawerEl || drawerEl._swipeAttached) return;
-    drawerEl._swipeAttached = true;
-    var startX = 0, startY = 0, lastX = 0, lastT = 0, vx = 0, mode = null; // mode: null | "pending" | "drag" | "skip"
-    function reset(){ mode = null; }
-    drawerEl.addEventListener("touchstart", function(ev){
-      mode = null;
-      if(!isNarrowViewport() || ev.touches.length !== 1) return;
-      var tg = ev.target;
-      if(tg && tg.closest && tg.closest("input, textarea, select, [contenteditable]")){ mode = "skip"; return; }
-      var t0 = ev.touches[0];
-      startX = lastX = t0.clientX; startY = t0.clientY; lastT = Date.now(); vx = 0;
-      mode = "pending";
-    }, { passive: true });
-    drawerEl.addEventListener("touchmove", function(ev){
-      if(mode !== "pending" && mode !== "drag") return;
-      var t1 = ev.touches[0];
-      var dx = t1.clientX - startX, dy = t1.clientY - startY;
-      if(mode === "pending"){
-        if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-        if(drawerSwipeDecision(dx, dy, 0, 1) === "ignore"){ mode = "skip"; return; }
-        mode = "drag";
-        drawerEl.style.transition = "none";
-      }
-      var now = Date.now();
-      if(now > lastT) vx = (t1.clientX - lastX) / (now - lastT);
-      lastX = t1.clientX; lastT = now;
-      drawerEl.style.transform = "translateX(" + Math.max(0, dx) + "px)";
-      if(ev.cancelable) ev.preventDefault();
-    }, { passive: false });
-    function end(cancelled){
-      if(mode !== "drag"){ reset(); return; }
-      reset();
-      var w = drawerEl.getBoundingClientRect().width;
-      var m = /translateX\(([\d.]+)px\)/.exec(drawerEl.style.transform || "");
-      var dx = m ? parseFloat(m[1]) : 0;
-      drawerEl.style.transition = "";
-      if(!cancelled && drawerSwipeDecision(dx, 0, vx, w) === "close"){
-        drawerEl.style.transform = "translateX(calc(100% + 28px))";
-        closeDrawer();
-        setTimeout(function(){
-          if(!drawerEl.classList.contains("show")) drawerEl.style.transform = "";
-        }, 400);
-      } else {
-        drawerEl.style.transform = "";
-      }
-    }
-    drawerEl.addEventListener("touchend", function(){ end(false); });
-    drawerEl.addEventListener("touchcancel", function(){ end(true); });
   }
 
   function renderDrawer(){
