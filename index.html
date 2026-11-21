@@ -48,6 +48,7 @@
 <link rel="stylesheet" href="css/toast-and-utility.css">
 <link rel="stylesheet" href="css/pwa.css">
 <link rel="stylesheet" href="css/tour.css">
+<link rel="stylesheet" href="css/tutorial.css">
 <link rel="stylesheet" href="css/tools.css">
 <link rel="stylesheet" href="css/random.css">
 <link rel="stylesheet" href="css/practice.css">
@@ -115,7 +116,7 @@
 
   <!-- 總表更新通知：只有目前釘選的版本落後於已發布的最新版本時才會顯示，
        點擊「立即更新」才會把畫面換成最新版（不會自動套用，也不會動到使用者
-       自己新增/修改/刪除過的項目 — 見 js/19-auth-sync.js 的 SHARED BASE 說明）。 -->
+       自己新增/修改/刪除過的項目 — 見 js/51-shared-base.js 的 SHARED BASE 說明）。 -->
   <div class="base-update-banner" id="baseUpdateBanner" hidden>
     <div class="base-update-banner-icon">📣</div>
     <div class="base-update-banner-body">
@@ -177,12 +178,19 @@
         </div>
       </div>
 
-      <!-- Row 2: theme (left) + language (right) -->
+      <!-- Row 2: theme + UI size (left) + language (right) -->
       <div class="settings-row settings-pair">
-        <div class="lang-switch" id="themeSwitch">
-          <button type="button" class="theme-btn" data-theme-pref="system">◐</button>
-          <button type="button" class="theme-btn" data-theme-pref="dark">☾</button>
-          <button type="button" class="theme-btn" data-theme-pref="light">☀</button>
+        <div class="settings-pref-group">
+          <div class="lang-switch" id="themeSwitch">
+            <button type="button" class="theme-btn" data-theme-pref="system">◐</button>
+            <button type="button" class="theme-btn" data-theme-pref="dark">☾</button>
+            <button type="button" class="theme-btn" data-theme-pref="light">☀</button>
+          </div>
+          <div class="lang-switch" id="zoomSwitch">
+            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1">x1</button>
+            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.1">x1.1</button>
+            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.2">x1.2</button>
+          </div>
         </div>
         <div class="lang-switch" id="langSwitch">
           <button type="button" class="lang-btn" data-lang="zh">TW</button>
@@ -300,7 +308,6 @@
           <label for="adminNote" id="adminNoteLbl">更新備註 <span class="req">*</span></label>
           <textarea id="adminNote" rows="3"></textarea>
         </div>
-        <div class="admin-card-subtitle" id="adminPendingTitle">待發布的變更</div>
         <div class="admin-pending" id="adminPending"></div>
         <button type="button" class="btn btn-primary btn-block" id="adminPublishBtn">發布更新</button>
         <div class="field-hint admin-index-hint"><span id="adminIndexHint"></span><a id="adminIndexLink" href="https://github.com/CookieYu1031/kendama-tricks-db/actions/workflows/search-index.yml" target="_blank" rel="noopener">更新搜尋索引</a></div>
@@ -573,7 +580,7 @@
 <!-- Detail Drawer -->
 
 <!-- Firebase (Auth + Firestore) — see js/00-firebase-config.js for the
-     project's Web App config, and js/19-auth-sync.js for the login /
+     project's Web App config, and js/52-auth.js for the login /
      cloud-sync logic. Must load before the app scripts below. -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -598,6 +605,8 @@
 <script src="js/16-shell-updates.js"></script>
 <script src="js/17-shell-pwa.js"></script>
 <script src="js/18-shell-tour.js"></script>
+<script src="js/19-tutorial-logic.js"></script>
+<script src="js/19-shell-tutorial.js"></script>
 <script src="js/20-browse-order.js"></script>
 <script src="js/21-browse-columns.js"></script>
 <script src="js/22-browse-drag.js"></script>

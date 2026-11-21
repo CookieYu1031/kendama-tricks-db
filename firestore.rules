@@ -213,6 +213,17 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.ownerUid);
     }
 
+    // tutorial/{track}: 新手教學 pages (v0.14). Anyone reads; only admins write (no publish flow).
+    // pages: list of up to 10 { trickId, text:{zh,jp,en} } (content shape is validated by the client).
+    match /tutorial/{track} {
+      allow read: if true;
+      allow write: if isAdmin() &&
+        track in ['kids', 'beginner'] &&
+        request.resource.data.keys().hasOnly(['pages', 'updatedAt']) &&
+        request.resource.data.pages is list && request.resource.data.pages.size() <= 10 &&
+        request.resource.data.updatedAt == request.time;
+    }
+
     // Everything else stays locked down by default.
     match /{document=**} {
       allow read, write: if false;

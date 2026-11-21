@@ -106,3 +106,10 @@ test("nickname: own modal, inline editor removed, Esc closes it before settings"
   const ev = fs.readFileSync("js/90-events-and-init.js", "utf8");
   assert.ok(ev.indexOf("isNicknameEditOpen()") !== -1 && ev.indexOf("isNicknameEditOpen()") < ev.indexOf("isSettingsOpen()"));
 });
+
+test("v0.14: settings slot is tutorial, privacy is a link by the credit line", () => {
+  const fs = require("node:fs");
+  const js = fs.readFileSync("js/14-shell-settings.js", "utf8");
+  assert.ok(js.includes("openTutorial") && js.includes("credit-privacy") && js.includes("settingsTutorial"));
+  assert.ok(!/settingsPrivacyBtn"\)\.addEventListener\("click", openPrivacy\)/.test(js));
+});

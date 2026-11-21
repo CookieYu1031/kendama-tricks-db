@@ -60,11 +60,12 @@ test("hasOnly field lists exact", function () {
     "read",
     "lang,favorites,lastActiveAt,createdAt",
     "ownerUid,itemId,createdAt,kind,title,payload,v",
-    "lists,clientUpdatedAt,updatedAt"
+    "lists,clientUpdatedAt,updatedAt",
+    "pages,updatedAt"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 15); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 16); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -157,4 +158,16 @@ test("v0.12: meta/practice branch (lists <= 20, number stamp, owner only)", func
   assert.match(b, /clientUpdatedAt is number/);
   assert.match(b, /updatedAt == request\.time/);
   assert.match(src, /allow create, update: if isOwner\(uid\) && \(/);
+});
+
+test("v0.14: tutorial/{track} public read, admin-only write, 10 pages max, before catch-all", function () {
+  var i = src.indexOf("match /tutorial/{track}");
+  assert.ok(i > 0 && i < src.lastIndexOf("match /{document=**}"));
+  var b = src.slice(i, src.indexOf("match /{document=**}"));
+  assert.match(b, /allow read: if true;/);
+  assert.match(b, /allow write: if isAdmin\(\)/);
+  assert.match(b, /track in \['kids', 'beginner'\]/);
+  assert.match(b, /hasOnly\(\['pages', 'updatedAt'\]\)/);
+  assert.match(b, /pages is list && request\.resource\.data\.pages\.size\(\) <= 10/);
+  assert.match(b, /updatedAt == request\.time/);
 });

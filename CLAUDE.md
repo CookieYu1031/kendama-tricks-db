@@ -26,7 +26,7 @@
   - 同群組內按依賴順序排。新增、搬移檔案時，同步更新 `index.html` 和下方「檔案地圖」。
 - UI 風格不可漂移：沿用 `css/variables-and-base.css` 的變數、字型、圓角、配色。新元件比照現有 class。
 - 所有使用者看得到的文字都走 i18n（zh / jp / en）。
-- CSS 斷點只用三個：860px（窄版）、600px（小手機）、380px（極窄）（寬版對應 `min-width:861px`）；圓角只用 `--radius-xs`／`--radius-sm`／`--radius`（外加 50%、999px）；字級不低於 12px；≥1280px／≥1680px 以 `html{zoom}` 放大 110%／120%，用到 vw／vh 的尺寸要除以 `var(--ui-zoom)`。
+- CSS 斷點只用三個：860px（窄版）、600px（小手機）、380px（極窄）（寬版對應 `min-width:861px`）；圓角只用 `--radius-xs`／`--radius-sm`／`--radius`（外加 50%、999px）；字級不低於 12px；介面大小由使用者在設定頁選 x1／x1.1／x1.2（`html[data-ui-zoom]` → `html{zoom}`，`js/15`），用到 vw／vh 的尺寸要除以 `var(--ui-zoom)`。
 
 ## 測試（A5）
 
@@ -75,9 +75,10 @@
 | rail 底部編輯鈕（編輯／完成編輯 切換） | `js/12-shell-rail.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
-| 設定頁（齒輪、帳號列、語言、快速導覽、隱私說明、管理員面板入口） | `js/14-shell-settings.js` |
+| 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、隱私說明連結在署名右側、管理員面板入口） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
 | PWA：SW 註冊、離線 toast、安裝列與一次性橫幅 | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
+| 新手教學（設定頁入口、兩條路線各 10 頁、管理員逐頁編輯、`tutorial/{track}`、`TUTORIAL_PUBLIC` 旗標） | `js/19-tutorial-logic.js`（純邏輯）、`js/19-shell-tutorial.js`（UI／Firestore）、`css/tutorial.css` |
 | 互動式導覽（首次使用／首次登入、設定頁快速導覽） | `js/18-shell-tour.js`、`css/tour.css`（觸發點在 `js/59-auth-state.js`） |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
