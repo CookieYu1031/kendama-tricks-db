@@ -347,9 +347,13 @@
   .settings-body{ display:flex; flex-direction:column; gap:16px; }
   .settings-row{ min-width:0; }
   .settings-pair{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-  .settings-pref-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .settings-pair > #langSwitch{ margin-left:auto; }
-  .zoom-btn{ min-width:0; padding:6px 10px; font-family: var(--font-mono); }
+  /* theme / UI size / language: one row, equal gaps (space-between); stacked full-width rows on small phones */
+  #settingsPrefs{ flex-wrap:nowrap; }
+  .zoom-btn{ min-width:0; padding:6px 10px; }
+  @media (max-width: 600px){
+    #settingsPrefs{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    #settingsPrefs .lang-switch > button{ flex:1 1 0; }
+  }
   .theme-btn{
     border:none; background:transparent; color: var(--paper-dim);
     font-size:15px; font-weight:600; padding:5px 12px; border-radius:999px; cursor:pointer;
