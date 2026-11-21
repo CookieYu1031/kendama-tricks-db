@@ -118,6 +118,7 @@
 | 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
 | 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
 | 小工具（左欄按鈕、面板、TOOLS registry） | `js/80-tools.js`、`css/tools.css` |
+| 隨機抽招（條件、抽取／重抽、同輪不重複、紀錄；純邏輯與 UI 分開） | `js/81-random-logic.js`（純邏輯）、`js/82-random-panel.js`、`css/random.css` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |
