@@ -4,7 +4,7 @@
   left: 50%;
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  width: min(420px, calc(100vw - 24px));
+  width: min(420px, calc((100vw / var(--ui-zoom)) - 24px));
   box-sizing: border-box;
   display: flex;
   align-items: center;

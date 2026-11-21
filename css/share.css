@@ -1,6 +1,6 @@
 /* Share (js/58-share.js): column share button + drawer share button. Reuses glass vars. */
   .col-share-btn{
-    position:absolute; left:14px; bottom:14px; z-index:2; width:26px; height:26px; border-radius:13px; cursor:pointer;
+    position:absolute; left:14px; bottom:14px; z-index:2; width:26px; height:26px; border-radius:var(--radius-sm); cursor:pointer;
     display:flex; align-items:center; justify-content:center; padding:0;
     border:1px solid var(--glass-border-strong); color: var(--accent-text); background: var(--glass-3);
     box-shadow: var(--shadow-sm), var(--glass-highlight);

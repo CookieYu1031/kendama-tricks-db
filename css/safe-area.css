@@ -38,6 +38,6 @@
 
   /* Credit line under the settings modal (moved off the browse view in v0.8.1). */
   #settingsOverlay{ flex-direction:column; gap:10px; }
-  .settings-credit{ font-size:11px; color: var(--paper-faint); text-align:center; }
+  .settings-credit{ font-size:12px; color: var(--paper-faint); text-align:center; }
   .settings-credit a{ color: var(--paper-dim); text-decoration:none; }
   .settings-credit a:hover{ color: var(--accent-text); text-decoration:underline; }

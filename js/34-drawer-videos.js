@@ -7,9 +7,12 @@
      tests/drawer-videos.test.js). Edit mode only: remove (x) and change-link buttons.
   ============================================================ */
   addStrings({
-    zh:{ videoSrcOther:"連結", videoPasteLink:"貼上影片連結", videoEditLink:"更換連結", videoRemove:"移除影片" },
-    jp:{ videoSrcOther:"リンク", videoPasteLink:"動画リンクを貼り付け", videoEditLink:"リンクを変更", videoRemove:"動画を削除" },
-    en:{ videoSrcOther:"Link", videoPasteLink:"Paste a video link", videoEditLink:"Change link", videoRemove:"Remove video" }
+    zh:{ videoSrcOther:"連結", videoPasteLink:"貼上影片連結", videoEditLink:"更換連結", videoRemove:"移除影片",
+         videoDefaultTitle:"影片 {n}", videoTitleLabel:"標題（選填，最多 12 字）", videoTitlePlaceholder:"例如：正面示範", videoTitleTooLong:"標題過長：最多 12 個字" },
+    jp:{ videoSrcOther:"リンク", videoPasteLink:"動画リンクを貼り付け", videoEditLink:"リンクを変更", videoRemove:"動画を削除",
+         videoDefaultTitle:"動画 {n}", videoTitleLabel:"タイトル（任意・12文字まで）", videoTitlePlaceholder:"例：正面デモ", videoTitleTooLong:"タイトルが長すぎます：12文字まで" },
+    en:{ videoSrcOther:"Link", videoPasteLink:"Paste a video link", videoEditLink:"Change link", videoRemove:"Remove video",
+         videoDefaultTitle:"Video {n}", videoTitleLabel:"Title (optional, max 12 characters)", videoTitlePlaceholder:"e.g. Front angle", videoTitleTooLong:"Title too long: 12 characters max" }
   });
 
   function vidSvg(inner){
@@ -53,27 +56,49 @@
 
   function drawerVideoItems(tr){ return (tr.media || []).filter(function(m){ return m.type === "video"; }); }
 
-  // Saves a pasted link (mediaId edits that item, null appends a new one).
-  // Returns "ok" | "empty" | "invalid" | "full".
-  function setDrawerVideoUrl(tr, mediaId, raw){
+  // Title length in user-perceived characters (grapheme clusters; falls back to code points).
+  var VIDEO_TITLE_MAX = 12;
+  function videoTitleLength(s){
+    s = String(s == null ? "" : s);
+    if(typeof Intl !== "undefined" && Intl.Segmenter){
+      var n = 0, it = new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s)[Symbol.iterator](), r;
+      while(!(r = it.next()).done) n++;
+      return n;
+    }
+    return Array.from(s).length;
+  }
+  function videoTitleFits(s){ return videoTitleLength(String(s == null ? "" : s).trim()) <= VIDEO_TITLE_MAX; }
+  // Slot label: the title, or 「影片 N」 by slot index (0-based).
+  function videoSlotLabel(item, idx){
+    var ti = item && item.title ? String(item.title).trim() : "";
+    return ti || t("videoDefaultTitle").replace("{n}", String(idx + 1));
+  }
+
+  // Saves a video from the modal (mediaId edits that item, null appends a new one).
+  // title undefined = keep the existing one. Returns "ok" | "empty" | "invalid" | "titleTooLong" | "full".
+  function saveDrawerVideo(tr, mediaId, raw, title){
     var url = String(raw || "").trim();
     if(!url) return "empty";
     if(!isSafeHttpUrl(url)) return "invalid";
+    var ti = title === undefined ? undefined : String(title == null ? "" : title).trim();
+    if(ti !== undefined && !videoTitleFits(ti)) return "titleTooLong";
     tr.media = tr.media || [];
     if(mediaId){
       var ex = tr.media.filter(function(m){ return m.id === mediaId; })[0];
       if(!ex) return "invalid";
       ex.url = url; ex.platform = videoSourceOf(url);
+      if(ti !== undefined) ex.title = ti;
       return "ok";
     }
     if(drawerVideoItems(tr).length >= MAX_VIDEOS) return "full";
-    tr.media.push({ id: newItemId(), type: "video", title: "", url: url, platform: videoSourceOf(url) });
+    tr.media.push({ id: newItemId(), type: "video", title: ti || "", url: url, platform: videoSourceOf(url) });
     return "ok";
   }
+  function setDrawerVideoUrl(tr, mediaId, raw){ return saveDrawerVideo(tr, mediaId, raw, undefined); }
 
-  // Compact BUTTON slot (no embedded video): empty = "+ 影片" (opens the paste input);
-  // filled = source icon + short site name (opens the video); edit mode adds small edit / remove buttons.
-  function buildVideoSlot(tr, item, canEditTrick){
+  // Compact BUTTON slot: empty = "+ 影片"; filled = source icon + title (or 「影片 N」).
+  // View mode: filled slot plays. Edit mode: any slot opens the add/edit modal (delete lives there).
+  function buildVideoSlot(tr, item, canEditTrick, idx){
     var slot = document.createElement("div");
     slot.className = "vid-slot" + (item ? " filled" : " empty");
     var main = document.createElement("button");
@@ -82,50 +107,16 @@
     if(!item){
       main.title = t("videoPasteLink");
       main.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("mediaTypeVideo")) + "</span>";
-      main.addEventListener("click", function(){ drawerUi.videoEdit = "new"; renderDrawer(); });
+      main.addEventListener("click", function(){ openMediaModal(tr.id, null); });
       return slot;
     }
     main.title = item.url;
-    main.innerHTML = videoSourceIcon(item.url) + "<span>" + escapeHtml(videoSourceName(item.url)) + "</span>";
+    main.innerHTML = videoSourceIcon(item.url) + "<span>" + escapeHtml(videoSlotLabel(item, idx)) + "</span>";
     main.addEventListener("click", function(){
-      if(isSafeHttpUrl(item.url)) openVideoModalForItem(tr, item);
+      if(canEditTrick) openMediaModal(tr.id, item.id);
+      else if(isSafeHttpUrl(item.url)) openVideoModalForItem(tr, item);
     });
-    if(canEditTrick){
-      var ed = document.createElement("button");
-      ed.type = "button"; ed.className = "vid-slot-tool"; ed.title = t("videoEditLink"); ed.innerHTML = ICON_EDIT;
-      ed.addEventListener("click", function(){ drawerUi.videoEdit = item.id; renderDrawer(); });
-      var rm = document.createElement("button");
-      rm.type = "button"; rm.className = "vid-slot-tool"; rm.title = t("videoRemove"); rm.innerHTML = ICON_X;
-      rm.addEventListener("click", function(){ requestDeleteMedia(tr.id, item.id); });
-      slot.appendChild(ed); slot.appendChild(rm);
-    }
     return slot;
-  }
-
-  // Input row under the slots: paste a link (new) or change one (existing item).
-  function buildVideoInputRow(tr, editing){
-    var row = document.createElement("div");
-    row.className = "drawer-tag-new vid-input-row";
-    var inp = document.createElement("input");
-    inp.type = "url"; inp.className = "drawer-inline-input"; inp.placeholder = t("videoPasteLink");
-    inp.value = editing ? editing.url : "";
-    var ok = document.createElement("button");
-    ok.type = "button"; ok.className = "col-add-btn"; ok.textContent = t("save");
-    var cancel = document.createElement("button");
-    cancel.type = "button"; cancel.className = "col-add-btn"; cancel.textContent = t("cancel");
-    var commit = function(){
-      var r = setDrawerVideoUrl(tr, editing ? editing.id : null, inp.value);
-      if(r === "ok"){ drawerUi.videoEdit = null; saveDB(); renderDrawer(); }
-      else if(r === "empty") showToast(t("mediaUrlRequired"));
-      else if(r === "invalid") showToast(t("mediaUrlInvalid"));
-      else { drawerUi.videoEdit = null; renderDrawer(); }
-    };
-    ok.addEventListener("click", commit);
-    cancel.addEventListener("click", function(){ drawerUi.videoEdit = null; renderDrawer(); });
-    inp.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); commit(); } });
-    row.appendChild(inp); row.appendChild(ok); row.appendChild(cancel);
-    setTimeout(function(){ inp.focus(); }, 30);
-    return row;
   }
 
   // Edit mode: MAX_VIDEOS slots side by side. View mode: only the filled ones (none -> nothing).
@@ -136,11 +127,6 @@
     var grid = document.createElement("div");
     grid.className = "vid-slots";
     var n = canEditTrick ? MAX_VIDEOS : items.length;
-    for(var i = 0; i < n; i++) grid.appendChild(buildVideoSlot(tr, items[i] || null, canEditTrick));
+    for(var i = 0; i < n; i++) grid.appendChild(buildVideoSlot(tr, items[i] || null, canEditTrick, i));
     parent.appendChild(grid);
-    if(canEditTrick && drawerUi.videoEdit){
-      var editing = drawerUi.videoEdit === "new" ? null : items.filter(function(m){ return m.id === drawerUi.videoEdit; })[0];
-      if(drawerUi.videoEdit !== "new" && !editing){ drawerUi.videoEdit = null; return; }
-      parent.appendChild(buildVideoInputRow(tr, editing));
-    }
   }

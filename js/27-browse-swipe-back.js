@@ -48,7 +48,7 @@
   function syncSwipeBack(columnCount, treeView){
     var wrap = swipeBackWrap();
     if(!wrap || !wrap.parentNode) return;
-    var show = swipeBackAvailable({ narrow: isNarrowViewport(), treeView: treeView, columnCount: columnCount });
+    var show = swipeBackAvailable({ narrow: isPhoneViewport(), treeView: treeView, columnCount: columnCount });
     if(!swipeBackEl){
       if(!show) return;
       swipeBackEl = document.createElement("div");
@@ -180,6 +180,6 @@
     if(swipeBackEl && wrap){
       swipeBackEl.style.top = wrap.offsetTop + "px";
       swipeBackEl.style.height = wrap.offsetHeight + "px";
-      if(!isNarrowViewport()) swipeBackEl.style.display = "none";
+      if(!isPhoneViewport()) swipeBackEl.style.display = "none";
     }
   });

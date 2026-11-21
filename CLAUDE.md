@@ -26,6 +26,7 @@
   - 同群組內按依賴順序排。新增、搬移檔案時，同步更新 `index.html` 和下方「檔案地圖」。
 - UI 風格不可漂移：沿用 `css/variables-and-base.css` 的變數、字型、圓角、配色。新元件比照現有 class。
 - 所有使用者看得到的文字都走 i18n（zh / jp / en）。
+- CSS 斷點只用三個：860px（窄版）、600px（小手機）、380px（極窄）（寬版對應 `min-width:861px`）；圓角只用 `--radius-xs`／`--radius-sm`／`--radius`（外加 50%、999px）；字級不低於 12px；≥1280px／≥1680px 以 `html{zoom}` 放大 110%／120%，用到 vw／vh 的尺寸要除以 `var(--ui-zoom)`。
 
 ## 測試（A5）
 
@@ -83,8 +84,8 @@
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
 | 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、資料夾深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
 | 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
-| 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp` 在 `js/23-browse-gestures.js` |
-| 快捷鍵 | `js/24-browse-keys.js` |
+| 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp`、`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
+| 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |

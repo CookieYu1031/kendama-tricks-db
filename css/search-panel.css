@@ -1,13 +1,13 @@
 /* ---------- Search panel (v0.5): conditions + live results ---------- */
   /* Overrides / extends .search-panel from shell-topbar-rail.css (loaded before this file). */
   .search-panel{
-    width: min(640px, calc(100vw - 24px));
+    width: min(640px, calc((100vw / var(--ui-zoom)) - 24px));
     /* Drawer from the top edge: attached to the top (content clears the notch inset), right-aligned. */
     top:0; left:auto; right: calc(var(--safe-r, 0px) + 12px); transform-origin: top right;
     padding-top: calc(var(--safe-t, 0px) + 12px);
     border-top:none; border-radius: 0 0 var(--radius) var(--radius);
-    max-height: calc(100vh - 12px);
-    max-height: calc(100dvh - 12px);
+    max-height: calc((100vh / var(--ui-zoom)) - 12px);
+    max-height: calc((100dvh / var(--ui-zoom)) - 12px);
     flex-direction:column; gap:10px; overflow:hidden;
     display:flex; z-index:40;
     visibility:hidden; pointer-events:none;
@@ -26,7 +26,7 @@
   }
   .search-wrap{ flex:0 0 auto; }
   .search-section{ flex:0 0 auto; }
-  .search-label{ font-size:11px; font-weight:600; color: var(--paper-faint); letter-spacing:.04em; }
+  .search-label{ font-size:12px; font-weight:600; color: var(--paper-faint); letter-spacing:.04em; }
   .search-label-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
   .search-panel .drawer-chip-row{ margin-bottom:0; row-gap:8px; }
   .search-panel .drawer-chip{ white-space:nowrap; font-size:12px; padding:4px 11px; }
@@ -50,10 +50,10 @@
     .search-class-row{ max-height:150px; }
   }
   .search-seg-sm{ flex:0 1 auto; width:auto; max-width:100%; flex-wrap:wrap; justify-content:flex-start; }
-  .search-seg-sm .lang-btn{ flex:0 0 auto; white-space:nowrap; font-size:11.5px; padding:4px 10px; min-width:0; }
+  .search-seg-sm .lang-btn{ flex:0 0 auto; white-space:nowrap; font-size:12px; padding:4px 10px; min-width:0; }
   .search-tag-suggest{ flex:0 0 auto; display:none; }
   .search-tag-suggest.show{ display:flex; }
-  .search-note{ font-size:12px; color: var(--paper-faint); }
+  .search-note{ line-height:1.5; font-size:12px; color: var(--paper-faint); }
   .search-results-bar{
     flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;
     min-height:24px; margin-top:2px; padding-top:12px; border-top:1px solid var(--glass-border);

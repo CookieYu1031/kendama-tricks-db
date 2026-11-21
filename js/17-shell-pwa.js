@@ -9,37 +9,40 @@ var pwaBannerEl = null;
 
 addStrings({
   zh: {
-    pwaInstall: "安裝 App",
+    pwaInstall: "加到主畫面",
+    pwaInstallDesktop: "建立桌面捷徑",
     pwaInstalled: "已安裝",
-    pwaUnsupported: "請使用瀏覽器選單安裝",
+    pwaUnsupported: "請使用瀏覽器選單加入",
     pwaIosHint: "點分享鈕 → 加入主畫面",
-    pwaBannerTitle: "把劍玉招式庫裝到手機",
+    pwaBannerTitle: "把劍玉招式庫加到主畫面",
     pwaBannerBody: "像 App 一樣開啟，離線也能看。",
-    pwaBannerInstall: "安裝",
+    pwaBannerInstall: "加到主畫面",
     pwaBannerDismiss: "關閉",
     pwaOffline: "目前離線，變更會在連線後同步",
     pwaOnline: "已重新連線"
   },
   jp: {
-    pwaInstall: "アプリをインストール",
+    pwaInstall: "ホーム画面に追加",
+    pwaInstallDesktop: "デスクトップにショートカット作成",
     pwaInstalled: "インストール済み",
-    pwaUnsupported: "ブラウザのメニューからインストールしてください",
+    pwaUnsupported: "ブラウザのメニューから追加してください",
     pwaIosHint: "共有ボタン → ホーム画面に追加",
     pwaBannerTitle: "劍玉招式庫をホーム画面に追加",
     pwaBannerBody: "アプリのように開けて、オフラインでも見られます。",
-    pwaBannerInstall: "インストール",
+    pwaBannerInstall: "追加",
     pwaBannerDismiss: "閉じる",
     pwaOffline: "オフラインです。変更は接続後に同期されます",
     pwaOnline: "オンラインに戻りました"
   },
   en: {
-    pwaInstall: "Install app",
+    pwaInstall: "Add to Home Screen",
+    pwaInstallDesktop: "Create desktop shortcut",
     pwaInstalled: "Installed",
-    pwaUnsupported: "Use your browser menu to install",
+    pwaUnsupported: "Use your browser menu to add it",
     pwaIosHint: "Tap Share → Add to Home Screen",
     pwaBannerTitle: "Add Kendama Trick DB to your device",
     pwaBannerBody: "Opens like an app and works offline.",
-    pwaBannerInstall: "Install",
+    pwaBannerInstall: "Add",
     pwaBannerDismiss: "Dismiss",
     pwaOffline: "You are offline. Changes will sync when back online",
     pwaOnline: "Back online"
@@ -56,6 +59,14 @@ function pwaInstallState(env){
     (env.platform === "MacIntel" && (env.maxTouchPoints || 0) > 1);
   if(ios) return "ios";
   return "unsupported";
+}
+
+function pwaIsTouch(){
+  var nav = (typeof navigator !== "undefined" && navigator) || {};
+  try {
+    if(typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches) return true;
+  } catch(e){}
+  return (nav.maxTouchPoints || 0) > 0 && /android|iphone|ipad|ipod|mobile/i.test(nav.userAgent || "");
 }
 
 function pwaEnv(){
@@ -155,7 +166,7 @@ function renderPwaSettingsRow(){
   var label = document.getElementById("settingsInstallLabel");
   var note = document.getElementById("settingsInstallNote");
   var state = pwaInstallState(pwaEnv());
-  if(label) label.textContent = t("pwaInstall");
+  if(label) label.textContent = t(pwaIsTouch() ? "pwaInstall" : "pwaInstallDesktop");
   var text = "";
   if(state === "installed") text = t("pwaInstalled");
   else if(state === "ios") text = t("pwaIosHint");

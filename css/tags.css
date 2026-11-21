@@ -16,7 +16,7 @@
   }
   .tagmgr-row-main{ min-width:0; display:flex; flex-direction:column; gap:2px; }
   .tagmgr-row-name{ font-size:13px; color: var(--paper); overflow-wrap:anywhere; }
-  .tagmgr-row-sub{ font-size:11.5px; color: var(--paper-dim); }
+  .tagmgr-row-sub{ font-size:12px; color: var(--paper-dim); }
   .tagmgr-row-actions{ display:flex; gap:6px; flex:0 0 auto; }
   .tagmgr-form{ border:1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-1); padding:12px 14px; }
   .tagmgr-form .field{ margin-bottom:8px; }
@@ -26,7 +26,7 @@
   .tagmgr-chips{ margin-bottom:10px; }
 
   /* Manager modal: fixed size so switching tabs never resizes it; the body scrolls inside. */
-  .modal.tagmgr-modal{ width:520px; max-width:100%; height:640px; max-height:86vh; }
+  .modal.tagmgr-modal{ width:520px; max-width:100%; height:640px; max-height:calc(86vh / var(--ui-zoom)); }
   .tagmgr-modal .modal-scroll{ flex:1 1 0; }
   #adminTagsBtn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; }
   .tagmgr-btn-icon{ width:15px; height:15px; flex:0 0 auto; }

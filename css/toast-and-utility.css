@@ -3,7 +3,7 @@
      js/40 moves this node to <body> on first toast so the topbar's stacking context can't hide it. */
   #toastContainer{
     position:fixed; z-index:80; left:50%; transform:translateX(-50%);
-    top: var(--safe-t, 0px); height:64px; max-width: calc(100vw - 168px);
+    top: var(--safe-t, 0px); height:64px; max-width: calc((100vw / var(--ui-zoom)) - 168px);
     display:flex; align-items:center; justify-content:center; pointer-events:none;
   }
   #toastContainer:empty{ display:none; }
