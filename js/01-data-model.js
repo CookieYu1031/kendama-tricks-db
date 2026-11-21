@@ -302,6 +302,21 @@
     return out.sort(function(a, b){ return a.order - b.order; });
   }
 
+  // v0.9.2 tag kinds: "text" (default, also for old tags) or "class" (招式類別, carries a
+  // combo { grip, parts } of a grip id + part ids; invalid ids are dropped).
+  function normalizeCombo(c){
+    c = c || {};
+    return {
+      grip: GRIP_KEYS.indexOf(c.grip) !== -1 ? c.grip : null,
+      parts: Array.isArray(c.parts) ? PART_KEYS.filter(function(k){ return c.parts.indexOf(k) !== -1; }) : []
+    };
+  }
+  function normalizeTag(g){
+    var tag = { id:g.id, name: nameOf(g.name), kind: g.kind === "class" ? "class" : "text" };
+    if(tag.kind === "class") tag.combo = normalizeCombo(g.combo);
+    return tag;
+  }
+
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -331,7 +346,7 @@
         color: n.color || "default"
       };
     });
-    var tags = (raw.tags||[]).map(function(g){ return { id:g.id, name: nameOf(g.name) }; });
+    var tags = (raw.tags||[]).filter(function(g){ return g && g.id; }).map(normalizeTag);
     var tricks = (raw.tricks||[]).map(function(t, idx){
       // Videos only (note-type media dropped), at most MAX_VIDEOS — the first ones are kept.
       var legacyNotes = [];

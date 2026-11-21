@@ -164,12 +164,14 @@
     }
     list.forEach(function(g){
       var label = localize(g.name);
-      box.appendChild(spButton("drawer-chip", "#" + label, function(){
+      var chipEl = spButton("drawer-chip", "#" + label, function(){
         var input = spEl("searchInput");
         input.value = input.value.replace(/#[^\s#]*$/, "#" + label.replace(/\s+/g, "_") + " ");
         input.focus();
         onSearchInput();
-      }));
+      });
+      if(tagKind(g) === "class") chipEl.classList.add("tag-class");
+      box.appendChild(chipEl);
     });
     box.classList.add("show");
   }

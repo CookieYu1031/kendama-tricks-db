@@ -194,12 +194,18 @@
       none.className = "field-hint"; none.textContent = t("addNoTags");
       tagsRow.appendChild(none);
     }
-    (db.tags || []).forEach(function(g){
+    // Class tags (招式類別) first with their tint, then text tags.
+    var sortedTags = (db.tags || []).slice().sort(function(a, b){
+      return (tagKind(a) === "class" ? 0 : 1) - (tagKind(b) === "class" ? 0 : 1);
+    });
+    sortedTags.forEach(function(g){
       var on = addForm.tagIds.indexOf(g.id) !== -1;
-      tagsRow.appendChild(chip(resolveDisplayName(g.name).text, on, function(){
+      var el = chip(resolveDisplayName(g.name).text, on, function(){
         addForm.tagIds = on ? addForm.tagIds.filter(function(x){ return x !== g.id; }) : addForm.tagIds.concat([g.id]);
         renderAddChips();
-      }));
+      });
+      if(tagKind(g) === "class") el.classList.add("tag-class");
+      tagsRow.appendChild(el);
     });
   }
 

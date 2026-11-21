@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="css/buttons-and-modals.css">
 <link rel="stylesheet" href="css/admin-panel.css">
 <link rel="stylesheet" href="css/admin-stats.css">
+<link rel="stylesheet" href="css/tags.css">
 <link rel="stylesheet" href="css/contrib.css">
 <link rel="stylesheet" href="css/mailbox.css">
 <link rel="stylesheet" href="css/share.css">
@@ -212,10 +213,20 @@
           <span class="settings-item-label" id="settingsPrivacyLabel">隱私說明</span>
         </button>
       </div>
-      <div class="settings-privacy" id="settingsPrivacyText" hidden></div>
     </div>
   </div>
   <div class="settings-credit">Designed by <a href="https://www.instagram.com/cookie_yu_1031/" target="_blank" rel="noopener noreferrer">@cookie_yu_1031</a></div>
+</div>
+
+<!-- Privacy notice modal (js/14-shell-settings.js) -->
+<div class="modal-overlay" id="privacyOverlay">
+  <div class="modal modal-lg" id="privacyModal">
+    <div class="settings-head">
+      <div class="modal-title" id="privacyTitle">隱私說明</div>
+      <button type="button" class="icon-btn settings-close" id="privacyCloseBtn"></button>
+    </div>
+    <div class="modal-scroll"><div class="settings-privacy" id="privacyText"></div></div>
+  </div>
 </div>
 
 <!-- Updates page (js/16-shell-updates.js) -->
@@ -247,11 +258,14 @@
       <div class="admin-right">
       <div class="admin-actions">
         <button type="button" class="btn btn-ghost btn-sm" id="adminMailboxBtn">📫 郵件箱</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="adminBackupBtn">過往版本與備份</button>
         <button type="button" class="btn btn-ghost btn-sm" id="adminHelpersBtn">管理協助者</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="adminTagsBtn">標籤管理</button>
       </div>
       <section class="admin-card admin-area-publish">
-        <div class="admin-card-title" id="adminPublishTitle">更新與發布</div>
+        <div class="admin-card-head">
+          <div class="admin-card-title" id="adminPublishTitle">更新與發布</div>
+          <button type="button" class="btn btn-ghost btn-sm admin-backup-btn" id="adminBackupBtn">過往版本與備份</button>
+        </div>
         <div class="admin-last"><span id="adminLastLabel">上次版本</span><span class="admin-last-value" id="adminLastValue"></span></div>
         <div class="field">
           <label for="adminVersion" id="adminVersionLbl">版本號</label>
@@ -577,6 +591,7 @@
 <script src="js/30-drawer-logic.js"></script>
 <script src="js/31-drawer-sections.js"></script>
 <script src="js/32-trick-drawer.js"></script>
+<script src="js/33-drawer-tags.js"></script>
 <script src="js/40-modal-confirm-toast.js"></script>
 <script src="js/41-modal-video.js"></script>
 <script src="js/42-modal-media.js"></script>
@@ -594,6 +609,7 @@
 <script src="js/56-pending.js"></script>
 <script src="js/57-user-stats.js"></script>
 <script src="js/58-share.js"></script>
+<script src="js/58-share-flow.js"></script>
 <script src="js/59-auth-state.js"></script>
 <script src="js/60-search-suggest.js"></script>
 <script src="js/61-search-index.js"></script>
@@ -605,6 +621,7 @@
 <script src="js/74-forms.js"></script>
 <script src="js/75-admin-stats.js"></script>
 <script src="js/76-submission-review.js"></script>
+<script src="js/77-admin-tags.js"></script>
 <script src="js/80-tools.js"></script>
 <script src="js/90-events-and-init.js"></script>
 </body>

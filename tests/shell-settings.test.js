@@ -80,3 +80,16 @@ test("settingsBtnState: signed out -> icon; signed in -> avatar with photo / ini
   assert.deepStrictEqual([b.photoURL, b.initial], ["", "Z"]);
   assert.strictEqual(ctx.settingsBtnState({}).initial, "?");
 });
+
+test("privacy: own modal, no inline expand; Esc closes it first; drawer card css", () => {
+  const fs = require("node:fs");
+  const html = fs.readFileSync("index.html", "utf8");
+  assert.ok(html.includes('id="privacyOverlay"'));
+  assert.ok(!html.includes('id="settingsPrivacyText"'));
+  const js = fs.readFileSync("js/14-shell-settings.js", "utf8");
+  assert.ok(js.includes("function openPrivacy") && !js.includes("settingsPrivacyText"));
+  const ev = fs.readFileSync("js/90-events-and-init.js", "utf8");
+  assert.ok(ev.indexOf("isPrivacyOpen()") !== -1 && ev.indexOf("isPrivacyOpen()") < ev.indexOf("isSettingsOpen()"));
+  const css = fs.readFileSync("css/detail-drawer.css", "utf8");
+  assert.ok(/margin: 14px 14px 16px 0/.test(css) && /border-radius: var\(--radius\)/.test(css));
+});

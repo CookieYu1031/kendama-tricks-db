@@ -1,7 +1,7 @@
 "use strict";
 // Service worker: app shell offline. Same-origin = network-first (avoid mixing
 // old/new files), fall back to cache. Firebase/Google APIs are never touched.
-var CACHE_VERSION = "kdb-v0.9.1";
+var CACHE_VERSION = "kdb-v0.9.2";
 var SW_PRECACHE = [
   "./", "index.html", "manifest.webmanifest",
   "assets/app-icon-180.png", "assets/app-icon-192.png", "assets/app-icon-512.png",

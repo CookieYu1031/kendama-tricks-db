@@ -93,7 +93,7 @@ function buildIndexJson(version, snapshot, label, now){
   ctx.db = ctx.normalizeDB({ categories: snapshot.categories, tricks: snapshot.tricks, infos: snapshot.infos, tags: snapshot.tags });
   ctx.invalidateDbIndex();
   const entries = JSON.parse(JSON.stringify(ctx.buildSearchIndex(ctx.db, { guest: true })));
-  const tags = (ctx.db.tags || []).map((g) => ({ id: g.id, name: { zh: g.name.zh || "", jp: g.name.jp || "", en: g.name.en || "" } }));
+  const tags = (ctx.db.tags || []).map((g) => ({ id: g.id, kind: g.kind || "text", name: { zh: g.name.zh || "", jp: g.name.jp || "", en: g.name.en || "" } }));
   const out = { version: version, generatedAt: (now || new Date()).toISOString(), entries: entries, tags: tags };
   if(label) out.label = label;
   return out;

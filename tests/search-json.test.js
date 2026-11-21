@@ -65,7 +65,7 @@ test("buildIndexJson: shape, guest scope", () => {
   const e = out.entries.find((x) => x.id === "a000001");
   assert.deepStrictEqual(e.locs, [{ spaceId: "t00", path: ["c1"] }]);
   assert.ok(e.romaji.length > 0);
-  assert.deepStrictEqual(out.tags, [{ id: "g1", name: nm("入門", "", "Beginner") }]);
+  assert.deepStrictEqual(out.tags, [{ id: "g1", kind: "text", name: nm("入門", "", "Beginner") }]);
   assert.ok(!("label" in bsi.buildIndexJson(5, snapshot)));
 });
 

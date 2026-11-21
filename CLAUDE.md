@@ -87,6 +87,8 @@
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（圖示、標籤、持法部位、影片備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
+| 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
+| 管理員標籤管理（握持＋部位唯讀／招式類別／文字標籤，admin 子視窗） | `js/77-admin-tags.js`、`css/tags.css`（入口鈕在 `js/70-admin-panel.js`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜） | `js/40`–`js/45` |
@@ -102,7 +104,7 @@
 | 管理員郵件箱、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
 | 使用者表單：問題回報、招式投稿／申請協助者、防灌水 | `js/74-forms.js` |
 | 通知與近期更新頁、站內訊息收件、紅點 | `js/16-shell-updates.js` |
-| 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`、`css/share.css` |
+| 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`（純邏輯）、`js/58-share-flow.js`（送出／接收、Firestore）、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
 | 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
