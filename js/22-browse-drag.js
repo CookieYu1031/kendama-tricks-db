@@ -77,9 +77,9 @@
   // tricks/infos <= level 4, counting the moved item's own subtree).
   function canReparent(it, sourceParentId, targetParentId){
     if(targetParentId === sourceParentId) return true;
-    if(targetParentId === null){
-      if(state.activeSpace === FAV_TABLE_ID) return false;
-    } else {
+    if(it.type === "category" && isFixedFavFolder(it.id)) return false; // 外部匯入 / 單招式 never move
+    if(!canCreateIn(targetParentId, state.activeSpace)) return false;   // 收藏 table, 自訂義, 外部匯入, 單招式 (v0.9.1)
+    if(targetParentId !== null){
       if(targetParentId === FAV_STARRED_ID || targetParentId === FAV_CUSTOM_ID) return false;
       if(!getCategory(targetParentId) && !getTrick(targetParentId)) return false;
     }
@@ -175,7 +175,10 @@
 
       // Different column: cross-level move — reparent `it` onto target.parentId,
       // then drop it into position among that column's (now-updated) items.
-      if(!canReparent(it, parentId, target.parentId)) return;
+      if(!canReparent(it, parentId, target.parentId)){
+        if(!canCreateIn(target.parentId, state.activeSpace) && typeof showToast === "function") showToast(t("favNoCreate"));
+        return;
+      }
       reparentItem(it, parentId, target.parentId);
 
       var arr = buildColumnItems(target.parentId).filter(function(x){ return !(x.id===it.id && x.type===it.type); });

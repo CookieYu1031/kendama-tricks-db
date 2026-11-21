@@ -61,7 +61,7 @@ test("hasOnly field lists exact", function () {
     "kind,text,trickName,from,createdAt,read",
     "read",
     "lang,favorites,landed,rates,lastActiveAt,createdAt",
-    "ownerUid,createdAt,kind,title,payload,v"
+    "ownerUid,itemId,createdAt,kind,title,payload,v"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
@@ -127,15 +127,17 @@ test("shares: public read, owner-only create/delete, immutable, size caps, befor
   assert.ok(i > 0 && i < src.lastIndexOf("match /{document=**}"));
   var b = src.slice(i, src.indexOf("match /{document=**}"));
   assert.match(b, /allow read: if true;/);
-  assert.match(b, /allow create: if signedIn\(\)/);
   assert.match(b, /ownerUid == request\.auth\.uid/);
   assert.match(b, /createdAt == request\.time/);
   assert.match(b, /payload\.size\(\) <= 204800/);
   assert.match(b, /title\.size\(\) <= 120/);
-  assert.match(b, /allow update: if false;/);
+  assert.match(b, /v == 1/);
+  assert.match(b, /allow create, update: if signedIn\(\)/); // same item re-shared = overwrite
+  assert.ok(b.indexOf("allow update: if false") < 0);
   assert.match(b, /allow delete: if isOwner\(resource\.data\.ownerUid\);/);
   // String literals must stay quoted (an unquoted list compiles to a different meaning or fails).
-  assert.match(b, /hasOnly\(\['ownerUid', 'createdAt', 'kind', 'title', 'payload', 'v'\]\)/);
+  assert.match(b, /hasOnly\(\['ownerUid', 'itemId', 'createdAt', 'kind', 'title', 'payload', 'v'\]\)/);
   assert.match(b, /kind in \['folder', 'trick'\]/);
-  assert.match(b, /shareId\.matches\('\^\[0-9A-Za-z\]\{8,40\}\$'\)/);
+  assert.match(b, /itemId\.matches\('\^\[0-9A-Za-z_-\]\{1,40\}\$'\)/);
+  assert.match(b, /shareId == request\.auth\.uid \+ '_' \+ request\.resource\.data\.itemId/);
 });

@@ -51,7 +51,7 @@ test("add buttons: locked table, favorites", () => {
   assert.strictEqual(favRoot.trick, false);
   assert.strictEqual(ctx.allowedAddButtons("fav-starred", "fav", false).trick, false);
   const fc = ctx.allowedAddButtons("fav-custom", "fav", false);
-  assert.deepStrictEqual(plain([fc.trick, fc.customTrick]), [true, true]);
+  assert.deepStrictEqual(plain([fc.folder, fc.trick, fc.info]), [false, false, false]); // v0.9.1: 自訂義 is view-only
 });
 
 test("canModifyItem: official vs custom vs virtual", () => {

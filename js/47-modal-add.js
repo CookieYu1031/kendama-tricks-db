@@ -35,7 +35,8 @@
   /* ---------------- Pure logic ---------------- */
   // Which types the "+" of a column may create; def = default type (trick first).
   function addModalTypes(parentId, spaceId, isAdmin){
-    var al = allowedAddButtons(parentId, spaceId, isAdmin);
+    var al = canCreateIn(parentId, spaceId) ? allowedAddButtons(parentId, spaceId, isAdmin)
+      : { folder:false, trick:false, info:false, customTrick:false };
     var order = ["trick", "folder", "info"];
     var def = null;
     order.forEach(function(k){ if(def === null && al[k]) def = k; });
@@ -85,6 +86,22 @@
       if(id) return id;
     }
     return null;
+  }
+
+  // ArrowUp/Down between text fields. Returns the target index, or -1 to leave the key alone.
+  // f: { key, multiline, value, selStart, selEnd, idx, count, composing }
+  // Textareas only hand focus over when the caret sits on the first (Up) / last (Down) line.
+  function addArrowTarget(f){
+    if(f.composing || (f.key !== "ArrowDown" && f.key !== "ArrowUp")) return -1;
+    var down = f.key === "ArrowDown";
+    if(f.multiline){
+      if(f.selStart !== f.selEnd) return -1;
+      var v = String(f.value || "");
+      if(down && v.indexOf("\n", f.selEnd) !== -1) return -1;
+      if(!down && v.slice(0, f.selStart).indexOf("\n") !== -1) return -1;
+    }
+    var n = f.idx + (down ? 1 : -1);
+    return (n < 0 || n >= f.count) ? -1 : n;
   }
 
   function addNameObj(f){ return { zh: (f.zh || "").trim(), jp: (f.jp || "").trim(), en: (f.en || "").trim() }; }
@@ -223,10 +240,34 @@
     }
   }
 
+  // Visible text fields of the modal, in DOM order (for arrow-key navigation).
+  function addFieldList(){
+    var all = addEl("addModal").querySelectorAll("input, textarea");
+    return Array.prototype.filter.call(all, function(el){
+      return el.type !== "hidden" && !el.closest("[hidden]");
+    });
+  }
+  function onAddArrowKey(ev){
+    var list = addFieldList();
+    var idx = list.indexOf(ev.target);
+    if(idx < 0) return;
+    var n = addArrowTarget({ key: ev.key, multiline: ev.target.tagName === "TEXTAREA", value: ev.target.value,
+      selStart: ev.target.selectionStart, selEnd: ev.target.selectionEnd, idx: idx, count: list.length,
+      composing: !!ev.isComposing || ev.keyCode === 229 });
+    if(n < 0) return;
+    ev.preventDefault();
+    list[n].focus();
+  }
+
   function openAddModal(parentId, spaceId){
+    // Already open (e.g. the "n" shortcut or a second call): keep what was typed.
+    if(addForm && addEl("addModalOverlay").classList.contains("show")) return;
     spaceId = spaceId || state.activeSpace;
     var types = addModalTypes(parentId, spaceId, isAdminNow());
-    if(!types.def) return;
+    if(!types.def){
+      if(!canCreateIn(parentId, spaceId)) showToast(t("favNoCreate"));
+      return;
+    }
     addForm = { type: types.def, parentId: parentId == null ? null : parentId, spaceId: spaceId, types: types, grip: null, parts: [], tagIds: [] };
     state.addDraftIcon = "";
     state.addDraftColor = "default";
@@ -252,6 +293,7 @@
     ["addMainName", "addAlt1", "addAlt2", "addVideoUrl", "addNote", "addOfficialNote", "addContent"].forEach(function(id){ addEl(id).value = ""; });
     if(!addInputsBound){
       addInputsBound = true;
+      addEl("addModal").addEventListener("keydown", onAddArrowKey);
       // Linking an existing trick: type "@id" in a name field.
       ["addMainName", "addAlt1", "addAlt2"].forEach(function(id){ addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); }); });
     }
@@ -295,6 +337,7 @@
     f[addForm.alt1Lang] = addEl("addAlt1").value;
     f[addForm.alt2Lang] = addEl("addAlt2").value;
     if(addNameEmpty(addNameObj(f))) return addShowError("addErrName");
+    if(type !== "info" && !iconTextFits(state.addDraftIcon)) return addShowError("iconTextTooLong");
     f.icon = state.addDraftIcon; f.color = state.addDraftColor;
 
     if(type === "folder"){

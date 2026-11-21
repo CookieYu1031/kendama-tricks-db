@@ -106,6 +106,8 @@
   }
   function mbPayloadHtml(r){
     var p = r.payload || {}, rows = [];
+    if(p.name) rows.push([t("mbApplicant"), p.name]);
+    if(p.gmail) rows.push([t("mbGmail"), p.gmail]);
     if(p.trickId) rows.push([t("mbRelatedTrick"), "@" + p.trickId]);
     if(p.names){
       var n = [p.names.zh, p.names.jp, p.names.en].filter(Boolean).join(" / ");

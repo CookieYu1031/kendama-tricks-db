@@ -66,6 +66,7 @@
   }
 
   function openCategoryModal(categoryId, parentHint){
+    if(categoryId && isFixedFavFolder(categoryId)) return; // fixed 收藏 folders can't be renamed
     state.editingCategoryId = categoryId;
     var overlay = document.getElementById("categoryModalOverlay");
     document.getElementById("categoryFormError").classList.remove("show");
@@ -160,7 +161,6 @@
     document.getElementById("iconPickerNoneBtn").textContent = t("noIconOption");
     document.getElementById("iconPickerDoneBtn").textContent = t("doneBtn");
     document.getElementById("customEmojiInput").placeholder = t("customEmojiPlaceholder");
-    document.getElementById("customEmojiInput").value = "";
 
     var target = state.iconPickerTarget || "category";
     var imgBtn = document.getElementById("iconImageBtn");
@@ -200,13 +200,60 @@
       grid.appendChild(groupEl);
     });
   }
+  // Custom icon text box: never truncates or blocks while typing (IME-safe). The draft is
+  // stored as typed; the length limit (iconTextFits) is checked on picker close and on save.
+  var customIconBound = false;
+  function showIconTextError(on){
+    var inp = document.getElementById("customEmojiInput");
+    var e = document.getElementById("iconTextError");
+    if(!e && inp){
+      e = document.createElement("div");
+      e.id = "iconTextError"; e.className = "form-error";
+      inp.parentNode.parentNode.appendChild(e);
+    }
+    if(!e) return;
+    e.textContent = on ? t("iconTextTooLong") : "";
+    e.classList.toggle("show", !!on);
+  }
+  function applyCustomIconInput(inp){
+    var val = inp.value.trim();
+    if(!val){ showIconTextError(false); return; }
+    var target = state.iconPickerTarget || "category";
+    setDraftIcon(target, val);
+    showIconTextError(!iconTextFits(val));
+    var grid = document.getElementById("emojiGrid");
+    Array.prototype.forEach.call(grid.querySelectorAll(".emoji-cell"), function(cell){
+      cell.classList.toggle("selected", cell.textContent === val);
+    });
+  }
+  function bindCustomIconInput(){
+    if(customIconBound) return;
+    customIconBound = true;
+    var inp = document.getElementById("customEmojiInput");
+    if(!inp) return;
+    // Drop the legacy truncating "input" listener bound in js/90 (clones carry no listeners).
+    var fresh = inp.cloneNode(true);
+    inp.parentNode.replaceChild(fresh, inp);
+    var composing = false;
+    fresh.addEventListener("compositionstart", function(){ composing = true; });
+    fresh.addEventListener("compositionend", function(ev){ composing = false; applyCustomIconInput(ev.target); });
+    fresh.addEventListener("input", function(ev){ if(!composing && !ev.isComposing) applyCustomIconInput(ev.target); });
+  }
   function openIconPicker(target, opts){
     state.iconPickerTarget = target || "category";
     drawerPicker = target === "drawer" ? { icon: (opts && opts.icon) || "", color: (opts && opts.color) || "", onDone: opts && opts.onDone } : null;
+    bindCustomIconInput();
+    // Reset the text box only when the picker opens (a color pick re-renders but keeps typing).
+    var cur = getDraftIcon(state.iconPickerTarget) || "";
+    var box = document.getElementById("customEmojiInput");
+    box.value = (cur && ICON_EMOJI_SET.indexOf(cur) === -1 && !isImageIcon(cur)) ? cur : "";
+    showIconTextError(false);
     renderIconPicker();
     document.getElementById("iconPickerOverlay").classList.add("show");
   }
   function closeIconPicker(){
+    // Block closing while the typed icon text is too long (inline error stays visible).
+    if(!iconTextFits(getDraftIcon(state.iconPickerTarget || "category"))){ showIconTextError(true); return; }
     document.getElementById("iconPickerOverlay").classList.remove("show");
     if(state.iconPickerTarget === "drawer"){
       var dp = drawerPicker; drawerPicker = null;
@@ -227,6 +274,12 @@
       return;
     }
 
+    if(!iconTextFits(state.categoryDraftIcon)){
+      document.getElementById("categoryFormError").textContent = t("iconTextTooLong");
+      document.getElementById("categoryFormError").classList.add("show");
+      return;
+    }
+
     if(!state.editingCategoryId && !canAddChild(parentVal, "folder")){
       document.getElementById("categoryFormError").textContent = t("categoryDepthLimitReached");
       document.getElementById("categoryFormError").classList.add("show");
@@ -234,6 +287,7 @@
     }
 
     if(state.editingCategoryId){
+      if(isFixedFavFolder(state.editingCategoryId)) return closeCategoryModal();
       var cat = getCategory(state.editingCategoryId);
       cat.name = { zh:zh, jp:jp, en:en };
       cat.icon = state.categoryDraftIcon;
@@ -250,7 +304,7 @@
 
   function requestDeleteCategory(categoryId){
     var cat = getCategory(categoryId);
-    if(!cat || cat.virtual) return;
+    if(!cat || cat.virtual || isFixedFavFolder(categoryId)) return; // fixed 收藏 folders can't be deleted
     openConfirm(t("confirmDeleteCategoryTitle"), t("confirmDeleteCategoryBody"), function(){
       var idsToRemove = getDescendantCategoryIds(categoryId);
       var placements = [];

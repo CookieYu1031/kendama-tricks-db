@@ -57,8 +57,8 @@ test("fav virtual folders list starred / custom", () => {
   ] });
   ctx.state.activeSpace = "fav";
   const root = ctx.getChildren(null);
-  assert.deepStrictEqual(names(root), ["fav-starred", "fav-custom"]);
-  assert.ok(root.every((c) => c.virtual === true));
+  assert.deepStrictEqual(names(root), ["fav-starred", "fav-custom", "fav-external"]); // + fixed real folder (v0.9.1)
+  assert.ok(root.slice(0, 2).every((c) => c.virtual === true));
   assert.deepStrictEqual(names(ctx.getTricksInCategory("fav-starred")), ["a", "d"]);
   assert.deepStrictEqual(names(ctx.getTricksInCategory("fav-custom")), ["b", "c", "d"]); // d once
   ctx.toggleFavorite("b");

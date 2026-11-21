@@ -34,7 +34,7 @@ test("empty db is seeded: t01 two folders, t02 four, t00 none", () => {
 test("seeded flag is set; renormalizing never duplicates", () => {
   const ctx = setup();
   const again = ctx.normalizeDB(ctx.normalizeDB(ctx.db));
-  assert.strictEqual(again.categories.length, 6);
+  assert.strictEqual(again.categories.length, 8); // 6 seeds + 2 fixed 收藏 folders
   assert.ok(again.spaces.find((s) => s.id === "t01").seeded);
   assert.ok(!again.spaces.find((s) => s.id === "t00").seeded);
 });

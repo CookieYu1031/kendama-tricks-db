@@ -1,11 +1,11 @@
 "use strict";
 // Service worker: app shell offline. Same-origin = network-first (avoid mixing
 // old/new files), fall back to cache. Firebase/Google APIs are never touched.
-var CACHE_VERSION = "kdb-v0.9";
+var CACHE_VERSION = "kdb-v0.9.1";
 var SW_PRECACHE = [
   "./", "index.html", "manifest.webmanifest",
   "assets/app-icon-180.png", "assets/app-icon-192.png", "assets/app-icon-512.png",
-  "assets/brand-icon.png"
+  "assets/brand-icon.png", "assets/favicon-32-white.png", "assets/favicon-32-black.png"
 ];
 var SW_CACHE_FIRST_HOSTS = ["www.gstatic.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 var SW_NETWORK_TIMEOUT = 4000;

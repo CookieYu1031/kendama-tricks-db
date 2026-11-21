@@ -339,7 +339,7 @@
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the
       // item onto that column's container instead of just resorting siblings.
-      if(canDragItem(it, parentId, admin)) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
+      if(canDragItem(it, parentId, admin) && !(it.type === "category" && isFixedFavFolder(it.id))) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
     }
 
     if(typeof applySubmissionDots === "function") applySubmissionDots(row, it); // review mode (76)

@@ -75,7 +75,7 @@
     height: var(--topbar-h);
     flex: 0 0 auto;
     display:grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items:center;
     gap:16px;
     padding: 0 20px;
@@ -125,9 +125,9 @@
     margin-top: 1px;
   }
 
-  /* Center "search" button; clicking drops .search-panel down under the bar. */
+  /* "search" button, right side next to the avatar; clicking drops .search-panel down under the bar. */
   .search-toggle{
-    display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 18px;
+    display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 14px;
     border-radius:999px; border:1px solid var(--glass-border);
     background: var(--glass-2);
     backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);

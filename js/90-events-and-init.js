@@ -74,18 +74,6 @@
   });
   document.getElementById("iconPickerDoneBtn").addEventListener("click", closeIconPicker);
   document.getElementById("iconPickerOverlay").addEventListener("click", function(ev){ if(ev.target.id==="iconPickerOverlay") closeIconPicker(); });
-  document.getElementById("customEmojiInput").addEventListener("input", function(ev){
-    var clamped = clampIconInput(ev.target.value);
-    if(clamped !== ev.target.value) ev.target.value = clamped;
-    var val = clamped.trim();
-    if(val){
-      setDraftIcon(state.iconPickerTarget, val);
-      var grid = document.getElementById("emojiGrid");
-      Array.prototype.forEach.call(grid.querySelectorAll(".emoji-cell"), function(cell){
-        cell.classList.toggle("selected", cell.textContent === val);
-      });
-    }
-  });
 
   // Info modal
   document.getElementById("infoCancelBtn").addEventListener("click", closeInfoModal);
@@ -152,8 +140,6 @@
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
-    var shareOv = document.getElementById("shareOverlay");
-    if(shareOv && shareOv.classList.contains("show")) return shareCloseModal();
     if(document.getElementById("infoModalOverlay").classList.contains("show")) return closeInfoModal();
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("addModalOverlay").classList.contains("show")) return closeAddModal();

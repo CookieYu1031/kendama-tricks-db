@@ -219,5 +219,6 @@
     drawer.appendChild(head);
     drawer.appendChild(body);
     drawer.appendChild(buildDrawerRateFoot(tr));
-    if(canEditTrick) drawer.appendChild(buildDrawerEditFoot(tr));
+    var editFoot = buildDrawerEditFoot(tr, canEditTrick);
+    if(editFoot) drawer.appendChild(editFoot);
   }

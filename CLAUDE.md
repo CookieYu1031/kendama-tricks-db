@@ -82,6 +82,7 @@
 | 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp` 在 `js/23-browse-gestures.js` |
 | 快捷鍵 | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
+| 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
@@ -101,7 +102,7 @@
 | 管理員郵件箱、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
 | 使用者表單：問題回報、招式投稿／申請協助者、防灌水 | `js/74-forms.js` |
 | 通知與近期更新頁、站內訊息收件、紅點 | `js/16-shell-updates.js` |
-| 一鍵分享（payload、`shares/{id}`、`?share=` 預覽與加入；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`、`css/share.css` |
+| 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
 | 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
