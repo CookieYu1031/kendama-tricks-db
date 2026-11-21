@@ -26,6 +26,7 @@
   .form-modal .cat-tree-item{ padding:6px 4px; }
   /* helper-application link: right of the 招式投稿 title (small, subtle, wraps) */
   .form-modal .settings-head .modal-title{ flex:0 0 auto; }
+  .form-modal .settings-head .settings-close{ margin-left:auto; } /* stays right when there is no head link (report / apply forms) */
   .form-head-link{
     flex:1 1 0; min-width:0; background:none; border:none; padding:2px 4px; font:inherit; font-size:12px; line-height:1.35;
     color: var(--paper-faint); text-decoration:underline; text-underline-offset:2px; cursor:pointer; text-align:right; text-wrap:balance;

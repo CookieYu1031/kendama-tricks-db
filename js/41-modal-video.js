@@ -39,9 +39,18 @@
     titleBar.textContent = item.title ? (localize(tr.name) + " · " + item.title) : localize(tr.name);
 
     var closeBtn = document.createElement("button");
-    closeBtn.className = "video-modal-close";
+    closeBtn.type = "button";
+    closeBtn.className = "icon-btn video-modal-close";
+    closeBtn.title = t("settingsClose"); closeBtn.setAttribute("aria-label", t("settingsClose"));
     closeBtn.innerHTML = ICON_X;
     closeBtn.addEventListener("click", closeVideoModal);
+
+    // Header bar above the video (title + close never cover the player).
+    var head = document.createElement("div");
+    head.className = "video-modal-head";
+    head.appendChild(titleBar);
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
 
     if(info && info.embedUrl){
       var frameWrap = document.createElement("div");
@@ -66,8 +75,7 @@
       }
       modal.appendChild(fb);
     }
-    modal.appendChild(titleBar);
-    modal.appendChild(closeBtn);
+
 
     overlay.classList.add("show");
   }

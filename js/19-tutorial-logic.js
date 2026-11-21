@@ -10,16 +10,18 @@
   var TUTORIAL_PAGE_COUNT = 10;
   var TUTORIAL_TEXT_MAX = 1000;
   var TUTORIAL_PUBLIC_SPACES = ["t00", "t01", "t02"];
+  var TUTORIAL_VIDEO_MAX = 500;
 
   function isTutorialTrack(id){ return TUTORIAL_TRACKS.indexOf(id) !== -1; }
   function tutorialCanOpen(isAdmin){ return !!(TUTORIAL_PUBLIC || isAdmin); }
 
-  function tutorialBlankPage(){ return { trickId: "", text: { zh: "", jp: "", en: "" } }; }
+  function tutorialBlankPage(){ return { trickId: "", videoUrl: "", text: { zh: "", jp: "", en: "" } }; }
 
   function tutorialNormalizePage(p){
     var out = tutorialBlankPage();
     if(!p || typeof p !== "object") return out;
     if(typeof p.trickId === "string" && /^[0-9A-Za-z]{7}$/.test(p.trickId)) out.trickId = p.trickId;
+    if(tutorialVideoUrlOk(p.videoUrl) && p.videoUrl) out.videoUrl = p.videoUrl.trim();
     var tx = p.text && typeof p.text === "object" ? p.text : {};
     ["zh", "jp", "en"].forEach(function(l){
       out.text[l] = typeof tx[l] === "string" ? tx[l].slice(0, TUTORIAL_TEXT_MAX) : "";
@@ -74,6 +76,18 @@
     for(var i = 0; i < m.length; i++) if(m[i] && m[i].type === "video" && m[i].url) return m[i].url;
     for(var j = 0; j < m.length; j++) if(m[j] && m[j].url) return m[j].url;
     return "";
+  }
+  // Page's own video link (v0.14.2): "" or an http(s) URL up to TUTORIAL_VIDEO_MAX chars.
+  function tutorialVideoUrlOk(raw){
+    if(raw === "" || raw == null) return true;
+    if(typeof raw !== "string") return false;
+    var s = raw.trim();
+    if(!s) return true;
+    return s.length <= TUTORIAL_VIDEO_MAX && typeof isSafeHttpUrl === "function" && isSafeHttpUrl(s);
+  }
+  // The page's own link wins over the linked trick's first video.
+  function tutorialPageVideoUrl(page, tr){
+    return (page && page.videoUrl) || tutorialFirstVideoUrl(tr);
   }
   // Firestore payload (minus updatedAt, added by the writer).
   function tutorialPayload(pages){ return { pages: tutorialNormalizePages(pages) }; }
