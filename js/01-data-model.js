@@ -75,6 +75,32 @@
   var FAV_TABLE_ID = "fav";
   var FAV_STARRED_ID = "fav-starred"; // virtual folder: tricks with favorite:true
   var FAV_CUSTOM_ID = "fav-custom";   // virtual folder: tricks with custom:true + tricks added directly
+  // v0.9.1: permanent REAL folders of the favorites table (never deleted / renamed by the user).
+  // 外部匯入 sits at the root below the two virtual folders; 單招式 inside it. Share import fills them.
+  var FAV_EXTERNAL_ID = "fav-external";
+  var FAV_EXTERNAL_SINGLE_ID = "fav-external-single";
+  var FAV_FIXED_FOLDERS = [
+    { id: FAV_EXTERNAL_ID, parentId: null, order: 2, icon: "📥", name:{ zh:"外部匯入", jp:"外部インポート", en:"Imported" } },
+    { id: FAV_EXTERNAL_SINGLE_ID, parentId: FAV_EXTERNAL_ID, order: 0, icon: "🎯", name:{ zh:"單招式", jp:"単体の技", en:"Single tricks" } }
+  ];
+  function isFixedFavFolder(id){
+    return FAV_FIXED_FOLDERS.some(function(f){ return f.id === id; });
+  }
+  // Adds the missing fixed folders / restores their name, place and table (idempotent, mutates cats).
+  function ensureFavFixedFolders(cats){
+    FAV_FIXED_FOLDERS.forEach(function(f){
+      var c = cats.find(function(x){ return x.id === f.id; });
+      if(!c){
+        c = { id: f.id, color: "default" };
+        cats.push(c);
+      }
+      c.parentId = f.parentId;
+      c.name = nameOf(f.name);
+      c.order = f.order;
+      c.icon = f.icon;
+      c.spaceId = FAV_TABLE_ID;
+    });
+  }
   // Tables that can never be deleted.
   var UNDELETABLE_SPACE_IDS = ["t00", "t01", "t02", "fav"];
   function getSpace(id){ return db.spaces.find(function(s){ return s.id===id; }); }
@@ -280,7 +306,7 @@
     var spaces = normalizeSpaces(raw.spaces);
 
     var cats = (raw.categories||[]).map(function(c, idx){
-      return {
+      var oc = {
         id:c.id, parentId: c.parentId===undefined?null:c.parentId,
         name: nameOf(c.name),
         order: typeof c.order === "number" ? c.order : idx,
@@ -288,8 +314,12 @@
         color: c.color || "default",
         spaceId: c.spaceId || spaces[0].id
       };
+      // v0.9.1: source key of a one-click share copy ("<ownerUid>_<itemId>"), used for dedup.
+      if(typeof c.sharedFrom === "string" && c.sharedFrom) oc.sharedFrom = c.sharedFrom.slice(0, 120);
+      return oc;
     });
     seedDefaultFolders(spaces, cats);
+    ensureFavFixedFolders(cats);
     var infos = (raw.infos||[]).map(function(n, idx){
       return {
         id:n.id, parentId: n.parentId===undefined?null:n.parentId,
@@ -318,7 +348,7 @@
       media = media.slice(0, MAX_VIDEOS);
       // landed is derived from rate (drawer has no separate toggle): legacy landed w/o rate -> "rare".
       var rateVal = RATE_LEVELS.indexOf(t.rate) !== -1 ? t.rate : (t.landed ? "rare" : null);
-      return {
+      var ot = {
         id:t.id, name: nameOf(t.name),
         media: media, categoryIds: Array.isArray(t.categoryIds)? t.categoryIds.slice() : [],
         orderByCategory: (t.orderByCategory && typeof t.orderByCategory === "object") ? Object.assign({}, t.orderByCategory) : {},
@@ -335,6 +365,8 @@
         favorite: !!t.favorite,
         custom: !!t.custom
       };
+      if(typeof t.sharedFrom === "string" && t.sharedFrom) ot.sharedFrom = t.sharedFrom.slice(0, 120);
+      return ot;
     });
     return { categories: cats, tricks: tricks, infos: infos, tags: tags, spaces: spaces };
   }

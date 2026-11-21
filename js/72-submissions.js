@@ -104,10 +104,27 @@
       submissionParentId(tr, containerSpaceId));
   }
 
+  // Same rules as the form: a name (zh/jp/en) + one video on an accepted host.
+  // Returns "" when ok, else an i18n key. Validators live in js/74-forms.js (runtime lookup).
+  function validateSubmissionTrick(tr){
+    if(typeof hasSubmissionName !== "function") return "";
+    if(!hasSubmissionName(tr && tr.name)) return "formErrNames";
+    var media = (tr && Array.isArray(tr.media) ? tr.media : []).filter(function(m){ return m && m.type === "video"; });
+    if(!media.length) return "formErrUrlReq";
+    var err = "";
+    for(var i = 0; i < media.length; i++){
+      err = validateSubmissionVideoUrl(media[i].url);
+      if(!err) return "";
+    }
+    return err;
+  }
+
   function submitTrickToAdmin(tr){
     var u = authCurrentUser;
     var parentId = submissionParentId(tr, containerSpaceId);
     if(!u || !parentId || subOwn[tr.id]) return Promise.resolve(false);
+    var verr = validateSubmissionTrick(tr);
+    if(verr){ showToast(t(verr), "error"); return Promise.resolve(false); }
     var payload = buildSubmissionPayload(tr, u, parentId);
     payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     return fbStore.collection("submissions").add(payload).then(function(){

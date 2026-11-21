@@ -26,7 +26,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="劍玉招式庫">
 <link rel="apple-touch-icon" href="assets/app-icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="assets/app-icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32-black.png" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192-black.png" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32-white.png" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192-white.png" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Varela+Round&family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -62,12 +65,7 @@
       </div>
     </div>
 
-    <button type="button" class="search-toggle" id="searchToggleBtn" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <span id="searchToggleLabel">搜尋</span>
-    </button>
-
-    <!-- Search panel: drops down below the topbar (v0.5: text / #tag + grip / part conditions + live results). -->
+    <!-- Search panel: slides out from the top-left (v0.5: text / #tag + grip / part conditions + live results). -->
     <div class="search-panel" id="searchPanel">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -94,6 +92,10 @@
     <div class="topbar-side topbar-side-right">
       <div id="toastContainer"></div>
       <div class="topbar-actions">
+        <button type="button" class="search-toggle" id="searchToggleBtn" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span id="searchToggleLabel">搜尋</span>
+        </button>
         <button type="button" class="icon-btn" id="settingsBtn" title="設定"></button>
       </div>
     </div>
@@ -320,7 +322,7 @@
         <label id="emojiPickerLabel">圖示</label>
         <div class="emoji-grid" id="emojiGrid"></div>
         <div class="field emoji-input-row">
-          <input type="text" id="customEmojiInput" maxlength="6" placeholder="貼上任意 Emoji" />
+          <input type="text" id="customEmojiInput" placeholder="貼上任意 Emoji" />
           <button type="button" class="btn btn-ghost" id="iconImageBtn" hidden>選擇圖片</button>
           <input type="file" id="iconImageFile" accept="image/*" hidden />
         </div>

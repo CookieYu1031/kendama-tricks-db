@@ -7,6 +7,7 @@
   // One floating "+" per column: opens the unified add modal (js/47-modal-add.js).
   // Shown only when the column accepts at least one type (permissions, level limits).
   function renderColAddRow(col){
+    if(!canCreateIn(col.parentId, state.activeSpace)) return null; // 收藏 table: no creation (v0.9.1)
     var allow = allowedAddButtons(col.parentId, state.activeSpace, isAdminNow());
     if(!allow.folder && !allow.trick && !allow.info) return null;
     var b = document.createElement("button");
@@ -27,7 +28,7 @@
     if(isGuest()) return null;
     if(parentId !== null){
       var cat = getCategory(parentId);
-      if(!cat || cat.virtual) return null;
+      if(!cat || cat.virtual || isFixedFavFolder(cat.id)) return null;
       if(!canModifyItem({ type:"category", id: cat.id, ref: cat }, cat.parentId, isAdmin)) return null;
       return { kind:"folder", id: cat.id, parentId: cat.parentId };
     }
@@ -57,7 +58,7 @@
     if(isGuest()) return null;
     if(parentId !== null){
       var cat = getCategory(parentId);
-      if(!cat || cat.virtual) return null;
+      if(!cat || cat.virtual || isFixedFavFolder(cat.id)) return null;
       var sp0 = getSpace(cat.spaceId);
       if(!sp0 || sp0.locked) return null;
       return { kind:"folder", id: cat.id };

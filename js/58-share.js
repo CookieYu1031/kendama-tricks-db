@@ -1,56 +1,62 @@
 "use strict";
 
   /* ============================================================
-     SHARE — one-click share of user-made content (v0.9)
-     Send: a custom table / a folder inside one (deep subtree) or one custom trick is sanitized into a
-     JSON payload and written to shares/{shareId}; the link ?share=<id> is copied.
-     Receive: ?share=<id> opens a preview modal; "add" copies everything under fresh ids into a NEW
-     custom table (folder / table shares) or into 收藏 > 自訂義 (trick shares).
+     SHARE — one-click share by link (v0.9.1)
+     Send: pressing 分享 sanitizes a folder / custom table / own trick into a JSON payload and writes the
+     public snapshot shares/{ownerUid}_{itemId} (overwritten on every press); the link is
+     ?s=<ownerUid>&i=<itemId>.
+     Receive: a signed-in user opening the link gets the snapshot copied (fresh ids) into
+     收藏 > 外部匯入 (folder shares: the folder subtree; trick shares: 外部匯入 > 單招式 > trick).
+     Both fixed folders always exist (ensureFavFixedFolders in js/01).
+     The copied root carries sharedFrom:"<ownerUid>_<itemId>" (kept by normalizeDB, synced with the
+     record) so opening the same link twice only navigates. Guests: the link is kept in sessionStorage
+     and finished after sign-in + sync (shareOnAuth, called from js/59).
      Base (shared 總表) tricks are kept as references by id; custom tricks are copied by value.
      Pure logic first (payload build / sanitize / remap), DOM + Firestore glue at the bottom.
   ============================================================ */
   addStrings({
-    zh:{ shareBtn:"分享", shareNeedLogin:"請先登入才能分享", shareTooBig:"內容太大，無法分享（上限約 200 KB）",
+    zh:{ shareBtn:"分享", shareTrickBtn:"分享招式", shareNeedLogin:"請先登入才能分享", shareTooBig:"內容太大，無法分享（上限約 200 KB）",
          shareEmpty:"沒有可分享的內容", shareFailed:"分享失敗，請稍後再試", shareLinkCopied:"分享連結已複製",
-         shareLinkIs:"分享連結（請複製）：", shareWorking:"建立分享連結…", shareTitleFolder:"分享資料夾",
-         shareTitleTrick:"分享招式", shareLoadFailed:"找不到這個分享，或連結已失效",
-         shareModalTitle:"有人與你分享了內容", shareCountFolders:"個資料夾", shareCountTricks:"個招式", shareCountInfos:"則資訊",
-         shareKindFolder:"將加入為新的自訂表格", shareKindTrick:"將加入「收藏 › 自訂義」",
-         shareAdd:"加入", shareAddLogin:"登入後加入", shareCancel:"取消", shareAdded:"已加入",
-         shareTableLimit:"自訂表格已達 26 個上限", shareMore:"…還有更多", shareSigningIn:"登入後可再按「加入」" },
-    jp:{ shareBtn:"共有", shareNeedLogin:"共有するにはログインしてください", shareTooBig:"内容が大きすぎて共有できません（上限約200KB）",
+         shareLinkIs:"分享連結（請複製）：", shareWorking:"建立分享連結…", shareLoadFailed:"找不到這個分享，或連結已失效",
+         shareAdded:"已加入「收藏 › 外部匯入」", shareDup:"已加入過", shareTruncated:"部分內容超過層數上限，已略過",
+         shareOpenNeedLogin:"請先登入，登入後會自動加入分享的內容" },
+    jp:{ shareBtn:"共有", shareTrickBtn:"技を共有", shareNeedLogin:"共有するにはログインしてください", shareTooBig:"内容が大きすぎて共有できません（上限約200KB）",
          shareEmpty:"共有できる内容がありません", shareFailed:"共有に失敗しました。後でもう一度お試しください", shareLinkCopied:"共有リンクをコピーしました",
-         shareLinkIs:"共有リンク（コピーしてください）：", shareWorking:"共有リンクを作成中…", shareTitleFolder:"フォルダを共有",
-         shareTitleTrick:"技を共有", shareLoadFailed:"この共有が見つからないか、リンクが無効です",
-         shareModalTitle:"共有された内容があります", shareCountFolders:"フォルダ", shareCountTricks:"技", shareCountInfos:"情報",
-         shareKindFolder:"新しいカスタム表として追加されます", shareKindTrick:"「お気に入り › カスタム」に追加されます",
-         shareAdd:"追加", shareAddLogin:"ログインして追加", shareCancel:"キャンセル", shareAdded:"追加しました",
-         shareTableLimit:"カスタム表は26個までです", shareMore:"…ほかにもあります", shareSigningIn:"ログイン後にもう一度「追加」を押してください" },
-    en:{ shareBtn:"Share", shareNeedLogin:"Sign in to share", shareTooBig:"Too large to share (limit about 200 KB)",
+         shareLinkIs:"共有リンク（コピーしてください）：", shareWorking:"共有リンクを作成中…", shareLoadFailed:"この共有が見つからないか、リンクが無効です",
+         shareAdded:"「お気に入り › 外部インポート」に追加しました", shareDup:"すでに追加済みです", shareTruncated:"階層の上限を超える内容は省略しました",
+         shareOpenNeedLogin:"ログインしてください。ログイン後に共有内容を自動で追加します" },
+    en:{ shareBtn:"Share", shareTrickBtn:"Share trick", shareNeedLogin:"Sign in to share", shareTooBig:"Too large to share (limit about 200 KB)",
          shareEmpty:"Nothing to share", shareFailed:"Sharing failed, please try again later", shareLinkCopied:"Share link copied",
-         shareLinkIs:"Share link (copy it): ", shareWorking:"Creating share link…", shareTitleFolder:"Share folder",
-         shareTitleTrick:"Share trick", shareLoadFailed:"This share was not found or the link is no longer valid",
-         shareModalTitle:"Someone shared something with you", shareCountFolders:"folders", shareCountTricks:"tricks", shareCountInfos:"info",
-         shareKindFolder:"Will be added as a new custom table", shareKindTrick:"Will be added to Favorites > Custom",
-         shareAdd:"Add", shareAddLogin:"Sign in to add", shareCancel:"Cancel", shareAdded:"Added",
-         shareTableLimit:"Custom tables are limited to 26", shareMore:"…and more", shareSigningIn:"Tap Add again after signing in" }
+         shareLinkIs:"Share link (copy it): ", shareWorking:"Creating share link…", shareLoadFailed:"This share was not found or the link is no longer valid",
+         shareAdded:"Added to Favorites > Imported", shareDup:"Already added", shareTruncated:"Some content was too deep and was skipped",
+         shareOpenNeedLogin:"Sign in and the shared content will be added automatically" }
   });
 
   var SHARE_VERSION = 1;
   var SHARE_MAX_BYTES = 200 * 1024;
-  var SHARE_ID_RE = /^[0-9A-Za-z]{8,40}$/;
+  var SHARE_UID_RE = /^[0-9A-Za-z]{6,40}$/;
+  var SHARE_ITEM_RE = /^[0-9A-Za-z_-]{1,40}$/; // same rule as firestore.rules
+  var SHARE_PENDING_KEY = "kendama-share-pending";
+  var SHARE_EXT_ID = FAV_EXTERNAL_ID;
+  var SHARE_EXT_SINGLE_ID = FAV_EXTERNAL_SINGLE_ID;
   var SHARE_LIMITS = { cats: 300, infos: 300, tricks: 600, refs: 1000, media: MAX_VIDEOS, name: 80, text: 2000, url: 500 };
 
-  /* ---------------- pure: url param ---------------- */
-  // "?a=1&share=abc12345" -> "abc12345" | null (invalid ids are rejected)
-  function shareParseId(search){
-    var m = /[?&]share=([^&#]*)/.exec(search || "");
-    if(!m) return null;
-    var id;
-    try{ id = decodeURIComponent(m[1]); }catch(e){ return null; }
-    return SHARE_ID_RE.test(id) ? id : null;
+  /* ---------------- pure: link / doc id ---------------- */
+  // "?a=1&s=<uid>&i=<item>" -> { s, i } | null (either part invalid = null)
+  function shareParseLink(search){
+    function get(k){
+      var m = new RegExp("[?&]" + k + "=([^&#]*)").exec(search || "");
+      if(!m) return null;
+      try{ return decodeURIComponent(m[1]); }catch(e){ return null; }
+    }
+    var s = get("s"), i = get("i");
+    return (s && i && SHARE_UID_RE.test(s) && SHARE_ITEM_RE.test(i)) ? { s: s, i: i } : null;
   }
-  function shareUrlFor(id){ return "https://kendama-tricks-db.web.app/?share=" + id; }
+  function shareUrlFor(ownerUid, itemId){ return "https://kendama-tricks-db.web.app/?s=" + ownerUid + "&i=" + itemId; }
+  // Firestore doc id == <ownerUid>_<itemId> (the rules check this); also the dedup source key.
+  function shareDocId(ownerUid, itemId){
+    return (SHARE_UID_RE.test(ownerUid || "") && SHARE_ITEM_RE.test(itemId || "")) ? ownerUid + "_" + itemId : null;
+  }
 
   /* ---------------- pure: build payload ---------------- */
   function _sStr(v, max){ return typeof v === "string" ? v.slice(0, max) : ""; }
@@ -91,6 +97,11 @@
     if(!tr || tr.virtual || shareIsBaseTrick(tr)) return null;
     var o = shareTrickOut(tr);
     return { v: SHARE_VERSION, kind: "trick", name: o.name, icon: o.icon, color: o.color, cats: [], infos: [], tricks: [o], refs: [] };
+  }
+  // Base trick: no copy, just a reference by id (receiver gets it placed in 單招式).
+  function shareBuildBaseTrickPayload(tr){
+    return { v: SHARE_VERSION, kind: "trick", name: _sName(tr.name), icon: _sIcon(tr.icon), color: _sStr(tr.color, 24),
+      cats: [], infos: [], tricks: [], refs: [{ trickId: _sStr(tr.id, 40), c: null, o: null }] };
   }
 
   // rootKind "space" (custom table id) | "folder" (category id). Returns payload or null.
@@ -137,10 +148,12 @@
   }
 
   /* ---------------- pure: sanitize (used on send and on receive) ---------------- */
-  // Returns a clean payload or null (bad shape / too big). Drops duplicate ids, orphans and nodes past the level limits.
-  function shareSanitizePayload(raw){
-    if(!raw || typeof raw !== "object" || raw.v !== SHARE_VERSION) return null;
-    if(["space", "folder", "trick"].indexOf(raw.kind) === -1) return null;
+  // Returns { p, dropped } : p = clean payload or null (bad shape); dropped = nodes cut by the level limits.
+  // levelOffset: levels already used above the payload root (receive: 外部匯入 = 1, so a copied folder sits at 2).
+  function shareSanitizeEx(raw, levelOffset){
+    levelOffset = levelOffset || 0;
+    if(!raw || typeof raw !== "object" || raw.v !== SHARE_VERSION) return { p: null, dropped: 0 };
+    if(["space", "folder", "trick"].indexOf(raw.kind) === -1) return { p: null, dropped: 0 };
     var L = SHARE_LIMITS, seen = {};
     function uniq(id){ id = _sStr(id, 40); if(!id || seen[id]) return null; seen[id] = true; return id; }
     function arr(a, max){ return Array.isArray(a) ? a.slice(0, max) : []; }
@@ -169,11 +182,12 @@
     var out = { v: SHARE_VERSION, kind: raw.kind, name: _sName(raw.name), icon: _sIcon(raw.icon), color: _sStr(raw.color, 24) || "default",
       cats: cats, infos: infos, tricks: tricks, refs: refs };
     if(raw.kind === "trick"){
-      out.cats = []; out.infos = []; out.refs = [];
+      out.cats = []; out.infos = [];
       out.tricks = tricks.slice(0, 1).map(function(o){ o.placements = []; return o; });
-      return out.tricks.length ? out : null;
+      out.refs = out.tricks.length ? [] : refs.slice(0, 1).map(function(r){ return { trickId: r.trickId, c: null, o: null }; });
+      return { p: (out.tricks.length || out.refs.length) ? out : null, dropped: 0 };
     }
-    // levels: container id -> level (0 = table root); -1 = unresolvable / cyclic
+    // levels: container id -> level (0 = payload root); -1 = unresolvable / cyclic
     var parentOf = {};
     cats.forEach(function(c){ parentOf[c.id] = c.parentId; });
     tricks.forEach(function(tr){ parentOf[tr.id] = tr.placements.length ? tr.placements[0].c : null; });
@@ -186,7 +200,7 @@
       var p = lv(parentOf[id], depth + 1);
       return (memo[id] = p < 0 ? -1 : p + 1);
     }
-    function fits(parent, maxLevel){ var p = lv(parent, 0); return p >= 0 && p + 1 <= maxLevel; }
+    function fits(parent, maxLevel){ var p = lv(parent, 0); return p >= 0 && p + levelOffset + 1 <= maxLevel; }
     out.cats = cats.filter(function(c){ return fits(c.parentId, MAX_FOLDER_LEVEL); });
     out.infos = infos.filter(function(n){ return fits(n.parentId, MAX_ITEM_LEVEL); });
     out.tricks = tricks.filter(function(tr){
@@ -194,8 +208,11 @@
       return tr.placements.length > 0;
     });
     out.refs = refs.filter(function(r){ return fits(r.c, MAX_ITEM_LEVEL); });
-    return out;
+    var dropped = (cats.length - out.cats.length) + (infos.length - out.infos.length) +
+      (tricks.length - out.tricks.length) + (refs.length - out.refs.length);
+    return { p: out, dropped: dropped };
   }
+  function shareSanitizePayload(raw, levelOffset){ return shareSanitizeEx(raw, levelOffset).p; }
 
   // JSON string for the doc, or null when over the size cap.
   function shareSerialize(payload){
@@ -207,30 +224,45 @@
     var lang = state.lang;
     return (n[lang] || n.zh || n.jp || n.en || "").slice(0, 120);
   }
-  function shareCounts(p){
-    var folders = p.cats.length;
-    return { folders: folders, tricks: p.tricks.length + p.refs.length, infos: p.infos.length };
+
+  // A shared custom table (kind "space") becomes one wrapper folder named after the table, so it
+  // lands in 外部匯入 like any folder share. Items without a parent move into the wrapper.
+  function shareSpaceToFolder(p){
+    if(!p || p.kind !== "space" || !Array.isArray(p.cats)) return p;
+    var W = "__root";
+    function par(x){ return x == null ? W : x; }
+    var out = Object.assign({}, p, { kind: "folder" });
+    out.cats = [{ id: W, parentId: null, name: p.name, order: 0, icon: p.icon, color: "default" }].concat(p.cats.map(function(c){
+      return Object.assign({}, c, { parentId: par(c && c.parentId) });
+    }));
+    out.infos = (p.infos || []).map(function(n){ return Object.assign({}, n, { parentId: par(n && n.parentId) }); });
+    out.tricks = (p.tricks || []).map(function(tr){
+      return Object.assign({}, tr, { placements: (Array.isArray(tr.placements) ? tr.placements : []).map(function(pl){ return { c: par(pl && pl.c), o: pl && pl.o }; }) });
+    });
+    out.refs = (p.refs || []).map(function(r){ return { trickId: r && r.trickId, c: par(r && r.c), o: r && r.o }; });
+    return out;
   }
 
   /* ---------------- pure: remap to fresh ids ---------------- */
-  // Returns records ready to push. hasTrick(id) says whether a referenced base trick exists locally.
-  // targetSpaceId: table that receives the root-level items (folder/space kinds).
-  function shareRemap(p, idGen, targetSpaceId, hasTrick){
+  // Returns records ready to push + the id of the copied root. hasTrick(id): is the referenced base trick known locally.
+  // targetSpaceId: table receiving the items; rootParentId: container that holds the payload root
+  // (folder kinds: 外部匯入; trick kind: 單招式).
+  function shareRemap(p, idGen, targetSpaceId, hasTrick, rootParentId){
     var map = {};
     p.cats.forEach(function(c){ map[c.id] = idGen(); });
     p.tricks.forEach(function(tr){ map[tr.id] = idGen(); });
-    function dest(c){ return c == null ? targetSpaceId : map[c]; }
+    function dest(c){ return c == null ? rootParentId : map[c]; }
     var cats = p.cats.map(function(c){
-      return { id: map[c.id], parentId: c.parentId == null ? null : map[c.parentId], name: c.name, order: c.order, icon: c.icon, color: c.color, spaceId: targetSpaceId };
+      return { id: map[c.id], parentId: dest(c.parentId), name: c.name, order: c.order, icon: c.icon, color: c.color, spaceId: targetSpaceId };
     });
     var infos = p.infos.map(function(n){
-      return { id: idGen(), parentId: n.parentId == null ? null : map[n.parentId], spaceId: targetSpaceId, title: n.title, content: n.content,
+      return { id: idGen(), parentId: dest(n.parentId), spaceId: targetSpaceId, title: n.title, content: n.content,
         order: n.order, icon: n.icon, color: n.color };
     });
     var isTrick = p.kind === "trick";
     var tricks = p.tricks.map(function(tr){
       var ids = [], obc = {};
-      if(isTrick) ids.push(FAV_CUSTOM_ID);
+      if(isTrick) ids.push(rootParentId);
       tr.placements.forEach(function(pl){
         var d = dest(pl.c);
         if(!d || ids.indexOf(d) !== -1) return;
@@ -239,32 +271,60 @@
       });
       return { id: map[tr.id], name: tr.name, media: tr.media.map(function(m){ return { id: idGen(), type: "video", title: m.title, url: m.url }; }),
         categoryIds: ids, orderByCategory: obc, order: tr.order, icon: tr.icon, color: tr.color, grip: tr.grip, parts: tr.parts,
-        officialNote: tr.officialNote, custom: isTrick };
+        officialNote: tr.officialNote, custom: false };
     });
     var refs = p.refs.filter(function(r){ return hasTrick(r.trickId) && dest(r.c); })
       .map(function(r){ return { trickId: r.trickId, containerId: dest(r.c), order: r.o }; });
-    return { cats: cats, infos: infos, tricks: tricks, refs: refs };
+    var rootId = null;
+    if(isTrick) rootId = tricks.length ? tricks[0].id : (refs.length ? refs[0].trickId : null);
+    else p.cats.some(function(c){ if(c.parentId == null){ rootId = map[c.id]; return true; } return false; });
+    return { cats: cats, infos: infos, tricks: tricks, refs: refs, rootId: rootId };
   }
 
   /* ---------------- add to db ---------------- */
-  // Returns { ok:true, spaceId|null } or { ok:false, err:<i18n key> }.
-  function shareApply(payload){
-    var p = shareSanitizePayload(payload);
+  // Finds an earlier copy of a share (dedup). Returns { kind:"folder"|"trick", id } or null.
+  function shareFindCopy(key){
+    var c = (db.categories || []).find(function(x){ return x.sharedFrom === key; });
+    if(c) return { kind: "folder", id: c.id };
+    var tr = (db.tricks || []).find(function(x){ return x.sharedFrom === key; });
+    return tr ? { kind: "trick", id: tr.id } : null;
+  }
+
+  // The fixed folders are permanent (normalizeDB ensures them); this only re-adds them if a live db
+  // somehow lacks them, then returns the record.
+  function shareEnsureFixed(id){
+    var ex = (db.categories || []).find(function(c){ return c.id === id; });
+    if(ex) return ex;
+    ensureFavFixedFolders(db.categories);
+    invalidateDbIndex();
+    return db.categories.find(function(c){ return c.id === id; });
+  }
+  function shareEnsureExternal(){ return shareEnsureFixed(SHARE_EXT_ID); }
+  function shareEnsureSingle(){ return shareEnsureFixed(SHARE_EXT_SINGLE_ID); }
+
+  // key = "<ownerUid>_<itemId>". Returns { ok:true, dup, truncated, nav:{kind,id} } or { ok:false, err:<i18n key> }.
+  function shareApply(payload, key){
+    var old = shareFindCopy(key);
+    if(old) return { ok: true, dup: true, truncated: false, nav: old };
+    var shaped = shareSpaceToFolder(payload);
+    var isTrick = !!shaped && shaped.kind === "trick";
+    var sx = shareSanitizeEx(shaped, isTrick ? 0 : 1); // 外部匯入 is level 1, the copied folder level 2 (單招式 = 2, its trick 3)
+    var p = sx.p;
     if(!p) return { ok: false, err: "shareLoadFailed" };
-    if(typeof undoPush === "function") undoPush();
-    var spaceId = null, rec;
-    if(p.kind === "trick"){
-      rec = shareRemap(p, newItemId, FAV_TABLE_ID, function(){ return false; });
-    } else {
-      if(!canAddCustomSpace()) return { ok: false, err: "shareTableLimit" };
-      var sp = createSpace({ icon: p.icon || "🗂️", name: p.name });
-      if(!sp) return { ok: false, err: "shareTableLimit" };
-      spaceId = sp.id;
-      rec = shareRemap(p, newItemId, spaceId, function(id){ return !!getTrick(id); });
+    // Base-trick reference share: dedup = already placed in 單招式; unknown trick = invalid.
+    if(isTrick && !p.tricks.length){
+      var bt = getTrick(p.refs[0].trickId);
+      if(!bt) return { ok: false, err: "shareLoadFailed" };
+      if(bt.categoryIds.indexOf(SHARE_EXT_SINGLE_ID) !== -1) return { ok: true, dup: true, truncated: false, nav: { kind: "trick", id: bt.id } };
     }
-    rec.cats.forEach(function(c){ db.categories.push(c); });
+    if(typeof undoPush === "function") undoPush();
+    var parent = isTrick ? shareEnsureSingle() : shareEnsureExternal();
+    var rec = shareRemap(p, newItemId, FAV_TABLE_ID, function(id){ return !!getTrick(id); }, parent.id);
+    if(!rec.rootId) return { ok: false, err: "shareLoadFailed" };
+    rec.cats.forEach(function(c){ if(c.id === rec.rootId) c.sharedFrom = key; db.categories.push(c); });
     if(!db.infos) db.infos = [];
     rec.infos.forEach(function(n){ db.infos.push(n); });
+    rec.tricks.forEach(function(tr){ if(tr.id === rec.rootId) tr.sharedFrom = key; });
     normalizeDB({ categories: [], tricks: rec.tricks }).tricks.forEach(function(tr){ db.tricks.push(tr); });
     rec.refs.forEach(function(r){
       var tr = getTrick(r.trickId);
@@ -273,7 +333,7 @@
       if(r.order !== null){ tr.orderByCategory = tr.orderByCategory || {}; tr.orderByCategory[r.containerId] = r.order; }
     });
     saveDB();
-    return { ok: true, spaceId: spaceId };
+    return { ok: true, dup: false, truncated: sx.dropped > 0, nav: { kind: isTrick ? "trick" : "folder", id: rec.rootId } };
   }
 
   /* ---------------- send (DOM + Firestore) ---------------- */
@@ -295,116 +355,84 @@
     return Promise.resolve();
   }
 
-  // kind: "space" | "folder" | "trick"; id: table / category / trick id.
+  // kind: "space" | "folder" | "trick"; id: table / category / trick id (becomes the link's i=).
+  // Writes (overwrites) the public snapshot shares/{uid}_{id}, then copies / shares the link.
   function shareRun(kind, id){
     if(isGuest() || !authCurrentUser){ showToast(t("shareNeedLogin"), "error"); return Promise.resolve(false); }
-    var built = kind === "trick" ? shareBuildTrickPayload(id) : shareBuildFolderPayload(kind, id);
+    var docId = shareDocId(authCurrentUser.uid, id);
+    var built = null;
+    if(docId){
+      if(kind === "trick"){
+        var btr = getTrick(id);
+        built = btr && !btr.virtual && shareIsBaseTrick(btr) ? shareBuildBaseTrickPayload(btr) : shareBuildTrickPayload(id);
+      } else built = shareBuildFolderPayload(kind, id);
+    }
     var p = built && shareSanitizePayload(built);
     if(!p) { showToast(t("shareEmpty"), "error"); return Promise.resolve(false); }
     var json = shareSerialize(p);
     if(json === null){ showToast(t("shareTooBig"), "error"); return Promise.resolve(false); }
     var title = shareTitleOf(p);
-    var ref = fbStore.collection("shares").doc();
     showToast(t("shareWorking"));
-    return ref.set({ ownerUid: authCurrentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    return fbStore.collection("shares").doc(docId).set({ ownerUid: authCurrentUser.uid, itemId: id,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       kind: kind === "trick" ? "trick" : "folder", title: title, payload: json, v: SHARE_VERSION })
-      .then(function(){ return shareCopyLink(shareUrlFor(ref.id), title); })
+      .then(function(){ return shareCopyLink(shareUrlFor(authCurrentUser.uid, id), title); })
       .then(function(){ return true; })
       .catch(function(err){ console.error("share failed:", err); showToast(t("shareFailed"), "error"); return false; });
   }
 
-  /* ---------------- receive: preview modal ---------------- */
-  var _shareDoc = null; // { id, payload } while the preview is open
-
-  function shareEnsureModal(){
-    var ov = document.getElementById("shareOverlay");
-    if(ov) return ov;
-    ov = document.createElement("div");
-    ov.className = "modal-overlay";
-    ov.id = "shareOverlay";
-    ov.innerHTML = '<div class="modal modal-lg share-modal"><div class="settings-head"><div class="modal-title"></div>' +
-      '<button type="button" class="icon-btn settings-close" data-close="1"></button></div>' +
-      '<div class="modal-scroll"></div><div class="modal-footer"><div class="modal-actions">' +
-      '<button type="button" class="btn btn-ghost" data-close="1"></button>' +
-      '<button type="button" class="btn btn-primary" id="shareAddBtn"></button></div></div></div>';
-    var ref = document.getElementById("confirmOverlay");
-    if(ref && ref.parentNode) ref.parentNode.insertBefore(ov, ref); else document.body.appendChild(ov);
-    ov.querySelector(".settings-close").innerHTML = ICON_X;
-    ov.addEventListener("click", function(ev){
-      if(ev.target === ov || ev.target.closest("[data-close]")) shareCloseModal();
-    });
-    ov.querySelector("#shareAddBtn").addEventListener("click", shareOnAddClick);
-    return ov;
-  }
-  function shareCloseModal(){
-    var ov = document.getElementById("shareOverlay");
-    if(ov) ov.classList.remove("show");
-    _shareDoc = null;
-  }
-  function shareRefreshAddBtn(){
-    var b = document.getElementById("shareAddBtn");
-    if(b) b.textContent = t(isGuest() ? "shareAddLogin" : "shareAdd");
-  }
-  // Called by js/59 once the login has settled (so the pending add lands on the synced data).
-  function shareOnAuth(){ if(_shareDoc) shareRefreshAddBtn(); }
-
-  function shareOnAddClick(){
-    if(!_shareDoc) return;
-    if(isGuest() || !authCurrentUser){
-      showToast(t("shareSigningIn"));
-      if(typeof authLogin === "function") authLogin();
-      return;
-    }
-    var res = shareApply(_shareDoc.payload);
-    if(!res.ok){ showToast(t(res.err), "error"); return; }
-    shareCloseModal();
-    state.activeSpace = res.spaceId || FAV_TABLE_ID;
+  /* ---------------- receive (DOM + Firestore) ---------------- */
+  function shareGoTo(nav){
+    if(nav.kind === "trick" && typeof goToTrickLocation === "function"){ goToTrickLocation(nav.id); return; }
+    state.activeSpace = FAV_TABLE_ID;
     try{ localStorage.setItem(SPACE_KEY, state.activeSpace); }catch(e){ /* ignore */ }
-    state.path = []; state.detailTrickId = null;
-    showToast(t("shareAdded"));
+    state.path = pathToContainer(nav.id); state.detailTrickId = null;
     render();
   }
 
-  function shareOpenPreview(id, payload){
-    _shareDoc = { id: id, payload: payload };
-    var ov = shareEnsureModal();
-    var c = shareCounts(payload);
-    var nm = shareTitleOf(payload) || (payload.tricks[0] ? localize(payload.tricks[0].name) : "");
-    var rows = [];
-    payload.cats.filter(function(x){ return x.parentId == null; }).forEach(function(x){ rows.push(ICON_FOLDER + "<span>" + escapeHtml(localize(x.name)) + "</span>"); });
-    payload.tricks.forEach(function(x){ rows.push("<span>" + escapeHtml(localize(x.name)) + "</span>"); });
-    var shown = rows.slice(0, 12).map(function(r){ return '<div class="share-row">' + r + "</div>"; }).join("");
-    if(rows.length > 12) shown += '<div class="share-row share-more">' + escapeHtml(t("shareMore")) + "</div>";
-    var counts = payload.kind === "trick" ? "" :
-      c.folders + " " + t("shareCountFolders") + " · " + c.tricks + " " + t("shareCountTricks") + " · " + c.infos + " " + t("shareCountInfos");
-    ov.querySelector(".modal-title").textContent = t("shareModalTitle");
-    ov.querySelector(".modal-scroll").innerHTML = '<div class="share-name">' + escapeHtml(nm) + '</div>' +
-      '<div class="modal-sub">' + escapeHtml(t(payload.kind === "trick" ? "shareKindTrick" : "shareKindFolder")) +
-      (counts ? " · " + escapeHtml(counts) : "") + '</div><div class="share-list">' + shown + "</div>";
-    ov.querySelector(".btn-ghost").textContent = t("shareCancel");
-    shareRefreshAddBtn();
-    ov.classList.add("show");
+  function shareGetPending(){
+    try{
+      var o = JSON.parse(sessionStorage.getItem(SHARE_PENDING_KEY));
+      return (o && shareDocId(o.s, o.i)) ? { s: o.s, i: o.i } : null;
+    }catch(e){ return null; }
   }
+  function shareClearPending(){ try{ sessionStorage.removeItem(SHARE_PENDING_KEY); }catch(e){ /* ignore */ } }
 
-  // Fetches shares/{id} and opens the preview. Always strips ?share from the URL.
-  function shareOpenFromUrl(){
+  // Runs at load: remember ?s=&i= (survives login) and strip it from the URL.
+  function shareCaptureFromUrl(){
     if(typeof location === "undefined") return;
-    var id = shareParseId(location.search);
-    if(!id) return;
+    var link = shareParseLink(location.search);
+    if(!link) return;
+    try{ sessionStorage.setItem(SHARE_PENDING_KEY, JSON.stringify(link)); }catch(e){ /* ignore */ }
     try{
       var u = new URL(location.href);
-      u.searchParams.delete("share");
+      u.searchParams.delete("s"); u.searchParams.delete("i");
       history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
     }catch(e){ /* ignore */ }
-    fbStore.collection("shares").doc(id).get().then(function(snap){
+  }
+
+  // js/59 calls this for a guest session: ask to sign in (the pending link stays for after login).
+  function shareOnGuest(){ if(shareGetPending()) showToast(t("shareOpenNeedLogin")); }
+
+  // js/59 calls this after login + sync settled: copies the pending share into 收藏 > 外部匯入.
+  function shareOnAuth(){
+    var link = shareGetPending();
+    if(!link || isGuest() || !authCurrentUser) return Promise.resolve(false);
+    shareClearPending();
+    var key = shareDocId(link.s, link.i);
+    return fbStore.collection("shares").doc(key).get().then(function(snap){
       var d = snap.exists ? snap.data() : null;
       var payload = null;
-      if(d && typeof d.payload === "string" && d.payload.length <= SHARE_MAX_BYTES){
-        try{ payload = shareSanitizePayload(JSON.parse(d.payload)); }catch(e){ payload = null; }
+      if(d && d.ownerUid === link.s && typeof d.payload === "string" && d.payload.length <= SHARE_MAX_BYTES){
+        try{ payload = JSON.parse(d.payload); }catch(e){ payload = null; }
       }
-      if(!payload) return showToast(t("shareLoadFailed"), "error");
-      shareOpenPreview(id, payload);
-    }).catch(function(err){ console.error("share load failed:", err); showToast(t("shareLoadFailed"), "error"); });
+      var res = payload ? shareApply(payload, key) : { ok: false, err: "shareLoadFailed" };
+      if(!res.ok){ showToast(t(res.err), "error"); return false; }
+      shareGoTo(res.nav);
+      showToast(t(res.dup ? "shareDup" : "shareAdded"));
+      if(res.truncated) setTimeout(function(){ showToast(t("shareTruncated"), "error"); }, 2600);
+      return true;
+    }).catch(function(err){ console.error("share load failed:", err); showToast(t("shareLoadFailed"), "error"); return false; });
   }
-  // After all scripts ran (init in 90 renders first).
-  if(typeof location !== "undefined" && typeof setTimeout === "function") setTimeout(shareOpenFromUrl, 0);
+
+  shareCaptureFromUrl();

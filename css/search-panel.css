@@ -2,23 +2,23 @@
   /* Overrides / extends .search-panel from shell-topbar-rail.css (loaded before this file). */
   .search-panel{
     width: min(640px, calc(100vw - 24px));
-    /* Open position sits at the top edge (under the notch inset) so the panel
-       covers the search button: the field looks like it grew out of the button. */
-    top: calc(var(--safe-t, 0px) + 6px);
+    /* Open position sits at the top-right corner (under the notch inset), above the search button. */
+    top: calc(var(--safe-t, 0px) + 6px); left:auto; right: calc(var(--safe-r, 0px) + 12px); transform-origin: top right;
     max-height: calc(100vh - var(--safe-t, 0px) - 18px);
     max-height: calc(100dvh - var(--safe-t, 0px) - 18px);
     flex-direction:column; gap:10px; overflow:hidden;
-    /* Slides down out of the top edge, folding over the search button (z-index above it). */
+    /* Slides out from the top-right corner: clip reveals from the right edge, top edge (z-index above the bar). */
     display:flex; z-index:40;
     visibility:hidden; pointer-events:none;
-    transform: translate(-50%, calc(-1 * (var(--topbar-h) + 8px)));
-    clip-path: inset(0 -40px 100% -40px);
+    transform: translate(16px, -16px);
+    clip-path: inset(0 0 100% 100%);
     transition: transform .22s var(--ease), clip-path .22s var(--ease), visibility 0s linear .22s;
     will-change: transform, clip-path;
   }
   .search-panel.show{
-    visibility:visible; pointer-events:auto;
-    transform: translate(-50%, 0);
+    /* display:flex again: shell-topbar-rail.css `.search-panel.show{display:block}` would otherwise drop the flex gap. */
+    display:flex; visibility:visible; pointer-events:auto;
+    transform: translate(0, 0);
     clip-path: inset(0 -40px -40px -40px);
     transition: transform .26s var(--ease), clip-path .26s var(--ease), visibility 0s;
   }
@@ -26,12 +26,14 @@
     .search-panel, .search-panel.show{ transition:none; }
   }
   .search-wrap{ flex:0 0 auto; }
-  .search-section{ flex:0 0 auto; display:flex; flex-direction:column; gap:6px; }
+  .search-section{ flex:0 0 auto; display:flex; flex-direction:column; gap:10px; }
   .search-label{ font-size:11px; font-weight:600; color: var(--paper-faint); letter-spacing:.04em; }
   .search-label-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
-  .search-panel .drawer-chip-row{ margin-bottom:0; }
+  /* One vertical rhythm: 10px between blocks, 8px between chip rows, 12px around the divider. */
+  .search-panel .drawer-chip-row{ margin-bottom:0; row-gap:8px; }
+  .search-panel .part-group[data-group="ken"]{ gap:8px 6px; }
   /* Parts: no divider lines. Ken parts on row 1; string + ball parts share row 2. */
-  .search-panel .drawer-chip-row.part-groups{ flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px; }
+  .search-panel .drawer-chip-row.part-groups{ flex-direction:row; flex-wrap:wrap; align-items:center; gap:8px 6px; }
   .search-panel .part-group[data-group="ken"]{ flex:0 0 100%; }
   .search-panel .part-group[data-group="ito"], .search-panel .part-group[data-group="tama"]{ display:contents; }
   .search-panel .part-group + .part-group{ padding-top:0; border-top:none; }
@@ -44,7 +46,7 @@
   .search-note{ font-size:12px; color: var(--paper-faint); }
   .search-results-bar{
     flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;
-    min-height:24px; padding-top:8px; border-top:1px solid var(--glass-border);
+    min-height:24px; margin-top:2px; padding-top:12px; border-top:1px solid var(--glass-border);
   }
   .search-count{ font-size:12px; color: var(--paper-dim); }
   .search-list{ flex:1 1 auto; min-height:90px; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; }

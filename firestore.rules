@@ -208,20 +208,22 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // shares/{shareId}: one-click shares of user-made content (v0.9). Anyone with the link reads;
-    // only the owner creates / deletes; docs are immutable. payload is a JSON string (<= 200 KB).
+    // shares/{shareId}: one-click share snapshots (v0.9.1). Doc id = <ownerUid>_<itemId>. Anyone with the
+    // link reads; only the owner writes (the same item is re-shared by overwriting) or deletes.
+    // payload is a JSON string (<= 200 KB).
     match /shares/{shareId} {
       allow read: if true;
-      allow create: if signedIn() &&
-        shareId.matches('^[0-9A-Za-z]{8,40}$') &&
-        request.resource.data.keys().hasOnly(['ownerUid', 'createdAt', 'kind', 'title', 'payload', 'v']) &&
+      allow create, update: if signedIn() &&
+        request.resource.data.keys().hasOnly(['ownerUid', 'itemId', 'createdAt', 'kind', 'title', 'payload', 'v']) &&
         request.resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.itemId is string &&
+        request.resource.data.itemId.matches('^[0-9A-Za-z_-]{1,40}$') &&
+        shareId == request.auth.uid + '_' + request.resource.data.itemId &&
         request.resource.data.createdAt == request.time &&
         request.resource.data.kind in ['folder', 'trick'] &&
         request.resource.data.title is string && request.resource.data.title.size() <= 120 &&
         request.resource.data.payload is string && request.resource.data.payload.size() <= 204800 &&
         request.resource.data.v == 1;
-      allow update: if false;
       allow delete: if isOwner(resource.data.ownerUid);
     }
 

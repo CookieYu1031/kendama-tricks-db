@@ -17,3 +17,13 @@ test("conditions rows wrap", () => {
   assert.match(css, /\.search-label-row\{[^}]*flex-wrap:wrap/);
   assert.match(css, /\.search-results-bar\{[^}]*flex-wrap:wrap/);
 });
+test("open panel stays flex (gap) and slides from the top-right", () => {
+  assert.match(css, /\.search-panel\.show\{[^}]*display:flex/);
+  assert.match(css, /transform-origin: top right/);
+  assert.match(css, /right: calc\(var\(--safe-r, 0px\) \+ 12px\)/);
+});
+test("search button sits in the right topbar actions, before the avatar", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(html.indexOf('id="searchToggleBtn"') > html.indexOf('class="topbar-actions"'));
+  assert.ok(html.indexOf('id="searchToggleBtn"') < html.indexOf('id="settingsBtn"'));
+});

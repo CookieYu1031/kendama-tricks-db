@@ -1,4 +1,4 @@
-// Share (js/58-share.js): payload build / sanitize / size cap, remap with fresh ids, base refs, URL param.
+// Share (js/58-share.js): link parse / doc id, payload build / sanitize / size cap, remap, apply into 收藏/外部匯入, dedup, depth.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert");
@@ -8,6 +8,7 @@ function setup(){
   const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js",
     "js/06-icons-svg.js", "js/07-id.js", "js/20-browse-order.js", "js/26-browse-fab.js", "js/58-share.js"], { URL });
   ctx.saveDB = () => {};
+  ctx.undoPush = () => {};
   let seq = 0;
   ctx.newItemId = () => "n" + (++seq);
   const nm = (z) => ({ zh: z, jp: "", en: "" });
@@ -31,16 +32,25 @@ function setup(){
   return ctx;
 }
 const J = (o) => JSON.parse(JSON.stringify(o));
+const U = "AbCdEf0123456789xyzABCDEFGH1";
+const KEY = U + "_c1";
 
-test("shareParseId: valid / invalid / encoded", () => {
+test("link parse / build / doc id", () => {
   const c = setup();
-  assert.strictEqual(c.shareParseId("?share=Abc12345xyz"), "Abc12345xyz");
-  assert.strictEqual(c.shareParseId("?a=1&share=Abc12345"), "Abc12345");
-  assert.strictEqual(c.shareParseId("?share=short"), null);
-  assert.strictEqual(c.shareParseId("?share=../../etc/passwd1"), null);
-  assert.strictEqual(c.shareParseId("?share=%E0%A4%A"), null);
-  assert.strictEqual(c.shareParseId(""), null);
-  assert.strictEqual(c.shareUrlFor("Abc12345"), "https://kendama-tricks-db.web.app/?share=Abc12345");
+  assert.deepStrictEqual(J(c.shareParseLink("?s=" + U + "&i=abc1234")), { s: U, i: "abc1234" });
+  assert.deepStrictEqual(J(c.shareParseLink("?x=1&i=t00&s=" + U)), { s: U, i: "t00" });
+  assert.deepStrictEqual(J(c.shareParseLink("?s=" + U + "&i=fav-external_1")), { s: U, i: "fav-external_1" });
+  assert.strictEqual(c.shareParseLink("?s=" + U), null);
+  assert.strictEqual(c.shareParseLink("?i=abc1234"), null);
+  assert.strictEqual(c.shareParseLink("?s=bad&i=abc1234"), null);
+  assert.strictEqual(c.shareParseLink("?s=" + U + "&i=../x"), null);
+  assert.strictEqual(c.shareParseLink("?s=" + U + "&i=%E0%A4%A"), null);
+  assert.strictEqual(c.shareParseLink(""), null);
+  assert.strictEqual(c.shareUrlFor(U, "abc1234"), "https://kendama-tricks-db.web.app/?s=" + U + "&i=abc1234");
+  assert.strictEqual(c.shareDocId(U, "abc1234"), U + "_abc1234");
+  assert.strictEqual(c.shareDocId(U, "a/b"), null);
+  assert.strictEqual(c.shareDocId("x", "abc1234"), null);
+  assert.strictEqual(c.shareDocId(U, "x".repeat(41)), null);
 });
 
 test("isBaseTrick: placed in locked table = base; own table / custom = not", () => {
@@ -96,7 +106,6 @@ test("sanitize: roundtrip ok, bad shape / version null, caps, orphans and depth 
   assert.strictEqual(s2.cats.length, 2);
   assert.strictEqual(s2.cats[0].name.zh.length, 80);
   assert.strictEqual(s2.cats[0].icon, "");
-  // chain deeper than the folder level limit (3) is cut
   const deep = { v: 1, kind: "space", name: {}, cats: [1, 2, 3, 4, 5].map((n) => ({ id: "d" + n, parentId: n === 1 ? null : "d" + (n - 1), name: {}, order: 0 })), infos: [], tricks: [], refs: [] };
   assert.deepStrictEqual(J(c.shareSanitizePayload(deep)).cats.map((x) => x.id), ["d1", "d2", "d3"]);
 });
@@ -120,66 +129,166 @@ test("size cap: serialize null when over 200 KB", () => {
   assert.strictEqual(c.shareSerialize(p), null);
 });
 
-test("remap: all ids fresh, parents remapped, base refs kept by id, missing base dropped", () => {
+function folderPayload(c){ return J(c.shareBuildFolderPayload("folder", "c1")); }
+
+test("remap: fresh ids, root under the external folder, base refs kept, missing base dropped", () => {
   const c = setup();
-  const p = J(c.shareSanitizePayload(J(c.shareBuildFolderPayload("space", "u1"))));
+  const p = J(c.shareSanitizePayload(folderPayload(c), 1));
   let n = 0;
-  const r = c.shareRemap(p, () => "f" + (++n), "NEW", (id) => id === "base001");
+  const r = c.shareRemap(p, () => "f" + (++n), "fav", (id) => id === "base001", "EXT");
   const ids = r.cats.map((x) => x.id).concat(r.infos.map((x) => x.id), r.tricks.map((x) => x.id));
   assert.strictEqual(new Set(ids).size, ids.length);
   ids.forEach((id) => assert.match(id, /^f\d+$/));
-  assert.strictEqual(r.cats[0].parentId, null);
+  assert.strictEqual(r.cats[0].parentId, "EXT");
   assert.strictEqual(r.cats[1].parentId, r.cats[0].id);
-  assert.ok(r.cats.every((x) => x.spaceId === "NEW"));
-  assert.strictEqual(r.infos[0].parentId, r.cats[1].id);
-  assert.deepStrictEqual(J(r.tricks[0].categoryIds), [r.cats[1].id]);
+  assert.strictEqual(r.rootId, r.cats[0].id);
+  assert.ok(r.cats.every((x) => x.spaceId === "fav"));
   assert.strictEqual(r.refs.length, 1);
   assert.strictEqual(r.refs[0].trickId, "base001");
   assert.strictEqual(r.refs[0].containerId, r.cats[0].id);
-  assert.strictEqual(r.refs[0].order, 3);
-  assert.strictEqual(c.shareRemap(p, () => "z" + (++n), "NEW", () => false).refs.length, 0);
+  assert.strictEqual(c.shareRemap(p, () => "z" + (++n), "fav", () => false, "EXT").refs.length, 0);
 });
 
-test("apply space share: new custom table, base trick gains placement, items pushed", () => {
+test("apply folder: lands in 收藏/外部匯入/<folder>, fresh ids, tagged, personal fields not copied", () => {
   const c = setup();
-  const payload = J(c.shareBuildFolderPayload("space", "u1"));
-  const nSpaces = c.db.spaces.length, nCats = c.db.categories.length, nTricks = c.db.tricks.length;
-  const res = c.shareApply(payload);
+  const nCats = c.db.categories.length, nTricks = c.db.tricks.length;
+  const res = c.shareApply(folderPayload(c), KEY);
   assert.strictEqual(res.ok, true);
-  assert.strictEqual(c.db.spaces.length, nSpaces + 1);
-  assert.strictEqual(c.db.categories.length, nCats + 2);
-  assert.strictEqual(c.db.tricks.length, nTricks + 1); // own trick copied, base trick referenced
-  const sp = c.getSpace(res.spaceId);
-  assert.ok(sp && !sp.locked);
-  const base = c.getTrick("base001");
-  assert.strictEqual(base.categoryIds.length, 3);
+  assert.strictEqual(res.dup, false);
+  assert.strictEqual(res.nav.kind, "folder");
+  const ext = c.db.categories.find((x) => x.id === "fav-external");
+  assert.ok(ext && ext.parentId === null && ext.spaceId === "fav");
+  assert.ok(ext.name.zh === "外部匯入" && ext.name.jp && ext.name.en);
+  assert.strictEqual(c.db.categories.length, nCats + 2); // c1 + c2 copies (external folders are permanent)
+  const root = c.db.categories.find((x) => x.id === res.nav.id);
+  assert.strictEqual(root.parentId, "fav-external");
+  assert.strictEqual(root.sharedFrom, KEY);
+  assert.notStrictEqual(root.id, "c1");
+  assert.strictEqual(c.db.tricks.length, nTricks + 1);
   const copy = c.db.tricks[c.db.tricks.length - 1];
   assert.notStrictEqual(copy.id, "own0001");
   assert.strictEqual(copy.favorite, false);
   assert.strictEqual(copy.note, "");
-  assert.strictEqual(copy.custom, false);
+  assert.strictEqual(copy.rate, null);
+  assert.strictEqual(c.getTrick("base001").categoryIds.length, 3); // base ref gained a placement
+  // sharedFrom survives normalizeDB (sync / reload)
+  assert.strictEqual(c.normalizeDB(J(c.db)).categories.find((x) => x.id === root.id).sharedFrom, KEY);
 });
 
-test("apply trick share: lands in 收藏 > 自訂義 as custom trick, no new table", () => {
+test("apply trick: 收藏/外部匯入/單招式/<trick>, tagged on the trick", () => {
   const c = setup();
-  const payload = J(c.shareBuildTrickPayload("cus0001"));
-  const nSpaces = c.db.spaces.length;
-  const res = c.shareApply(payload);
+  const k = U + "_cus0001";
+  const res = c.shareApply(J(c.shareBuildTrickPayload("cus0001")), k);
   assert.strictEqual(res.ok, true);
-  assert.strictEqual(res.spaceId, null);
-  assert.strictEqual(c.db.spaces.length, nSpaces);
-  const copy = c.db.tricks[c.db.tricks.length - 1];
-  assert.strictEqual(copy.custom, true);
-  assert.deepStrictEqual(J(copy.categoryIds), ["fav-custom"]);
-  assert.notStrictEqual(copy.id, "cus0001");
+  assert.strictEqual(res.nav.kind, "trick");
+  const single = c.db.categories.find((x) => x.id === "fav-external-single");
+  assert.strictEqual(single.parentId, "fav-external");
+  assert.strictEqual(single.name.zh, "單招式");
+  assert.ok(c.db.categories.find((x) => x.id === "fav-external"));
+  const tr = c.getTrick(res.nav.id);
+  assert.deepStrictEqual(J(tr.categoryIds), ["fav-external-single"]);
+  assert.strictEqual(tr.custom, false);
+  assert.strictEqual(tr.sharedFrom, k);
+  assert.notStrictEqual(tr.id, "cus0001");
+  assert.strictEqual(c.normalizeDB(J(c.db)).tricks.find((x) => x.id === tr.id).sharedFrom, k);
 });
 
-test("apply refuses garbage and the 26-table cap", () => {
+test("base trick share: reference payload, applied into 單招式, dedup by placement", () => {
   const c = setup();
-  assert.strictEqual(c.shareApply({ v: 9 }).ok, false);
-  const payload = J(c.shareBuildFolderPayload("space", "u1"));
-  c.canAddCustomSpace = () => false;
-  assert.strictEqual(c.shareApply(payload).err, "shareTableLimit");
+  const p = J(c.shareBuildBaseTrickPayload(c.getTrick("base001")));
+  assert.strictEqual(p.kind, "trick");
+  assert.deepStrictEqual(p.refs, [{ trickId: "base001", c: null, o: null }]);
+  assert.strictEqual(p.tricks.length, 0);
+  assert.ok(c.shareSanitizePayload(p));
+  const n0 = c.db.tricks.length;
+  const r = c.shareApply(p, U + "_base001");
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.dup, false);
+  assert.deepStrictEqual(J(r.nav), { kind: "trick", id: "base001" });
+  assert.strictEqual(c.db.tricks.length, n0); // reference, no copy
+  assert.ok(c.getTrick("base001").categoryIds.indexOf("fav-external-single") !== -1);
+  const snap = JSON.stringify(c.db);
+  const r2 = c.shareApply(J(p), U + "_base001");
+  assert.strictEqual(r2.dup, true);
+  assert.strictEqual(JSON.stringify(c.db), snap);
+  p.refs[0].trickId = "nope0000";
+  assert.strictEqual(c.shareApply(p, U + "_nope").ok, false);
+});
+
+test("drawer foot: share (link) + variant + delete; guest has no share", () => {
+  const c = setup();
+  const mk = () => ({ className: "", children: [], innerHTML: "", style: {}, appendChild(x){ this.children.push(x); }, addEventListener(){}, setAttribute(){} });
+  c.document = { createElement: mk };
+  c.escapeHtml = (s) => s;
+  const files = require("fs").readFileSync(require("path").join(__dirname, "..", "js/31-drawer-sections.js"), "utf8");
+  assert.ok(/ICON_LINK/.test(files) && !/ICON_SHARE/.test(files));
+  c.isGuest = () => false;
+  c.openAddModal = () => {}; c.requestDeleteTrick = () => {};
+  const vm = require("vm");
+  vm.runInContext(files, c);
+  const f = c.buildDrawerEditFoot(c.getTrick("own0001"), true);
+  assert.strictEqual(f.children.length, 3);
+  assert.ok(/col-add-btn-share/.test(f.children[0].className));
+  assert.ok(/col-add-btn-variant/.test(f.children[1].className));
+  assert.ok(/col-add-btn-del/.test(f.children[2].className));
+  assert.strictEqual(c.buildDrawerEditFoot(c.getTrick("base001"), false).children.length, 1);
+  c.isGuest = () => true;
+  assert.strictEqual(c.buildDrawerEditFoot(c.getTrick("base001"), false), null);
+  assert.strictEqual(c.buildDrawerEditFoot(c.getTrick("own0001"), true).children.length, 2);
+});
+
+test("dedup: second apply changes nothing and points at the first copy", () => {
+  const c = setup();
+  const r1 = c.shareApply(folderPayload(c), KEY);
+  const snap = JSON.stringify(c.db);
+  const r2 = c.shareApply(folderPayload(c), KEY);
+  assert.strictEqual(r2.ok, true);
+  assert.strictEqual(r2.dup, true);
+  assert.deepStrictEqual(J(r2.nav), { kind: "folder", id: r1.nav.id });
+  assert.strictEqual(JSON.stringify(c.db), snap);
+  const t1 = c.shareApply(J(c.shareBuildTrickPayload("cus0001")), "U_cus0001");
+  const snap2 = JSON.stringify(c.db);
+  const t2 = c.shareApply(J(c.shareBuildTrickPayload("cus0001")), "U_cus0001");
+  assert.strictEqual(t2.dup, true);
+  assert.strictEqual(t2.nav.id, t1.nav.id);
+  assert.strictEqual(JSON.stringify(c.db), snap2);
+});
+
+test("depth: copied folder is level 2, so deeper nodes are cut and reported", () => {
+  const c = setup();
+  const cat = (n, par) => ({ id: "d" + n, parentId: par, name: { zh: "d" + n }, order: 0 });
+  const deep = { v: 1, kind: "folder", name: { zh: "deep" }, cats: [cat(1, null), cat(2, "d1"), cat(3, "d2"), cat(4, "d3")],
+    infos: [{ id: "n1", parentId: "d2", title: {}, content: "", order: 0 }, { id: "n2", parentId: "d3", title: {}, content: "", order: 0 }],
+    tricks: [{ id: "t1", name: { zh: "t" }, media: [], placements: [{ c: "d2", o: null }] }, { id: "t2", name: { zh: "t" }, media: [], placements: [{ c: "d3", o: null }] }], refs: [] };
+  // d1 = level 2, d2 = 3; d3 would be 4 (folders max 3) -> cut with d4; items in d2 = level 4 ok; items in d3 cut
+  const sx = c.shareSanitizeEx(J(deep), 1);
+  assert.deepStrictEqual(J(sx.p.cats.map((x) => x.id)), ["d1", "d2"]);
+  assert.deepStrictEqual(J(sx.p.infos.map((x) => x.id)), ["n1"]);
+  assert.deepStrictEqual(J(sx.p.tricks.map((x) => x.id)), ["t1"]);
+  assert.strictEqual(sx.dropped, 4);
+  const res = c.shareApply(J(deep), "U_deep");
+  assert.strictEqual(res.ok, true);
+  assert.strictEqual(res.truncated, true);
+  assert.strictEqual(c.shareApply(folderPayload(c), KEY).truncated, false);
+});
+
+test("space share becomes a wrapper folder named after the table", () => {
+  const c = setup();
+  const res = c.shareApply(J(c.shareBuildFolderPayload("space", "u1")), "U_u1");
+  assert.strictEqual(res.ok, true);
+  const root = c.db.categories.find((x) => x.id === res.nav.id);
+  assert.strictEqual(root.name.zh, "mine");
+  assert.strictEqual(root.parentId, "fav-external");
+  assert.ok(c.db.categories.some((x) => x.parentId === root.id && x.name.zh === "c1"));
+});
+
+test("apply refuses garbage and creates nothing", () => {
+  const c = setup();
+  const n0 = c.db.categories.length;
+  assert.strictEqual(c.shareApply({ v: 9 }, "U_x").ok, false);
+  assert.strictEqual(c.shareApply(null, "U_x").ok, false);
+  assert.ok(c.db.categories.some((x) => x.id === "fav-external")); // permanent, but nothing new added
+  assert.strictEqual(c.db.categories.length, n0);
 });
 
 test("colShareTarget: own folders / custom tables yes; locked / default / guest no", () => {
@@ -196,7 +305,8 @@ test("colShareTarget: own folders / custom tables yes; locked / default / guest 
 test("i18n: every share string exists in zh/jp/en", () => {
   const c = setup();
   const src = require("fs").readFileSync(require("path").join(__dirname, "..", "js", "58-share.js"), "utf8");
-  const keys = Array.from(new Set((src.match(/\bt\("(share[A-Za-z]+)"\)/g) || []).map((m) => m.slice(3, -2)))).concat(["shareBtn", "shareKindTrick", "shareKindFolder"]);
+  const keys = Array.from(new Set((src.match(/\b(?:t|res\.err)\("(share[A-Za-z]+)"\)|"(share[A-Z][A-Za-z]+)"/g) || []).map((m) => m.replace(/^.*?"(share\w+)".*$/, "$1")))).filter((k) => !/^share(Ex|Sanitize)/.test(k));
+  assert.ok(keys.indexOf("shareDup") !== -1 && keys.indexOf("shareAdded") !== -1);
   ["zh", "jp", "en"].forEach((lang) => {
     c.state.lang = lang;
     keys.forEach((k) => assert.notStrictEqual(c.t(k), k, lang + ":" + k));

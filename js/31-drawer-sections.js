@@ -299,34 +299,32 @@
     return isGuest() ? buildGuestFoot() : profFoot;
   }
 
-  // Edit mode footer: add variant + share (own tricks) + delete trick.
-  function buildDrawerEditFoot(tr){
+  // Bottom row: [share trick] [+ variant] [delete]. Share: any signed-in user (guests: hidden);
+  // variant + delete: only when canEdit (edit mode and permitted). Returns null when empty.
+  function buildDrawerEditFoot(tr, canEdit){
+    var canShare = !isGuest() && typeof shareRun === "function";
+    if(!canEdit && !canShare) return null;
     var foot = document.createElement("div");
     foot.className = "drawer-foot";
-    var addVarB = document.createElement("button");
-    addVarB.className = "col-add-btn";
-    addVarB.style.flex = "1";
-    addVarB.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addVariant")) + "</span>";
-    addVarB.addEventListener("click", function(){ openAddModal(tr.id, state.activeSpace); });
-    var delB = document.createElement("button");
-    delB.className = "col-add-btn col-add-btn-danger";
-    delB.style.flex = "0 0 44px";
-    delB.style.padding = "9px 0";
-    delB.title = t("delete");
-    delB.innerHTML = ICON_TRASH;
-    delB.addEventListener("click", function(){ requestDeleteTrick(tr.id, "*"); });
-    foot.appendChild(addVarB);
-    // Share: the user's own tricks only (base 總表 tricks are never shared by value).
-    if(typeof shareIsBaseTrick === "function" && !shareIsBaseTrick(tr)){
+    if(canShare){
       var shB = document.createElement("button");
       shB.className = "col-add-btn col-add-btn-share";
-      shB.title = t("shareBtn");
-      shB.setAttribute("aria-label", t("shareBtn"));
-      shB.innerHTML = ICON_SHARE;
+      shB.innerHTML = ICON_LINK + "<span>" + escapeHtml(t("shareTrickBtn")) + "</span>";
       shB.addEventListener("click", function(){ shareRun("trick", tr.id); });
       foot.appendChild(shB);
     }
-    foot.appendChild(delB);
+    if(canEdit){
+      var addVarB = document.createElement("button");
+      addVarB.className = "col-add-btn col-add-btn-variant";
+      addVarB.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addVariantShort")) + "</span>";
+      addVarB.addEventListener("click", function(){ openAddModal(tr.id, state.activeSpace); });
+      var delB = document.createElement("button");
+      delB.className = "col-add-btn col-add-btn-danger col-add-btn-del";
+      delB.innerHTML = ICON_TRASH + "<span>" + escapeHtml(t("delete")) + "</span>";
+      delB.addEventListener("click", function(){ requestDeleteTrick(tr.id, "*"); });
+      foot.appendChild(addVarB);
+      foot.appendChild(delB);
+    }
     return foot;
   }
 

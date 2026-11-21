@@ -66,7 +66,10 @@
   function getChildren(parentId){
     var ix = ensureDbIndex();
     if(parentId === null){
-      if(state.activeSpace === FAV_TABLE_ID) return FAV_VIRTUAL_FOLDERS.slice();
+      // favorites root: the two virtual folders, then the real root folders (外部匯入 ...)
+      if(state.activeSpace === FAV_TABLE_ID){
+        return FAV_VIRTUAL_FOLDERS.concat(ix.rootCats.filter(function(c){ return c.spaceId === FAV_TABLE_ID; }));
+      }
       return ix.rootCats.filter(function(c){ return c.spaceId===state.activeSpace; });
     }
     var l = ix.catsByParent[parentId];
@@ -112,7 +115,19 @@
   // (not another trick acting as a folder) of this table. Variants are excluded.
   function getFlatSpaceTricks(spaceId){
     if(spaceId === FAV_TABLE_ID){
-      return db.tricks.filter(function(tr){ return tr.favorite || tr.custom || tr.categoryIds.indexOf(FAV_CUSTOM_ID) !== -1; });
+      // 外部匯入 subtree: folders below the real fixed folder (外部匯入, 單招式, imported subfolders).
+      var extCats = {};
+      extCats[FAV_EXTERNAL_ID] = true;
+      var grew = true;
+      while(grew){
+        grew = false;
+        (db.categories || []).forEach(function(c){
+          if(!extCats[c.id] && c.parentId && extCats[c.parentId]){ extCats[c.id] = true; grew = true; }
+        });
+      }
+      return db.tricks.filter(function(tr){
+        return tr.favorite || tr.custom || (tr.categoryIds || []).some(function(cid){ return cid === FAV_CUSTOM_ID || extCats[cid] === true; });
+      });
     }
     return db.tricks.filter(function(tr){
       return (tr.categoryIds||[]).some(function(cid){
@@ -211,7 +226,19 @@
   }
   // type: "folder"/"category" -> new item's level must be <= 3; "trick"/"info" -> <= 4.
   // A trick used as a folder (variants) counts as a level like any other container.
+  // v0.9.1: nothing may be created (add / paste / drop / link) in the favorites table root,
+  // 收藏 (starred), 自訂義 (aggregate view of 總表 custom tricks), 外部匯入 and 單招式.
+  // containerId null = table root of spaceId (default: the active table); a table id = its root.
+  // Folders inside 外部匯入 (imported copies) and every other table are unaffected.
+  function canCreateIn(containerId, spaceId){
+    if(containerId == null || getSpace(containerId)){
+      var sid = containerId == null ? (spaceId || state.activeSpace) : containerId;
+      return sid !== FAV_TABLE_ID;
+    }
+    return [FAV_STARRED_ID, FAV_CUSTOM_ID, FAV_EXTERNAL_ID, FAV_EXTERNAL_SINGLE_ID].indexOf(containerId) === -1;
+  }
   function canAddChild(parentId, type){
+    if(!canCreateIn(parentId)) return false;
     if(parentId != null){
       if(getInfo(parentId)) return false;                         // info items hold nothing
       if(parentId === FAV_STARRED_ID) return false;               // computed list
@@ -305,18 +332,6 @@
       (code >= 0xFFE0 && code <= 0xFFE6)
     ) return 2;
     return 1;
-  }
-  function clampIconInput(str){
-    str = String(str==null?"":str);
-    if(isLikelyEmojiIcon(str)) return str;
-    var chars = Array.from(str);
-    var width = 0, out = "";
-    for(var i=0;i<chars.length;i++){
-      var w = charDisplayWidth(chars[i]);
-      if(width + w > 2) break;
-      width += w; out += chars[i];
-    }
-    return out;
   }
 
   // A trick's `categoryIds` array holds "container ids" — these can reference either a

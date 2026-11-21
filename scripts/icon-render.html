@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Renders the site icons from assets/brand/kendama-white.png (user artwork) on canvas.
+     Used by scripts/build-icons.sh, which reads the data URLs from #out via --dump-dom. -->
+<html><head><meta charset="utf-8"></head>
+<body>
+<pre id="out"></pre>
+<script>
+  "use strict";
+  var JOBS = [
+    { name: "brand-icon.png", kind: "brand", size: 512 },
+    { name: "app-icon-180.png", kind: "app", size: 180 },
+    { name: "app-icon-192.png", kind: "app", size: 192 },
+    { name: "app-icon-512.png", kind: "app", size: 512 },
+    { name: "favicon-32-white.png", kind: "brand", size: 32 },
+    { name: "favicon-192-white.png", kind: "brand", size: 192 },
+    { name: "favicon-32-black.png", kind: "brand", size: 32, src: "black" },
+    { name: "favicon-192-black.png", kind: "brand", size: 192, src: "black" }
+  ];
+  function draw(imgs, job){
+    var img = job.src === "black" ? imgs.black : imgs.white;
+    var s = job.size, c = document.createElement("canvas");
+    c.width = s; c.height = s;
+    var g = c.getContext("2d");
+    g.imageSmoothingQuality = "high";
+    var scale;
+    if(job.kind === "app"){
+      g.fillStyle = "#313131"; g.fillRect(0, 0, s, s); // home-screen tile color (user spec)
+      scale = 0.92; // art fills ~73% of its source canvas -> stays inside the maskable safe zone
+    } else {
+      scale = 1.3;  // transparent mark: trim the source margin so the art fills the box
+    }
+    var d = s * scale, o = (s - d) / 2;
+    g.drawImage(img, o, o, d, d);
+    return job.name + " " + c.toDataURL("image/png");
+  }
+  // Black mark = the white artwork's alpha filled with black (compositing only, no pixel reads).
+  function tintBlack(img){
+    var c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+    var g = c.getContext("2d"); g.drawImage(img, 0, 0);
+    g.globalCompositeOperation = "source-in"; g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height);
+    return c;
+  }
+  var white = new Image();
+  white.onload = function(){
+    var imgs = { white: white, black: tintBlack(white) };
+    document.getElementById("out").textContent = JOBS.map(function(j){ return draw(imgs, j); }).join("\n");
+  };
+  white.src = "../assets/brand/kendama-white.png";
+</script>
+</body></html>

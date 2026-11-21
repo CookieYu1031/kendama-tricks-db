@@ -11,17 +11,20 @@
          clipEmpty:"剪貼簿是空的", clipNoSelection:"請先點選一個項目", clipAlready:"此位置已有這個招式",
          clipNoPerm:"沒有權限貼到這裡", clipNoFit:"不能貼到這裡（超過層數上限，或貼進自己／子層）",
          clipGone:"原項目已不存在", clipCannotCopy:"此項目無法複製", clipSame:"已經在這個位置",
-         editThisFolder:"編輯此資料夾" },
+         editThisFolder:"編輯此資料夾",
+         favNoCreate:"收藏區不能直接新增內容。要建立自己的招式分類，請先新增自訂義區域" },
     jp:{ clipCopied:"コピーしました：", clipCut:"切り取りました：", clipPasted:"貼り付けました", clipMoved:"移動しました",
          clipEmpty:"クリップボードは空です", clipNoSelection:"先に項目をクリックしてください", clipAlready:"この場所には既にこの技があります",
          clipNoPerm:"ここに貼り付ける権限がありません", clipNoFit:"ここには貼り付けられません（階層の上限、または自分／下位への貼り付け）",
          clipGone:"元の項目が存在しません", clipCannotCopy:"この項目はコピーできません", clipSame:"既にこの場所にあります",
-         editThisFolder:"このフォルダを編集" },
+         editThisFolder:"このフォルダを編集",
+         favNoCreate:"お気に入りには直接追加できません。自分の技の分類を作るには、先にカスタム区画を追加してください" },
     en:{ clipCopied:"Copied: ", clipCut:"Cut: ", clipPasted:"Pasted", clipMoved:"Moved",
          clipEmpty:"Clipboard is empty", clipNoSelection:"Click an item first", clipAlready:"This trick is already here",
          clipNoPerm:"No permission to paste here", clipNoFit:"Can't paste here (level limit, or into itself / its sub-folders)",
          clipGone:"The original item no longer exists", clipCannotCopy:"This item can't be copied", clipSame:"Already in this place",
-         editThisFolder:"Edit this folder" }
+         editThisFolder:"Edit this folder",
+         favNoCreate:"You can't add content directly in Favorites. To make your own trick categories, add a custom area first" }
   });
 
   // { mode:"copy"|"cut", type:"category"|"trick"|"info", id, srcParent (null = table root), srcSpace } | null
@@ -57,7 +60,8 @@
     var tSpace = env.activeSpace;
     var sp = getSpace(tSpace);
     if(!sp) return { ok:false, err:"clipNoPerm" };
-    if(targetParentId == null && tSpace === FAV_TABLE_ID) return { ok:false, err:"clipNoFit" };
+    if(!canCreateIn(targetParentId, tSpace)) return { ok:false, err:"favNoCreate" }; // v0.9.1 收藏 table is not a paste target
+    if(it.type === "category" && isFixedFavFolder(it.id) && clip.mode === "cut") return { ok:false, err:"clipNoPerm" };
     // locked table: non-admin may only drop their own custom tricks
     if(sp.locked && !env.admin && !(it.type === "trick" && it.ref.custom)) return { ok:false, err:"clipNoPerm" };
     var allow = allowedAddButtons(targetParentId, tSpace, env.admin);
@@ -193,6 +197,7 @@
     if(!it) return clipToast("clipNoSelection");
     var admin = isAdminNow();
     if(it.ref.virtual || sel.parentId === FAV_STARRED_ID) return clipToast("clipCannotCopy");
+    if(mode === "cut" && it.type === "category" && isFixedFavFolder(it.id)) return clipToast("clipNoPerm");
     if(mode === "cut" && !(canDragItem(it, sel.parentId, admin))) return clipToast("clipNoPerm");
     clipboardItem = { mode: mode, type: sel.type, id: sel.id, srcParent: sel.parentId, srcSpace: state.activeSpace };
     clipToast(mode === "cut" ? "clipCut" : "clipCopied", clipName(it));

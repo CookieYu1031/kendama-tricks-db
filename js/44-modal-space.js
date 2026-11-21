@@ -10,6 +10,7 @@
   });
 
   function openSpaceModal(spaceId){
+    if(!spaceId && !canAddCustomSpace()){ showToast(t("spaceLimitReached"), "error"); return; }
     state.editingSpaceId = spaceId || null;
     document.getElementById("spaceFormError").classList.remove("show");
     document.getElementById("spaceModalTitle").textContent = spaceId ? t("editSpace") : t("newSpace");
@@ -18,7 +19,7 @@
     var codeInput = document.getElementById("spaceCode");
     var shownSpace = spaceId ? getSpace(spaceId) : null;
     var shownCode = shownSpace ? shownSpace.code : allocSpaceCode();
-    codeField.hidden = !shownCode;
+    codeField.hidden = true; // v0.9.1: code is auto-assigned and not shown
     codeInput.value = shownCode || "";
     if(spaceId){
       var sp = shownSpace;
@@ -47,6 +48,11 @@
     var en = document.getElementById("spaceEn").value.trim();
     if(!zh){
       document.getElementById("spaceFormError").textContent = t("categoryNameRequired");
+      document.getElementById("spaceFormError").classList.add("show");
+      return;
+    }
+    if(!iconTextFits(state.spaceDraftIcon)){
+      document.getElementById("spaceFormError").textContent = t("iconTextTooLong");
       document.getElementById("spaceFormError").classList.add("show");
       return;
     }

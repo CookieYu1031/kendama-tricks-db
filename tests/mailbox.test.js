@@ -46,8 +46,8 @@ test("trick submission: names, url safety", () => {
 });
 
 test("apply: reason required; guest rejected", () => {
-  assert.strictEqual(ctx.buildReportDoc(user, "apply", { text: "" }).error, "formErrText");
-  assert.ok(ctx.buildReportDoc(user, "apply", { text: "I want to help" }).ok);
+  assert.strictEqual(ctx.buildReportDoc(user, "apply", { text: "" }).error, "formErrApplyName");
+  assert.ok(ctx.buildReportDoc(user, "apply", { text: "I want to help", applyName: "Ann", gmail: "ann@gmail.com" }).ok);
   assert.strictEqual(ctx.buildReportDoc(null, "bug", { text: "x" }).error, "formNeedLogin");
 });
 
