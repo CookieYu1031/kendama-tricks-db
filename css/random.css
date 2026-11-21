@@ -1,0 +1,44 @@
+/* Random Trick tool (js/82-random-panel.js). Reuses .modal-lg / .field / .btn / .drawer-chip / .item-icon. */
+  .random-modal .settings-head{ align-items:center; }
+  .random-modal .settings-head .modal-title{ flex:1 1 auto; margin-bottom:0; }
+  .random-modal .modal-scroll{ overflow-x:hidden; }
+  .rnd-chips{ margin-bottom:0; }
+  .rnd-scope{ gap:8px; }
+  .rnd-scope .field{ margin-bottom:0; min-width:0; }
+  .rnd-scope select{ width:100%; }
+  .rnd-parts{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+  .rnd-parts .part-diagram-box{ width:170px; max-width:100%; }
+  .rnd-parts .part-diagram{ display:block; width:100%; height:auto; }
+  .rnd-stepper{ display:flex; align-items:center; gap:12px; }
+  .rnd-step-btn{ width:34px; height:30px; font-size:16px; padding:0; text-align:center; }
+  .rnd-step-num{ min-width:24px; text-align:center; font-family: var(--font-mono); font-size:15px; font-weight:700; }
+  .rnd-chips .drawer-chip.rnd-rate:not(.active){ opacity:.55; }
+  .rnd-actions{ margin-top:12px; }
+  .rnd-actions .btn{ padding:10px 8px; white-space:normal; line-height:1.25; }
+  .rnd-results{ display:grid; grid-template-columns: 1fr; gap:10px; margin-top:16px; }
+  @media (min-width: 640px){ .rnd-results{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .rnd-card{
+    position:relative; display:flex; align-items:flex-start; gap:10px; padding:12px 40px 12px 12px; min-width:0;
+    border-radius:14px; border:1px solid var(--glass-border); cursor:pointer;
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    transition: transform .15s var(--ease), background .18s var(--ease);
+  }
+  .rnd-card:hover{ background: var(--glass-3); transform: translateY(-1px); }
+  .rnd-card .item-icon{ flex:0 0 auto; }
+  .rnd-card-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+  .rnd-card-name{ font-family: var(--font-display); font-size:14.5px; font-weight:700; word-break:break-word; }
+  .rnd-card-meta{ font-size:11.5px; color: var(--paper-faint); line-height:1.4; word-break:break-word; }
+  .rnd-rate-badge{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; }
+  .rnd-reroll{ position:absolute; top:6px; right:6px; width:28px; height:28px; }
+  .rnd-reroll svg{ width:16px; height:16px; }
+  .rnd-hist-toggle{ margin-top:18px; }
+  .rnd-history{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .rnd-hist-row{
+    display:flex; gap:10px; align-items:baseline; width:100%; text-align:left; padding:8px 10px; min-width:0;
+    border-radius:10px; border:1px solid var(--glass-border); background: var(--glass-1); color: var(--paper);
+    font-family:inherit; font-size:12.5px; cursor:pointer;
+  }
+  .rnd-hist-row:hover{ background: var(--glass-2); }
+  .rnd-hist-time{ flex:0 0 auto; font-family: var(--font-mono); font-size:11px; color: var(--paper-faint); }
+  .rnd-hist-names{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rnd-clear{ align-self:flex-start; padding:5px 12px; font-size:12px; }

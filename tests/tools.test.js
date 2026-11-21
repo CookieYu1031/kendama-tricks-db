@@ -33,3 +33,13 @@ test("isToolAvailable true once open is a function", () => {
   const c = ctxLoad();
   assert.strictEqual(c.isToolAvailable({ open: function(){} }), true);
 });
+
+test("random tool: open set once js/81 + js/82 are loaded; i18n complete", () => {
+  const c = load(["js/01-data-model.js", "js/01-data-storage.js","js/02-constants-colors-icons.js","js/03-i18n.js","js/04-state.js","js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js","js/06-icons-svg.js","js/80-tools.js","js/81-random-logic.js","js/82-random-panel.js"]);
+  assert.strictEqual(typeof c.getToolById("random").open, "function");
+  assert.strictEqual(c.isToolAvailable(c.getToolById("random")), true);
+  assert.strictEqual(c.getToolById("practice").open, null);
+  ["zh","jp","en"].forEach((l) => Object.keys(c.UI.zh).filter((k) => k.indexOf("rnd") === 0).forEach((k) => {
+    assert.ok(c.UI[l][k] && c.UI[l][k].length, l + "." + k);
+  }));
+});
