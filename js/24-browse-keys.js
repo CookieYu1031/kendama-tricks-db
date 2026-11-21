@@ -5,9 +5,9 @@
   ============================================================ */
   // Module strings, registered into the UI table like 41/43/45/46/47 do.
   var KBD_STRINGS = {
-    zh: { kbdHelp: "快捷鍵：/ 搜尋　↑↓ 選取　→／Enter 開啟　←／Backspace 返回上層　e 編輯模式　n 新增（編輯模式）　? 說明" },
-    jp: { kbdHelp: "ショートカット：/ 検索　↑↓ 選択　→／Enter 開く　←／Backspace 前の階層　e 編集モード　n 追加（編集モード）　? ヘルプ" },
-    en: { kbdHelp: "Shortcuts: / search  ↑↓ select  →/Enter open  ←/Backspace up a level  e edit mode  n add (edit mode)  ? help" }
+    zh: { kbdHelp: "快捷鍵：/ 搜尋　↑↓ 選取　→／Enter 開啟　←／Backspace 返回上層　e 編輯模式　n 新增（編輯模式）　Ctrl+Z 復原　Delete 刪除（編輯模式）　? 說明" },
+    jp: { kbdHelp: "ショートカット：/ 検索　↑↓ 選択　→／Enter 開く　←／Backspace 前の階層　e 編集モード　n 追加（編集モード）　Ctrl+Z 元に戻す　Delete 削除（編集モード）　? ヘルプ" },
+    en: { kbdHelp: "Shortcuts: / search  ↑↓ select  →/Enter open  ←/Backspace up a level  e edit mode  n add (edit mode)  Ctrl+Z undo  Delete delete (edit mode)  ? help" }
   };
   if(typeof addStrings === "function") addStrings(KBD_STRINGS);
   function kbdText(key){
@@ -114,6 +114,10 @@
   }
 
   document.addEventListener("keydown", function(ev){
+    if(typeof undoKeyAction === "function"){
+      if(undoKeyAction(ev, kbdContext(ev))){ undoRun(); ev.preventDefault(); return; }
+      if(ev.key === "Delete" && typeof deleteSelected === "function" && deleteSelected(kbdContext(ev))){ ev.preventDefault(); return; }
+    }
     if(typeof clipKeyAction === "function"){
       var sel = window.getSelection ? window.getSelection() : null;
       var ctx = kbdContext(ev);

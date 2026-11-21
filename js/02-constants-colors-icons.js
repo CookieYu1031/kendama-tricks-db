@@ -33,14 +33,25 @@
   ];
   var ICON_EMOJI_SET = ICON_EMOJI_GROUPS.reduce(function(a,b){ return a.concat(b); }, []);
 
-  // One tint per landing-rate level (see RATE_LEVELS in 01-data-model.js), used both to
-  // color the rate buttons and as the trick icon's glow color. rate:null has no glow.
+  // Landing-rate colors: one blue family, stronger as the rate rises. The real hex values
+  // live in css/variables-and-base.css (--rate-none/rare/sometimes/most/mastered, plus
+  // matching -ink text colors) per theme, so a theme switch restyles without JS.
+  // RATE_COLORS holds var() refs usable in style.background / color / box-shadow.
   var RATE_COLORS = {
-    rare:      "#DFAB01", // yellow
-    sometimes: "#4F9768", // green
-    most:      "#3E9BE0", // blue
-    mastered:  "#9065B0"  // purple
+    none:      "var(--rate-none)",
+    rare:      "var(--rate-rare)",
+    sometimes: "var(--rate-sometimes)",
+    most:      "var(--rate-most)",
+    mastered:  "var(--rate-mastered)"
   };
+  // Color ref for a rate level (null/unknown -> the "none" step).
+  function rateColor(level){ return RATE_COLORS[level] || RATE_COLORS.none; }
+  // Glow box-shadow layers for a level; "" for null/none (no rate = no glow).
+  function rateGlowShadow(level){
+    if(!level || level === "none" || !RATE_COLORS[level]) return "";
+    var c = RATE_COLORS[level];
+    return "0 0 0 1px color-mix(in srgb, " + c + " 55%, transparent), 0 0 14px 2px color-mix(in srgb, " + c + " 65%, transparent)";
+  }
 
   // i18n strings for the data model (parts, grips, rates, landed). Registered via
   // addStrings() in 04-state.js, because 03-i18n.js loads after this file.

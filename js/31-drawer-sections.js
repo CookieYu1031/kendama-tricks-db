@@ -264,7 +264,7 @@
     var hint = document.createElement("div");
     hint.className = "drawer-rate-hint"; hint.hidden = !drawerUi.rateHint;
     hint.innerHTML = ['<span>' + escapeHtml(t("rate_none")) + '</span> ' + escapeHtml(t("rateHint_none"))].concat(RATE_LEVELS.map(function(l){
-      return '<span style="color:' + RATE_COLORS[l] + '">' + escapeHtml(t("rate_" + l)) + '</span> ' + escapeHtml(t("rateHint_" + l));
+      return '<span class="rate-swatch" style="background:' + RATE_COLORS[l] + '"></span><span>' + escapeHtml(t("rate_" + l)) + '</span> ' + escapeHtml(t("rateHint_" + l));
     })).join("<br>");
     infoBtn.addEventListener("click", function(){
       drawerUi.rateHint = !drawerUi.rateHint;
@@ -282,14 +282,8 @@
       pBtn.type = "button";
       pBtn.className = "proficiency-btn" + ((tr.rate || null) === level ? " active" : "");
       pBtn.textContent = t("rate_" + (level || "none"));
-      if(level){
-        var pfHex = RATE_COLORS[level];
-        pBtn.style.setProperty("--pf-bg", hexToRgba(pfHex, 0.16));
-        pBtn.style.setProperty("--pf-bg-hover", hexToRgba(pfHex, 0.28));
-        pBtn.style.setProperty("--pf-active-a", hexToRgba(pfHex, 0.95));
-        pBtn.style.setProperty("--pf-active-b", hexToRgba(pfHex, 0.68));
-        pBtn.style.setProperty("--pf-text", pfHex);
-      }
+      // Colors come from CSS: .proficiency-btn[data-rate=…] uses --rate-* / --rate-*-ink.
+      pBtn.setAttribute("data-rate", level || "none");
       pBtn.addEventListener("click", function(){
         if((tr.rate || null) === level) return; // active option: no-op (none clears)
         setRate(tr, level);

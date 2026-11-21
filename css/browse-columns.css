@@ -145,28 +145,28 @@
   .col-add-btn-danger:hover{ border-color: var(--danger); color:#fff; background: linear-gradient(165deg, var(--danger-bright), var(--danger)); }
   /* Floating "+" at a column bottom-right (edit mode); the list gets bottom padding so the last row stays reachable. */
   .col-add-fab{
-    position:absolute; right:14px; bottom:14px; z-index:3; width:46px; height:46px; border-radius:50%;
+    position:absolute; right:14px; bottom:14px; z-index:3; width:38px; height:38px; border-radius:50%;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     border:1px solid var(--lacquer-bright); color: var(--on-accent);
     background: linear-gradient(165deg, var(--lacquer-bright), var(--lacquer));
     box-shadow: var(--shadow-md, var(--shadow-sm)), var(--glass-highlight);
     transition: transform .18s var(--ease), opacity .24s var(--ease), box-shadow .18s var(--ease);
   }
-  .col-add-fab svg{ width:20px; height:20px; display:block; }
+  .col-add-fab svg{ width:17px; height:17px; display:block; }
   .col-add-fab:hover{ transform: translateY(-2px); }
   .col-add-fab:active{ transform: scale(.94); }
-  .m-col.has-fab .col-items{ padding-bottom: 72px; }
+  .m-col.has-fab .col-items{ padding-bottom: 62px; }
   /* "Edit this folder" pill: shorter than the + circle, bottom edges aligned, its right end tucked under the circle. */
   .col-edit-pill{
-    position:absolute; right:40px; bottom:14px; z-index:2; height:30px; max-width:calc(100% - 64px);
-    display:flex; align-items:center; gap:6px; padding:0 30px 0 12px; border-radius:15px; cursor:pointer;
+    position:absolute; right:34px; bottom:14px; z-index:2; height:26px; max-width:calc(100% - 56px);
+    display:flex; align-items:center; gap:5px; padding:0 26px 0 10px; border-radius:13px; cursor:pointer;
     border:1px solid var(--glass-border-strong); color: var(--accent-text); background: var(--glass-3);
-    font: 600 12px var(--font-body); white-space:nowrap; overflow:hidden;
+    font: 600 11px var(--font-body); white-space:nowrap; overflow:hidden;
     box-shadow: var(--shadow-sm), var(--glass-highlight);
     transition: transform .18s var(--ease), opacity .24s var(--ease), background .18s var(--ease);
   }
   .col-edit-pill.no-fab{ right:14px; padding-right:14px; max-width:calc(100% - 28px); }
-  .col-edit-pill svg{ width:14px; height:14px; flex:0 0 auto; display:block; }
+  .col-edit-pill svg{ width:12px; height:12px; flex:0 0 auto; display:block; }
   .col-edit-pill span{ overflow:hidden; text-overflow:ellipsis; }
   .col-edit-pill:hover{ background: var(--glass-2); transform: translateY(-1px); }
   .col-edit-pill:active{ transform: scale(.96); }
@@ -266,10 +266,13 @@
 
   /* ---------- Pending (unpublished) marks, admin only (js/56-pending.js) ---------- */
   .pending-dot{
-    position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%;
+    position:absolute; top:-3px; right:-3px; width:9px; height:9px; border-radius:50%;
     background: var(--danger-bright); box-shadow: 0 0 0 2px rgba(var(--danger-rgb),0.25);
     pointer-events:none;
   }
+  /* The dot hangs on the icon's corner: the icon must be a positioning box and must not clip it (image icons are overflow:hidden). */
+  .item-icon.pending-host{ position:relative; overflow:visible; }
+  .item-icon.pending-host .icon-img{ border-radius:9px; }
   .item.pending-ghost{ opacity:.5; border-style:dashed; border-color: rgba(var(--danger-rgb),0.45); }
   .item.pending-ghost:hover{ opacity:.85; }
   .item.pending-ghost .item-name{ text-decoration: line-through; }
@@ -280,5 +283,4 @@
     background: var(--danger); color:#fff;
   }
   .pending-x svg{ width:10px; height:10px; }
-  .m-col.collapsed:not(:hover) .pending-dot,
   .m-col.collapsed:not(:hover) .pending-x{ top:4px; right:8px; }

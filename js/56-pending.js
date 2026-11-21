@@ -2,7 +2,7 @@
 
   /* ============================================================
      PENDING CHANGES (待更新區) — admin only. 企劃書 §四.1: until published, an
-     added/modified item shows a red dot at its top-right, a removed one stays as a
+     added/modified item shows a red dot at its icon's top-right, a removed one stays as a
      faded ghost row with a red ✕. Compared against the shared base this account is
      currently pinned to (all of t00/t01/t02). The diff itself lives in the admin's
      user data as always (50/53); this file only reads it for display + restore.
@@ -44,12 +44,40 @@
     var b = pendingSlice(base), d = pendingSlice(data);
     var byId = {}, removedItems = [], sum = { added: 0, modified: 0, removed: 0, tags: 0 };
     var changed = [];
+    // Order is not content: a trick/info/folder whose only difference is its position is NOT
+    // marked itself. The ordering shows on the container instead (see below).
+    function content(rec){
+      var c = JSON.parse(_pendJson(rec));
+      delete c.order; delete c.orderByCategory;
+      return _pendJson(c);
+    }
+    var orderTouched = {}; // container id (folder, or table id) -> true
+    function ordKey(rec, cid){
+      var ob = rec.orderByCategory;
+      return ob && typeof ob[cid] === "number" ? ob[cid] : null;
+    }
     [["categories", "category"], ["tricks", "trick"], ["infos", "info"]].forEach(function(k){
       var kind = k[0], type = k[1];
       Object.keys(d[kind]).forEach(function(id){
-        var st = !b[kind][id] ? "added" : (_pendJson(d[kind][id]) !== _pendJson(b[kind][id]) ? "modified" : null);
-        if(!st) return;
-        byId[id] = st; sum[st]++; changed.push(d[kind][id]);
+        var dr = d[kind][id], br = b[kind][id];
+        if(!br){
+          byId[id] = "added"; sum.added++; changed.push(dr);
+          return;
+        }
+        if(content(dr) !== content(br)){ byId[id] = "modified"; sum.modified++; changed.push(dr); }
+        if(kind === "tricks"){
+          var cids = {};
+          (dr.categoryIds || []).concat(br.categoryIds || []).forEach(function(c){ cids[c] = true; });
+          Object.keys(cids).forEach(function(cid){
+            // Only containers the trick sits in on both sides: a membership change is a
+            // content change of the trick itself (categoryIds), already marked above.
+            if((dr.categoryIds || []).indexOf(cid) !== -1 && (br.categoryIds || []).indexOf(cid) !== -1 &&
+              ordKey(dr, cid) !== ordKey(br, cid)) orderTouched[cid] = true;
+          });
+        } else {
+          var pd = dr.parentId == null ? dr.spaceId : dr.parentId, pb = br.parentId == null ? br.spaceId : br.parentId;
+          if(pd === pb && dr.order !== br.order) orderTouched[pd] = true; // a move is a content change (parentId)
+        }
       });
       Object.keys(b[kind]).forEach(function(id){
         if(d[kind][id]) return;
@@ -57,6 +85,15 @@
         removedItems.push({ type: type, id: id, ref: b[kind][id] });
         changed.push(b[kind][id]);
       });
+    });
+    // Folder whose children's order changed counts as one modification.
+    // A table root has no row: still counted once so the publish summary is not empty.
+    Object.keys(orderTouched).forEach(function(cid){
+      if(d.categories[cid] && b.categories[cid]){
+        if(!byId[cid]){ byId[cid] = "modified"; sum.modified++; changed.push(d.categories[cid]); }
+      } else if(!d.categories[cid] && !b.categories[cid] && SHARED_BASE_TABLE_IDS.indexOf(cid) !== -1){
+        sum.modified++;
+      }
     });
     // Ancestors: walk up through folders (category.parentId, trick/info containers).
     var parents = {};
@@ -199,8 +236,11 @@
     var dot = document.createElement("span");
     dot.className = "pending-dot";
     dot.title = t("pendingChanged");
-    row.classList.add("has-pending");
-    row.appendChild(dot);
+    // Dot sits on the icon's top-right corner (not the row's), so contrib.css's
+    // ".item.has-pending .sub-dots" offset is no longer needed: the class is not added.
+    var icon = row.querySelector(".item-icon");
+    if(icon){ icon.classList.add("pending-host"); icon.appendChild(dot); }
+    else row.appendChild(dot);
   }
 
   // A faded, non-interactive-except-restore row for an item removed since the base.

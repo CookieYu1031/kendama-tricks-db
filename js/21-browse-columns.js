@@ -195,8 +195,7 @@
   // bucket-backed space (收藏) removing only takes the trick out of that
   // bucket — the underlying trick is untouched and stays wherever else it's
   // filed; for any other "columns" space (no bucket) it falls back to
-  // permanently deleting the trick, same as the tree browser's own delete
-  // button.
+  // permanently deleting the trick (confirm dialog).
   function appendBucketEditActions(container, tr, spaceId, onEdit){
     var actions = document.createElement("div");
     actions.className = "item-edit-actions flat-edit-actions";
@@ -334,20 +333,8 @@
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
-      // Folders / info items have no inline buttons: edit/delete live in the column's
-      // "edit this folder" pill (js/26) and the info modal. Trick rows keep a delete button.
-      if(it.type === "trick"){
-        var actions = document.createElement("div");
-        actions.className = "item-edit-actions";
-        var delBtn = document.createElement("button");
-        delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
-        delBtn.addEventListener("click", function(ev){
-          ev.stopPropagation();
-          requestDeleteTrick(it.id, parentId);
-        });
-        actions.appendChild(delBtn);
-        row.appendChild(actions);
-      }
+      // No inline buttons on rows: folders are edited via the column's "edit this folder"
+      // pill (js/26), info items in the info modal, tricks (edit + delete) in the drawer.
 
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the
