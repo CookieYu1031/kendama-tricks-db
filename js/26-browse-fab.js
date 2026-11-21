@@ -50,7 +50,37 @@
     return b;
   }
 
-  // Elements to append to a column in edit mode: [ + button, edit pill ] (either may be missing).
+  // What the share button shares for a column, or null. { kind:"folder"|"space", id }.
+  // Only the user's own (unlocked) content: custom tables and folders inside unlocked tables
+  // (incl. 收藏). Locked shared-base tables are never shared as a subtree.
+  function colShareTarget(parentId, spaceId){
+    if(isGuest()) return null;
+    if(parentId !== null){
+      var cat = getCategory(parentId);
+      if(!cat || cat.virtual) return null;
+      var sp0 = getSpace(cat.spaceId);
+      if(!sp0 || sp0.locked) return null;
+      return { kind:"folder", id: cat.id };
+    }
+    var sp = getSpace(spaceId);
+    if(!sp || sp.locked || isDefaultSpaceId(sp.id)) return null;
+    return { kind:"space", id: sp.id };
+  }
+
+  function renderColShareBtn(col){
+    var target = colShareTarget(col.parentId, state.activeSpace);
+    if(!target) return null;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "col-share-btn";
+    b.innerHTML = ICON_SHARE;
+    b.title = t("shareBtn");
+    b.setAttribute("aria-label", t("shareBtn"));
+    b.addEventListener("click", function(){ if(typeof shareRun === "function") shareRun(target.kind, target.id); });
+    return b;
+  }
+
+  // Elements to append to a column in edit mode: [ share button, + button, edit pill ] (either may be missing).
   function renderColFab(col){
     var out = [];
     var fab = renderColAddRow(col);

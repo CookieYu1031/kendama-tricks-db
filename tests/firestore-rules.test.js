@@ -60,11 +60,12 @@ test("hasOnly field lists exact", function () {
     "lastReportAt",
     "kind,text,trickName,from,createdAt,read",
     "read",
-    "lang,favorites,landed,rates,lastActiveAt,createdAt"
+    "lang,favorites,landed,rates,lastActiveAt,createdAt",
+    "ownerUid,createdAt,kind,title,payload,v"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 15); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 16); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -119,4 +120,22 @@ test("spaceData: list rule has no doc-id condition (collection query must pass)"
   var block = src.slice(src.indexOf("match /spaceData/{sid}"));
   assert.match(block, /allow list: if isOwner\(uid\);/);
   assert.ok(!/allow read, delete: if isOwner\(uid\) && sid\.matches/.test(block));
+});
+
+test("shares: public read, owner-only create/delete, immutable, size caps, before catch-all", function () {
+  var i = src.indexOf("match /shares/{shareId}");
+  assert.ok(i > 0 && i < src.lastIndexOf("match /{document=**}"));
+  var b = src.slice(i, src.indexOf("match /{document=**}"));
+  assert.match(b, /allow read: if true;/);
+  assert.match(b, /allow create: if signedIn\(\)/);
+  assert.match(b, /ownerUid == request\.auth\.uid/);
+  assert.match(b, /createdAt == request\.time/);
+  assert.match(b, /payload\.size\(\) <= 204800/);
+  assert.match(b, /title\.size\(\) <= 120/);
+  assert.match(b, /allow update: if false;/);
+  assert.match(b, /allow delete: if isOwner\(resource\.data\.ownerUid\);/);
+  // String literals must stay quoted (an unquoted list compiles to a different meaning or fails).
+  assert.match(b, /hasOnly\(\['ownerUid', 'createdAt', 'kind', 'title', 'payload', 'v'\]\)/);
+  assert.match(b, /kind in \['folder', 'trick'\]/);
+  assert.match(b, /shareId\.matches\('\^\[0-9A-Za-z\]\{8,40\}\$'\)/);
 });

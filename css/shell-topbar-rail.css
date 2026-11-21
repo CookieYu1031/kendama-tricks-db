@@ -53,15 +53,15 @@
   }
   .space-edit-badge svg{ width:9px; height:9px; }
   .space-edit-badge:hover{ background: var(--lacquer-bright); }
-  .rail-edit-toggle{
+  .rail-edit-toggle, .rail-tools-btn{
     width:40px; height:40px; flex:0 0 auto; border-radius:13px; border:1px solid var(--glass-border);
     background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
     color: var(--paper-dim); display:flex; align-items:center; justify-content:center;
     cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
   }
-  .rail-edit-toggle svg{ width:17px; height:17px; }
-  .rail-edit-toggle:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
-  .rail-edit-toggle.on{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--accent-text); box-shadow: var(--glass-highlight); }
+  .rail-edit-toggle svg, .rail-tools-btn svg{ width:17px; height:17px; }
+  .rail-edit-toggle:hover, .rail-tools-btn:hover{ background: var(--glass-3); color: var(--paper); transform: translateY(-1px); }
+  .rail-edit-toggle.on, .rail-tools-btn.on{ background: rgba(var(--lacquer-rgb),0.22); border-color: var(--lacquer); color: var(--accent-text); box-shadow: var(--glass-highlight); }
 
   /* ---------- Topbar ---------- */
   /* Three-column grid (left / center / right) instead of a plain flex row —
