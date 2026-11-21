@@ -178,19 +178,17 @@
         </div>
       </div>
 
-      <!-- Row 2: theme + UI size (left) + language (right) -->
-      <div class="settings-row settings-pair">
-        <div class="settings-pref-group">
-          <div class="lang-switch" id="themeSwitch">
-            <button type="button" class="theme-btn" data-theme-pref="system">◐</button>
-            <button type="button" class="theme-btn" data-theme-pref="dark">☾</button>
-            <button type="button" class="theme-btn" data-theme-pref="light">☀</button>
-          </div>
-          <div class="lang-switch" id="zoomSwitch">
-            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1">x1</button>
-            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.1">x1.1</button>
-            <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.2">x1.2</button>
-          </div>
+      <!-- Row 2: theme / UI size / language, evenly spaced -->
+      <div class="settings-row settings-pair" id="settingsPrefs">
+        <div class="lang-switch" id="themeSwitch">
+          <button type="button" class="theme-btn" data-theme-pref="system">◐</button>
+          <button type="button" class="theme-btn" data-theme-pref="dark">☾</button>
+          <button type="button" class="theme-btn" data-theme-pref="light">☀</button>
+        </div>
+        <div class="lang-switch" id="zoomSwitch">
+          <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1">100%</button>
+          <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.1">110%</button>
+          <button type="button" class="lang-btn zoom-btn" data-ui-zoom="1.2">120%</button>
         </div>
         <div class="lang-switch" id="langSwitch">
           <button type="button" class="lang-btn" data-lang="zh">TW</button>
