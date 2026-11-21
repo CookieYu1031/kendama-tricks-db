@@ -216,11 +216,24 @@
 
   // Drawer "other names": filled languages except the one shown, [tag, text].
   // When the shown text is derived romaji, the raw jp is still listed.
+  // View-mode drawer: the two non-title names go side by side when both are short
+  // (display width: full-width chars count 2, see charDisplayWidth in js/05).
+  var NAME_PAIR_MAX_WIDTH = 18;
+  function namesFitSideBySide(pairs){
+    if(!pairs || pairs.length !== 2) return false;
+    return pairs.every(function(p){
+      var w = 0;
+      Array.from(String(p[1] || "")).forEach(function(ch){
+        w += (typeof charDisplayWidth === "function") ? charDisplayWidth(ch) : 1;
+      });
+      return w <= NAME_PAIR_MAX_WIDTH;
+    });
+  }
   function otherNames(nameObj, lang){
     if(!nameObj) return [];
     var r = resolveDisplayName(nameObj, lang);
     var skip = r.transformed ? null : r.sourceLang;
-    var tags = { zh:"ZH", jp:"JP", en:"EN" }, out = [];
+    var tags = { zh:"TW", jp:"JP", en:"EN" }, out = [];
     ["zh", "jp", "en"].forEach(function(l){
       if(nameObj[l] && l !== skip) out.push([tags[l], nameObj[l]]);
     });

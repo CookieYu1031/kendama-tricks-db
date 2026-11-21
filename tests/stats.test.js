@@ -60,8 +60,8 @@ test("aggregation: registered, lang, active windows, tops, rates", () => {
   assert.strictEqual(g.active30, 2);
   assert.deepStrictEqual(JSON.parse(JSON.stringify(g.topFav[0])), { id: "a", count: 3 });
   assert.strictEqual(g.topFav.length, 3);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(g.topLanded)), [{ id: "a", count: 2 }, { id: "b", count: 1 }]);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(g.rates)), { rare: 1, sometimes: 0, most: 1, mastered: 1 });
+  assert.strictEqual(g.topLanded, undefined);
+  assert.strictEqual(g.rates, undefined);
   const empty = ctx.aggregateUserStats([], now);
   assert.strictEqual(empty.registered, 0);
   assert.strictEqual(empty.topFav.length, 0);

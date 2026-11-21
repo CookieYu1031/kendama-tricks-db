@@ -6,24 +6,32 @@
   ============================================================ */
   addStrings({
     zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchGripLabel:"持法", searchPartsLabel:"部位",
-         searchModeAny:"其一", searchModeAll:"精確", searchReset:"清除條件", searchMore:"顯示更多",
+         searchModeAny:"其一符合", searchModeAll:"全符合", searchReset:"清除條件", searchMore:"顯示更多",
          searchHint:"輸入招式名稱，或用 #標籤、持法、部位來篩選", searchEmpty:"找不到符合的招式",
-         searchCountN:"{n} 個結果", searchNoTag:"（沒有符合的標籤）" },
+         searchCountN:"{n} 個結果", searchNoTag:"（沒有符合的標籤）",
+         searchStartGrip:"起始握持", searchClassLabel:"招式類別", searchNoClass:"尚無招式類別" },
     jp:{ searchPlaceholder:"技名、または #タグで検索…", searchGripLabel:"持ち方", searchPartsLabel:"部位",
-         searchModeAny:"いずれか", searchModeAll:"完全一致", searchReset:"条件をクリア", searchMore:"もっと見る",
+         searchModeAny:"いずれか一致", searchModeAll:"すべて一致", searchReset:"条件をクリア", searchMore:"もっと見る",
          searchHint:"技名を入力、または #タグ・持ち方・部位で絞り込み", searchEmpty:"該当する技がありません",
-         searchCountN:"{n} 件", searchNoTag:"（該当するタグなし）" },
+         searchCountN:"{n} 件", searchNoTag:"（該当するタグなし）",
+         searchStartGrip:"開始時の持ち方", searchClassLabel:"技の分類", searchNoClass:"技の分類はまだありません" },
     en:{ searchPlaceholder:"Search trick names, or type #tag…", searchGripLabel:"Grip", searchPartsLabel:"Parts",
-         searchModeAny:"Any", searchModeAll:"Exact", searchReset:"Clear filters", searchMore:"Show more",
+         searchModeAny:"Match any", searchModeAll:"Match all", searchReset:"Clear filters", searchMore:"Show more",
          searchHint:"Type a trick name, or filter by #tag, grip and parts", searchEmpty:"No matching tricks",
-         searchCountN:"{n} results", searchNoTag:"(no matching tags)" }
+         searchCountN:"{n} results", searchNoTag:"(no matching tags)",
+         searchStartGrip:"Starting grip", searchClassLabel:"Trick class", searchNoClass:"No trick classes yet" }
   });
 
   var SEARCH_PAGE = 50;
   var TAG_SUGGEST_MAX = 12;
-  var searchFilters = { grip: null, parts: [], partsMode: "any" };
+  var SEARCH_DEFAULT_GRIP = "ken";
+  var SEARCH_MODE_SYMBOL = { any: "≈", all: "≅" }; // ≈ any match, ≅ all match
+  var searchFilters = { grip: SEARCH_DEFAULT_GRIP, parts: [], partsMode: "any" };
   var searchView = { ids: [], limit: SEARCH_PAGE, active: -1 };
   var searchChromeBuilt = false;
+  var searchInteracted = false;  // results stay hidden (hint only) until the user interacts
+  var searchDiagram = null;
+  var searchClassId = null;      // selected class tag chip (deselect keeps grip / parts)
 
   function spEl(id){ return document.getElementById(id); }
   function spButton(cls, text, onClick){
@@ -33,6 +41,8 @@
     return b;
   }
 
+  function searchTouch(){ searchInteracted = true; syncSearchChips(); runSearchPanel(); }
+
   // Builds the static conditions UI once; texts are (re)applied by updateSearchPanelTexts().
   function buildSearchPanelChrome(){
     if(searchChromeBuilt) return;
@@ -41,28 +51,16 @@
     GRIP_KEYS.forEach(function(k){
       var b = spButton("lang-btn", "", function(){
         searchFilters.grip = searchFilters.grip === k ? null : k;
-        syncSearchChips();
-        runSearchPanel();
+        searchTouch();
       });
       b.setAttribute("data-grip", k);
       gripRow.appendChild(b);
-    });
-    fillPartGroups(spEl("searchPartsRow"), function(k){
-      var b = spButton("drawer-chip", "", function(){
-        var i = searchFilters.parts.indexOf(k);
-        if(i === -1) searchFilters.parts.push(k); else searchFilters.parts.splice(i, 1);
-        syncSearchChips();
-        runSearchPanel();
-      });
-      b.setAttribute("data-part", k);
-      return b;
     });
     var modeRow = spEl("searchPartsMode");
     ["any", "all"].forEach(function(m){
       var b = spButton("lang-btn", "", function(){
         searchFilters.partsMode = m;
-        syncSearchChips();
-        runSearchPanel();
+        searchTouch();
       });
       b.setAttribute("data-mode", m);
       modeRow.appendChild(b);
@@ -70,12 +68,51 @@
     spEl("searchResetBtn").addEventListener("click", resetSearchConditions);
   }
 
+  // Part diagram (js/35) replaces the part chips. Rebuilt on open so region titles follow the language.
+  function buildSearchDiagram(){
+    var host = spEl("searchPartsRow");
+    host.innerHTML = "";
+    searchDiagram = createPartDiagram({ selected: searchFilters.parts, interactive: true, onToggle: function(k){
+      var i = searchFilters.parts.indexOf(k);
+      if(i === -1) searchFilters.parts.push(k); else searchFilters.parts.splice(i, 1);
+      searchTouch();
+    } });
+    host.appendChild(searchDiagram);
+  }
+
+  // Class tag chips (db.tags kind "class"). Pick = overwrite grip + parts; pick again = deselect only.
+  function buildSearchClassChips(){
+    var host = spEl("searchClassRow");
+    host.innerHTML = "";
+    var list = (db.tags || []).filter(function(g){ return tagKind(g) === "class"; });
+    if(searchClassId && !list.some(function(g){ return g.id === searchClassId; })) searchClassId = null;
+    if(!list.length){
+      var none = document.createElement("span");
+      none.className = "search-note"; none.textContent = t("searchNoClass");
+      host.appendChild(none);
+      return;
+    }
+    list.forEach(function(g){
+      var b = spButton("drawer-chip tag-class", localize(g.name), function(){
+        if(searchClassId === g.id){ searchClassId = null; }
+        else { searchClassId = g.id; searchApplyClassTag(searchFilters, g); }
+        searchTouch();
+      });
+      b.setAttribute("data-tag", g.id);
+      host.appendChild(b);
+    });
+  }
+
   function updateSearchPanelTexts(){
+    spEl("searchGripLabel").textContent = t("searchStartGrip");
+    spEl("searchClassLabel").textContent = t("searchClassLabel");
+    buildSearchClassChips();
     spEl("searchResetBtn").textContent = t("searchReset");
     Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){ b.textContent = t("grip_" + b.getAttribute("data-grip")); });
-    Array.prototype.forEach.call(spEl("searchPartsRow").querySelectorAll("[data-part]"), function(b){ b.textContent = t("part_" + b.getAttribute("data-part")); });
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
-      b.textContent = t(b.getAttribute("data-mode") === "all" ? "searchModeAll" : "searchModeAny");
+      var m = b.getAttribute("data-mode"), full = t(m === "all" ? "searchModeAll" : "searchModeAny");
+      b.textContent = SEARCH_MODE_SYMBOL[m];
+      b.title = full; b.setAttribute("aria-label", full);
     });
     spEl("searchInput").placeholder = t("searchPlaceholder");
   }
@@ -84,16 +121,19 @@
     Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){
       b.classList.toggle("active", searchFilters.grip === b.getAttribute("data-grip"));
     });
-    Array.prototype.forEach.call(spEl("searchPartsRow").querySelectorAll("[data-part]"), function(b){
-      b.classList.toggle("active", searchFilters.parts.indexOf(b.getAttribute("data-part")) !== -1);
-    });
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
       b.classList.toggle("active", searchFilters.partsMode === b.getAttribute("data-mode"));
     });
+    Array.prototype.forEach.call(spEl("searchClassRow").children, function(b){
+      b.classList.toggle("active", !!searchClassId && b.getAttribute("data-tag") === searchClassId);
+    });
+    if(searchDiagram) searchDiagram.update(searchFilters.parts);
   }
 
   function resetSearchConditions(){
-    searchFilters.grip = null; searchFilters.parts = []; searchFilters.partsMode = "any";
+    searchFilters.grip = SEARCH_DEFAULT_GRIP; searchFilters.parts = []; searchFilters.partsMode = "any";
+    searchClassId = null;
+    searchInteracted = false;
     var input = spEl("searchInput");
     input.value = "";
     spEl("searchClear").classList.remove("show");
@@ -123,6 +163,7 @@
   function refreshSearchPanel(){
     loadSearchJson();
     buildSearchPanelChrome();
+    buildSearchDiagram();
     updateSearchPanelTexts();
     syncSearchChips();
     runSearchPanel();
@@ -133,6 +174,7 @@
     var raw = spEl("searchInput").value;
     spEl("searchClear").classList.toggle("show", raw.length > 0);
     state.searchQuery = raw;
+    searchInteracted = true;
     runSearchPanel();
   }
 
@@ -141,10 +183,10 @@
     searchView.active = -1;
     var raw = spEl("searchInput").value;
     var query = parseSearchQuery(raw);
-    searchView.ids = searchHasCriteria(query, searchFilters)
-      ? runSearch(getSearchIndex(), raw, searchFilters, searchTagLookup()) : [];
+    var show = searchShouldShowResults(query, searchFilters, searchInteracted);
+    searchView.ids = show ? runSearch(getSearchIndex(), raw, searchFilters, searchTagLookup()) : [];
     renderTagSuggest(raw);
-    renderSearchList(searchHasCriteria(query, searchFilters));
+    renderSearchList(show);
   }
 
   // Tag chips while a "#token" is being typed at the end of the input.
@@ -167,6 +209,9 @@
       var chipEl = spButton("drawer-chip", "#" + label, function(){
         var input = spEl("searchInput");
         input.value = input.value.replace(/#[^\s#]*$/, "#" + label.replace(/\s+/g, "_") + " ");
+        searchApplyClassTag(searchFilters, g); // class tag overwrites grip / parts with its combo
+        if(tagKind(g) === "class") searchClassId = g.id;
+        syncSearchChips();
         input.focus();
         onSearchInput();
       });

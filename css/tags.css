@@ -21,4 +21,12 @@
   .tagmgr-form{ border:1px solid var(--glass-border); border-radius: var(--radius); background: var(--glass-1); padding:12px 14px; }
   .tagmgr-form .field{ margin-bottom:8px; }
   .tagmgr-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+  .tagmgr-diagram{ margin:8px 0 10px; }
+  .tagmgr-diagram .part-diagram{ height:240px; }
   .tagmgr-chips{ margin-bottom:10px; }
+
+  /* Manager modal: fixed size so switching tabs never resizes it; the body scrolls inside. */
+  .modal.tagmgr-modal{ width:520px; max-width:100%; height:640px; max-height:86vh; }
+  .tagmgr-modal .modal-scroll{ flex:1 1 0; }
+  #adminTagsBtn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .tagmgr-btn-icon{ width:15px; height:15px; flex:0 0 auto; }

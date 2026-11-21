@@ -163,22 +163,27 @@
     return z;
   }
 
-  // Click = edit mode on/off. Admin only: long-press (600ms) = 查看投稿模式 (js/76).
-  var EDIT_TOGGLE_LONG_MS = 600;
+  // Mode button toggle: view -(pen, 編輯)-> edit -(check, 完成編輯)-> view.
+  // The icon + label shown are the action the tap does.
+  addStrings({
+    zh:{ modeToEdit:"編輯", modeToView:"完成編輯" },
+    jp:{ modeToEdit:"編集", modeToView:"編集を完了" },
+    en:{ modeToEdit:"Edit", modeToView:"Done editing" }
+  });
+  function modeCycleSpec(mode){
+    if(mode === "view") return { next:"edit", icon:"ICON_EDIT", labelKey:"modeToEdit" };
+    return { next:"view", icon:"ICON_CHECK", labelKey:"modeToView" };
+  }
+  function currentRailMode(){
+    return state.editMode ? "edit" : "view";
+  }
+  function setRailMode(next){
+    state.editMode = (next === "edit");
+    render();
+  }
   function bindEditToggle(toggle){
-    var timer = null, fired = false;
-    function cancel(){ if(timer){ clearTimeout(timer); timer = null; } }
-    toggle.addEventListener("pointerdown", function(){
-      fired = false; cancel();
-      if(typeof toggleSubmissionReviewMode !== "function" || !isAdminNow()) return;
-      timer = setTimeout(function(){ timer = null; fired = true; toggleSubmissionReviewMode(); }, EDIT_TOGGLE_LONG_MS);
-    });
-    ["pointerup", "pointerleave", "pointercancel"].forEach(function(ev){ toggle.addEventListener(ev, cancel); });
-    toggle.addEventListener("contextmenu", function(ev){ ev.preventDefault(); });
     toggle.addEventListener("click", function(){
-      if(fired){ fired = false; return; }
-      state.editMode = !state.editMode;
-      render();
+      setRailMode(modeCycleSpec(currentRailMode()).next);
     });
   }
 
@@ -245,10 +250,11 @@
     if(typeof buildToolsRailBtn === "function") bottomZone.appendChild(buildToolsRailBtn());
     var toggle = document.createElement("button");
     toggle.type = "button";
-    var reviewing = typeof isReviewMode === "function" && isReviewMode();
-    toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "") + (reviewing ? " review" : "");
-    toggle.title = reviewing ? t("subReviewBadge") : t("editMode");
-    toggle.innerHTML = ICON_EDIT;
+    toggle.className = "rail-edit-toggle" + (state.editMode ? " on" : "");
+    var spec = modeCycleSpec(currentRailMode());
+    toggle.title = t(spec.labelKey);
+    toggle.setAttribute("aria-label", t(spec.labelKey));
+    toggle.innerHTML = { ICON_EDIT: ICON_EDIT, ICON_CHECK: ICON_CHECK }[spec.icon];
     bindEditToggle(toggle);
     bottomZone.appendChild(toggle);
     rail.appendChild(bottomZone);

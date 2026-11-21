@@ -17,7 +17,11 @@
          mbHelperAdded:"已加入協助者", mbHelperNA:"加入協助者功能尚未提供", mbActionFail:"操作失敗，請稍後再試",
          mbKind_bug:"錯誤回報", mbKind_erratum:"勘誤", mbKind_suggestion:"建議", mbKind_other:"其他",
          mbKind_trick:"招式投稿", mbKind_apply:"協助者申請", mbRelatedTrick:"相關招式", mbVideo:"影片",
-         mbNames:"招式名稱", mbReplyKindDefault:"管理員回覆" },
+         mbNames:"招式名稱", mbReplyKindDefault:"管理員回覆",
+         mbCopyTrick:"複製招式", mbCopied:"已複製「{name}」。關閉視窗後，在編輯模式選好資料夾按 Ctrl+V 貼上", mbReject:"不予收錄", mbRejectedBadge:"不予收錄",
+         mbRejectTitle:"不予收錄這個投稿？", mbRejectBody:"會標記為不予收錄，並通知投稿者。", mbRejected:"已不予收錄",
+         mbRejectedMsg:"你投稿的「{name}」這次不予收錄。", mbRejectedBulkMsg:"你的批量投稿（{n} 個招式）這次不予收錄。",
+         mbBulkCount:"批量投稿（{n} 個招式）", mbGrip:"握持", mbParts:"部位", mbClasses:"招式類別", mbTags:"標籤", mbNote:"備註", mbLocation:"建議位置" },
     jp:{ mbTitle:"受信箱", mbTabAll:"すべて", mbTabReport:"報告", mbTabTrick:"投稿", mbTabApply:"申請",
          mbEmpty:"メッセージはありません", mbLoading:"読み込み中…", mbError:"読み込みに失敗しました。接続や権限をご確認ください", mbMore:"もっと読み込む",
          mbDone:"対応済みにする", mbDoneBadge:"対応済み", mbDelete:"削除", mbReply:"返信", mbAddHelper:"協力者に追加",
@@ -26,7 +30,11 @@
          mbHelperAdded:"協力者に追加しました", mbHelperNA:"協力者の追加機能はまだ使えません", mbActionFail:"操作に失敗しました。しばらくしてからお試しください",
          mbKind_bug:"不具合報告", mbKind_erratum:"訂正", mbKind_suggestion:"提案", mbKind_other:"その他",
          mbKind_trick:"技の投稿", mbKind_apply:"協力者の申請", mbRelatedTrick:"関連する技", mbVideo:"動画",
-         mbNames:"技の名前", mbReplyKindDefault:"管理者からの返信" },
+         mbNames:"技の名前", mbReplyKindDefault:"管理者からの返信",
+         mbCopyTrick:"技をコピー", mbCopied:"「{name}」をコピーしました。ウィンドウを閉じ、編集モードでフォルダを選んで Ctrl+V で貼り付け", mbReject:"収録しない", mbRejectedBadge:"収録しない",
+         mbRejectTitle:"この投稿を収録しませんか？", mbRejectBody:"「収録しない」にして、投稿者に通知します。", mbRejected:"収録しませんでした",
+         mbRejectedMsg:"投稿した「{name}」は今回収録されませんでした。", mbRejectedBulkMsg:"一括投稿（{n} 件）は今回収録されませんでした。",
+         mbBulkCount:"一括投稿（{n} 件）", mbGrip:"握持", mbParts:"部位", mbClasses:"招式類別", mbTags:"標籤", mbNote:"メモ", mbLocation:"希望の場所" },
     en:{ mbTitle:"Mailbox", mbTabAll:"All", mbTabReport:"Reports", mbTabTrick:"Tricks", mbTabApply:"Applications",
          mbEmpty:"No messages", mbLoading:"Loading…", mbError:"Failed to load — check your connection or permissions", mbMore:"Load more",
          mbDone:"Mark done", mbDoneBadge:"Done", mbDelete:"Delete", mbReply:"Reply", mbAddHelper:"Add as helper",
@@ -35,7 +43,11 @@
          mbHelperAdded:"Added as helper", mbHelperNA:"Adding helpers is not available yet", mbActionFail:"Action failed — try again later",
          mbKind_bug:"Bug report", mbKind_erratum:"Erratum", mbKind_suggestion:"Suggestion", mbKind_other:"Other",
          mbKind_trick:"Trick submission", mbKind_apply:"Helper application", mbRelatedTrick:"Related trick", mbVideo:"Video",
-         mbNames:"Trick names", mbReplyKindDefault:"Reply from admin" }
+         mbNames:"Trick names", mbReplyKindDefault:"Reply from admin",
+         mbCopyTrick:"Copy trick", mbCopied:"Copied \"{name}\". Close this window, pick a folder in edit mode and press Ctrl+V", mbReject:"Decline", mbRejectedBadge:"Declined",
+         mbRejectTitle:"Decline this submission?", mbRejectBody:"It is marked as declined and the submitter is notified.", mbRejected:"Declined",
+         mbRejectedMsg:"Your submission \"{name}\" was not accepted this time.", mbRejectedBulkMsg:"Your bulk submission ({n} tricks) was not accepted this time.",
+         mbBulkCount:"Bulk submission ({n} tricks)", mbGrip:"Grip", mbParts:"Parts", mbClasses:"Classes", mbTags:"Tags", mbNote:"Note", mbLocation:"Suggested location" }
   });
 
   var MB_PAGE = 50;
@@ -104,7 +116,35 @@
   function mbDate(ts){
     return typeof formatPublishedDate === "function" ? formatPublishedDate(ts) : "";
   }
+  function mbLinkHtml(u){
+    var e = escapeHtml(u);
+    return isSafeHttpUrl(u) ? '<a href="' + e + '" target="_blank" rel="noopener noreferrer">' + e + '</a>' : e;
+  }
+  function mbItemName(it){
+    var n = (it && it.names) || {};
+    return [n.zh, n.jp, n.en].filter(Boolean).join(" / ");
+  }
+  // One submitted trick (single or one row of a bulk batch) with its 複製招式 button.
+  function mbTrickHtml(it, idx, canCopy){
+    var rows = [];
+    function row(k, v){ if(v) rows.push('<div class="mb-payload-row"><span class="mb-payload-key">' + escapeHtml(t(k)) + '</span><span>' + v + '</span></div>'); }
+    row("mbVideo", (it.urls || []).map(mbLinkHtml).join("<br>"));
+    row("mbGrip", it.grip ? escapeHtml(t("grip_" + it.grip)) : "");
+    row("mbParts", (it.parts || []).map(function(k){ return escapeHtml(t("part_" + k)); }).join("、"));
+    row("mbClasses", escapeHtml((it.classes || []).join("、")));
+    row("mbTags", escapeHtml((it.tags || []).join("、")));
+    row("mbNote", escapeHtml(it.note || ""));
+    row("mbLocation", escapeHtml(it.location || ""));
+    return '<div class="mb-trick" data-idx="' + idx + '"><div class="mb-trick-head"><span class="mb-trick-name">' + escapeHtml(mbItemName(it)) + '</span>' +
+      (canCopy ? '<button type="button" class="btn btn-ghost btn-sm" data-act="copy">' + escapeHtml(t("mbCopyTrick")) + '</button>' : '') +
+      '</div>' + rows.join("") + '</div>';
+  }
   function mbPayloadHtml(r){
+    if(r.kind === "trick" && typeof submissionItemsOf === "function"){
+      var items = submissionItemsOf(r);
+      var head = (r.payload && Array.isArray(r.payload.items)) ? '<div class="mb-bulk-count">' + escapeHtml(t("mbBulkCount").replace("{n}", String(items.length))) + '</div>' : "";
+      return head + items.map(function(it, i){ return mbTrickHtml(it, i, true); }).join("");
+    }
     var p = r.payload || {}, rows = [];
     if(p.name) rows.push([t("mbApplicant"), p.name]);
     if(p.gmail) rows.push([t("mbGmail"), p.gmail]);
@@ -121,11 +161,12 @@
     }).join("");
   }
   function mbItemHtml(r){
-    var done = r.status === "done";
+    var rejected = r.status === "rejected";
+    var done = r.status === "done" || rejected;
     var who = (r.displayName ? escapeHtml(r.displayName) + " " : "") + '<span class="mb-email">' + escapeHtml(r.email || "") + '</span>';
     var html = '<div class="mb-item' + (done ? ' is-done' : '') + '" data-id="' + escapeHtml(r.id) + '">' +
       '<div class="mb-item-head"><span class="mb-kind mb-kind-' + escapeHtml(mbKindTab(r.kind)) + '">' + escapeHtml(t("mbKind_" + r.kind)) + '</span>' +
-      (done ? '<span class="mb-done-badge">' + escapeHtml(t("mbDoneBadge")) + '</span>' : '') +
+      (done ? '<span class="mb-done-badge">' + escapeHtml(t(rejected ? "mbRejectedBadge" : "mbDoneBadge")) + '</span>' : '') +
       '<span class="mb-date">' + escapeHtml(mbDate(r.createdAt)) + '</span></div>' +
       '<div class="mb-who">' + who + '</div>' +
       (r.text ? '<div class="mb-text">' + escapeHtml(r.text) + '</div>' : '') +
@@ -133,6 +174,7 @@
       '<div class="mb-actions">';
     if(r.kind === "apply" && !done) html += '<button type="button" class="btn btn-primary btn-sm" data-act="helper">' + escapeHtml(t("mbAddHelper")) + '</button>';
     if(!done) html += '<button type="button" class="btn btn-ghost btn-sm" data-act="done">' + escapeHtml(t("mbDone")) + '</button>';
+    if(r.kind === "trick" && !done) html += '<button type="button" class="btn btn-ghost btn-sm" data-act="reject">' + escapeHtml(t("mbReject")) + '</button>';
     html += '<button type="button" class="btn btn-ghost btn-sm" data-act="reply">' + escapeHtml(t("mbReply")) + '</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-act="delete">' + escapeHtml(t("mbDelete")) + '</button></div>';
     if(mbReplyOpen === r.id){
@@ -182,6 +224,24 @@
       mbRender();
     });
   }
+  // 不予收錄: status "rejected" + inbox message to the submitter (same contract as before).
+  function mbReject(id){
+    var r = mbFind(id);
+    return fbStore.collection("reports").doc(id).update({ status: "rejected" }).then(function(){
+      if(r) r.status = "rejected";
+      mbRender();
+      showToast(t("mbRejected"));
+      if(r && r.uid && typeof submissionItemsOf === "function"){
+        var items = submissionItemsOf(r);
+        var bulk = !!(r.payload && Array.isArray(r.payload.items));
+        var name = items.length ? (items[0].names.zh || items[0].names.jp || items[0].names.en || "") : "";
+        var text = bulk ? t("mbRejectedBulkMsg").replace("{n}", String(items.length)) : t("mbRejectedMsg").replace("{name}", name);
+        var m = { kind: "submission-rejected", text: text };
+        if(!bulk && name) m.trickName = name;
+        sendInboxMessage(r.uid, m).catch(function(){});
+      }
+    });
+  }
   function mbRemove(id){
     return fbStore.collection("reports").doc(id).delete().then(function(){
       mbItems = mbItems.filter(function(r){ return r.id !== id; });
@@ -198,12 +258,23 @@
     if(!btn) return;
     var act = btn.getAttribute("data-act");
     if(act === "more"){ mbLoad(false); return; }
+    if(act === "copy"){
+      var trEl = btn.closest(".mb-trick"), own = btn.closest(".mb-item");
+      var rep = own && mbFind(own.getAttribute("data-id"));
+      var it = rep && trEl && typeof submissionItemsOf === "function" ? submissionItemsOf(rep)[parseInt(trEl.getAttribute("data-idx"), 10)] : null;
+      if(!it || typeof clipSetExternalTrick !== "function") return;
+      clipSetExternalTrick(submissionItemToTrickData(it, db.tags || []));
+      showToast(t("mbCopied").replace("{name}", mbItemName(it)));
+      return;
+    }
     var itemEl = btn.closest(".mb-item");
     var id = itemEl && itemEl.getAttribute("data-id");
     var r = id && mbFind(id);
     if(!r) return;
     if(act === "done"){
       mbMarkDone(id).then(function(){ showToast(t("mbMarked")); }).catch(mbFail);
+    }else if(act === "reject"){
+      openConfirm(t("mbRejectTitle"), t("mbRejectBody"), function(){ mbReject(id).catch(mbFail); });
     }else if(act === "delete"){
       openConfirm(t("mbDeleteConfirm"), t("mbDeleteSub"), function(){ mbRemove(id).catch(mbFail); });
     }else if(act === "reply"){
@@ -214,7 +285,8 @@
       var ta = itemEl.querySelector("textarea");
       var text = ta ? ta.value : "";
       var m = { kind: "reply", text: text };
-      if(r.payload && r.payload.names) m.trickName = r.payload.names.zh || r.payload.names.jp || r.payload.names.en || "";
+      var pn = r.payload && (r.payload.names || (r.payload.trick && r.payload.trick.names));
+      if(pn) m.trickName = pn.zh || pn.jp || pn.en || "";
       sendInboxMessage(r.uid, m).then(function(){
         mbReplyOpen = null; mbRender(); showToast(t("mbSent"));
       }).catch(function(e){

@@ -21,7 +21,7 @@ function setup(){
     ],
     tricks: [
       { id: "base001", name: nm("base"), categoryIds: ["m1", "c1"], orderByCategory: { c1: 3 } },
-      { id: "own0001", name: nm("own"), categoryIds: ["c2"], media: [{ id: "v1", type: "video", url: "https://youtu.be/abc" }, { id: "v2", type: "video", url: "javascript:alert(1)" }], favorite: true, rate: "most", note: "private", officialNote: "desc" },
+      { id: "own0001", name: nm("own"), categoryIds: ["c2"], media: [{ id: "v1", type: "video", url: "https://youtu.be/abc" }, { id: "v2", type: "video", url: "javascript:alert(1)" }], favorite: true, rate: "most", note: "private" },
       { id: "cus0001", name: nm("custom"), categoryIds: ["fav-custom"], custom: true }
     ],
     infos: [{ id: "i000001", parentId: "c2", spaceId: "u1", title: nm("inf"), content: "hello", order: 0, icon: "", color: "default" }],
@@ -69,7 +69,7 @@ test("build space payload: cats, infos, own trick by value (no personal fields),
   assert.deepStrictEqual(p.refs, [{ trickId: "base001", c: "c1", o: 3 }]);
   assert.strictEqual(p.tricks.length, 1);
   const tr = p.tricks[0];
-  assert.strictEqual(tr.officialNote, "desc");
+  assert.ok(!tr.officialNote); // v0.9.3: official note feature removed
   assert.deepStrictEqual(tr.media.map((m) => m.url), ["https://youtu.be/abc"]); // unsafe url dropped
   assert.ok(!("favorite" in tr) && !("rate" in tr) && !("note" in tr));
   assert.deepStrictEqual(tr.placements, [{ c: "c2", o: null }]);

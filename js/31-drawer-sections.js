@@ -2,11 +2,11 @@
 
   /* ============================================================
      DRAWER SECTIONS — builders for the parts of the trick drawer
-     (icon, tags, grip/parts, videos, notes, rate footer, edit footer).
+     (head icon, grip/parts, note, rate footer, edit footer; tags in js/33, video slots in js/34).
      renderDrawer() in js/32-trick-drawer.js assembles them.
   ============================================================ */
   // Tag-picker / rate-hint open state for the drawer (reset when another trick opens).
-  var drawerUi = { tagPicker: false, rateHint: false, classPickerFor: null }; // buildDrawerTags lives in js/33
+  var drawerUi = { tagPicker: false, rateHint: false, classPickerFor: null, videoEdit: null, tagsRef: null, gpRef: null }; // buildDrawerTags lives in js/33
 
   function copyDrawerText(text){
     try{
@@ -56,30 +56,33 @@
   var ICON_STAR_OUTLINE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
   var ICON_STAR_SOLID = '<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--star)" stroke="var(--star)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
 
-  // Edit mode: icon + color (reuses the shared picker via the "drawer" target).
-  function buildDrawerIconSection(tr, expandContent){
-    expandContent.appendChild(makeLabel(t("iconColorLabel")));
-    var icWrap = document.createElement("div");
-    icWrap.style.marginBottom = "16px";
-    var icBtn = document.createElement("button");
-    icBtn.type = "button"; icBtn.className = "icon-color-preview";
-    var icSw = document.createElement("span");
-    icSw.className = "icon-color-swatch";
-    var icHex = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
-    icSw.style.background = hexToRgba(icHex, 0.22); icSw.style.color = icHex;
-    icSw.classList.toggle("img-icon", isImageIcon(tr.icon));
-    icSw.innerHTML = iconHtml(tr.icon, ICON_PLAY);
-    var icTx = document.createElement("span");
-    icTx.textContent = t("chooseIconColor");
-    icBtn.appendChild(icSw); icBtn.appendChild(icTx);
-    icBtn.addEventListener("click", function(){
+  // Head icon (v0.9.3, edit mode only): a button = icon swatch + small 「編輯顏色與圖示」 text;
+  // clicking either opens the shared picker (target "drawer").
+  function buildDrawerHeadIcon(tr){
+    var el = document.createElement("button");
+    el.type = "button";
+    el.className = "drawer-head-edit";
+    var sw = document.createElement("span");
+    sw.className = "drawer-head-icon icon-color-swatch editable";
+    function paintSwatch(){
+      var h = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
+      sw.style.background = hexToRgba(h, 0.22); sw.style.color = h;
+      sw.classList.toggle("img-icon", isImageIcon(tr.icon));
+      sw.innerHTML = iconHtml(tr.icon, ICON_PLAY);
+    }
+    paintSwatch();
+    var lb = document.createElement("span");
+    lb.className = "drawer-head-edit-label";
+    lb.textContent = t("editIconColor");
+    el.appendChild(sw); el.appendChild(lb);
+    el.addEventListener("click", function(){
       openIconPicker("drawer", { icon: tr.icon || "", color: tr.color || "", onDone: function(icon, color){
         tr.icon = icon; tr.color = color;
-        saveDB(); renderColumns(); renderDrawer();
+        saveDB(); renderColumns();
+        paintSwatch(); // only the swatch: re-rendering the whole drawer would flicker
       } });
     });
-    icWrap.appendChild(icBtn);
-    expandContent.appendChild(icWrap);
+    return el;
   }
 
   // Fills `box` with one .part-group per PART_GROUPS entry; makeBtn(key) returns a chip or null.
@@ -101,85 +104,59 @@
     return n;
   }
 
-  // Grip (single) + parts (multi). View mode: chips for what is set; edit mode: selectors.
-  function buildDrawerGripParts(tr, canEditTrick, expandContent){
-    if(canEditTrick || tr.grip){
-      var gripRow = document.createElement("div");
-      gripRow.className = "drawer-chip-row";
-      GRIP_KEYS.forEach(function(k){
-        if(!canEditTrick && tr.grip !== k) return;
-        gripRow.appendChild(makeChip(t("grip_" + k), tr.grip === k,
-          canEditTrick ? function(){ toggleGrip(tr, k); saveDB(); renderDrawer(); } : null));
+  // Edit mode: part diagram (left, regions are the only way to pick parts) + grip buttons stacked on
+  // the right. Toggles update the diagram / buttons in place (no whole-drawer re-render, no flicker).
+  function buildDrawerGripParts(tr, expandContent){
+    var row = document.createElement("div");
+    row.className = "drawer-parts-edit";
+    var gripCol = document.createElement("div");
+    gripCol.className = "drawer-grip-col";
+    var btns = {};
+    GRIP_KEYS.forEach(function(k){
+      var b = makeChip(t("grip_" + k), tr.grip === k, function(){
+        toggleGrip(tr, k); saveDB(); refreshDrawerGripParts(tr); refreshDrawerTags();
       });
-      expandContent.appendChild(gripRow);
-    }
-    if(canEditTrick || (tr.parts && tr.parts.length)){
-      var partsRow = document.createElement("div");
-      partsRow.className = "drawer-chip-row";
-      fillPartGroups(partsRow, function(k){
-        var on = (tr.parts || []).indexOf(k) !== -1;
-        if(!canEditTrick && !on) return null;
-        return makeChip(t("part_" + k), on,
-          canEditTrick ? function(){ togglePart(tr, k); saveDB(); renderDrawer(); } : null);
-      });
-      expandContent.appendChild(partsRow);
-    }
+      btns[k] = b;
+      gripCol.appendChild(b);
+    });
+    var diagram = createPartDiagram({ selected: tr.parts || [], interactive: true, onToggle: function(k){
+      togglePart(tr, k); saveDB(); refreshDrawerGripParts(tr); refreshDrawerTags();
+    } });
+    row.appendChild(diagram); row.appendChild(gripCol);
+    expandContent.appendChild(row);
+    drawerUi.gpRef = { tr: tr, diagram: diagram, btns: btns };
+  }
+  // Re-sync the edit-mode diagram + grip buttons from tr (after a toggle or a class-tag overwrite).
+  function refreshDrawerGripParts(tr){
+    var r = drawerUi.gpRef;
+    if(!r || r.tr !== tr) return;
+    r.diagram.update(tr.parts || []);
+    GRIP_KEYS.forEach(function(k){ r.btns[k].classList.toggle("active", tr.grip === k); });
   }
 
-  // Videos (max MAX_VIDEOS), then official note, then the personal note.
-  function buildDrawerVideosNotes(tr, canEditTrick, expandContent){
-    expandContent.appendChild(makeLabel(t("mediaTypeVideo")));
-    var videoWrap = document.createElement("div");
-    videoWrap.style.display = "flex"; videoWrap.style.flexDirection = "column"; videoWrap.style.gap = "4px"; videoWrap.style.marginBottom = "16px";
-    var videos = (tr.media || []).filter(function(m){ return m.type === "video"; });
-    videos.forEach(function(item){ videoWrap.appendChild(renderVideoRow(tr.id, item)); });
-    if(canEditTrick && videos.length < MAX_VIDEOS){
-      var addVideoBtn = document.createElement("button");
-      addVideoBtn.className = "col-add-btn";
-      addVideoBtn.innerHTML = ICON_PLUS + "<span>" + escapeHtml(t("addVideoShort")) + "</span>";
-      addVideoBtn.addEventListener("click", function(){ openMediaModal(tr.id, null); });
-      videoWrap.appendChild(addVideoBtn);
-    }
-    expandContent.appendChild(videoWrap);
-
-    // Official note first (marked), then the personal note.
-    var canEditOfficial = !!trickTableId(tr) && canEditTable(trickTableId(tr));
-    if(tr.officialNote || (state.editMode && canEditOfficial)){
-      expandContent.appendChild(makeLabel(t("officialNoteLabel")));
-      var offWrap = document.createElement("div");
-      offWrap.style.marginBottom = "16px";
-      if(state.editMode && canEditOfficial){
-        var offInput = document.createElement("textarea");
-        offInput.className = "note-field-input";
-        offInput.rows = 3;
-        offInput.placeholder = t("mediaContentPlaceholder");
-        offInput.value = tr.officialNote || "";
-        offInput.addEventListener("input", function(){ tr.officialNote = offInput.value; saveDB(); });
-        offWrap.appendChild(offInput);
-      } else {
-        var offDisplay = document.createElement("div");
-        offDisplay.className = "note-field note-field-official";
-        offDisplay.textContent = tr.officialNote;
-        offWrap.appendChild(offDisplay);
-      }
-      expandContent.appendChild(offWrap);
-    }
-
-    // Personal note: free text, editable by everyone (it's the user's own data).
-    expandContent.appendChild(makeLabel(t("personalNoteLabel")));
+  // The single 備註 (tr.note). Edit mode: textarea (editable by everyone: it is the user's own
+  // data). View mode: read-only text, only when not empty.
+  function buildDrawerNote(tr, editMode, parent){
+    var note = getTrickNote(tr);
+    if(!editMode && !note.trim()) return;
+    parent.appendChild(makeLabel(t("personalNoteLabel")));
     var noteWrap = document.createElement("div");
     noteWrap.style.marginBottom = "20px";
-    var noteInput = document.createElement("textarea");
-    noteInput.className = "note-field-input";
-    noteInput.rows = 4;
-    noteInput.placeholder = t("mediaContentPlaceholder");
-    noteInput.value = getTrickNote(tr);
-    noteInput.addEventListener("input", function(){
-      tr.note = noteInput.value;
-      saveDB();
-    });
-    noteWrap.appendChild(noteInput);
-    expandContent.appendChild(noteWrap);
+    if(editMode){
+      var noteInput = document.createElement("textarea");
+      noteInput.className = "note-field-input";
+      noteInput.rows = 4;
+      noteInput.placeholder = t("mediaContentPlaceholder");
+      noteInput.value = note;
+      noteInput.addEventListener("input", function(){ tr.note = noteInput.value; saveDB(); });
+      noteWrap.appendChild(noteInput);
+    } else {
+      var noteView = document.createElement("div");
+      noteView.className = "note-field";
+      noteView.textContent = note;
+      noteWrap.appendChild(noteView);
+    }
+    parent.appendChild(noteWrap);
   }
 
   // Personal progress, pinned to the bottom (sibling of the scrollable body):

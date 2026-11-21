@@ -16,13 +16,30 @@
   // load time of this file, before 02 is loaded. Labels / colors live in 02.
   var MAX_VIDEOS = 3;                       // B9: videos per trick
   var GRIP_KEYS = ["ken", "tama", "ito"];  // 持劍 / 持球 / 持線 (single choice)
-  // Parts (multi), grouped ken / ito / tama. Old key "kensakiSide" was dropped (normalization filters unknown keys).
+  // Parts (multi), grouped ken / ito / tama. Dropped keys ("kensakiSide", "saraDo", "stringHole") vanish
+  // via normalization (unknown keys are filtered). tamaTop is shown as 球面; "junction" (交界) is a pseudo-part.
   var PART_GROUPS = [
-    { key:"ken",  parts:["kensaki","kenchou","saraDo","sara","saraEdge","kenBody","suberidome","chuzara","chuzaraEdge"] },
+    { key:"ken",  parts:["kenchou","kensaki","sara","saraEdge","junction","kenBody","suberidome","chuzara","chuzaraEdge"] },
     { key:"ito",  parts:["string"] },
-    { key:"tama", parts:["tamaTop","ana","stringHole"] }
+    { key:"tama", parts:["tamaTop","tamaPoint","ana"] }
   ];
   var PART_KEYS = PART_GROUPS.reduce(function(a, g){ return a.concat(g.parts); }, []);
+  // child -> parent: the tip is inside 劍頂, the rim inside 中皿. A child can be lit alone;
+  // a lit parent lights its children's area too (diagram), and a filter on the parent matches children.
+  var PART_PARENT = { kensaki:"kenchou", chuzaraEdge:"chuzara" };
+  // trickParts + every ancestor of each (so a trick tagged 劍尖 also counts as 劍頂).
+  function expandParts(parts){
+    var out = (parts || []).slice();
+    (parts || []).forEach(function(k){
+      var p = PART_PARENT[k];
+      while(p){ if(out.indexOf(p) === -1) out.push(p); p = PART_PARENT[p]; }
+    });
+    return out;
+  }
+  // Does a trick tagged `trickParts` match a filter on `wantedPart`? (parent filter matches child tags)
+  function partMatches(trickParts, wantedPart){
+    return expandParts(trickParts).indexOf(wantedPart) !== -1;
+  }
   // Personal landing-rate levels (B7), shown left-to-right: rare=1/10, sometimes=3/10, most=5/10, mastered=8/10
   var RATE_LEVELS = ["rare", "sometimes", "most", "mastered"];
   // Levels (B3): table root items are level 1, max level 4. Folders only up to level 3.
@@ -373,7 +390,6 @@
         tagIds: Array.isArray(t.tagIds) ? t.tagIds.slice() : [],
         grip: GRIP_KEYS.indexOf(t.grip) !== -1 ? t.grip : null,
         parts: Array.isArray(t.parts) ? PART_KEYS.filter(function(k){ return t.parts.indexOf(k) !== -1; }) : [],
-        officialNote: typeof t.officialNote === "string" ? t.officialNote : "",
         note: typeof t.note === "string" ? t.note : legacyNotes.join("\n\n"),
         landed: !!rateVal,
         rate: rateVal,

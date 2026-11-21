@@ -109,7 +109,7 @@
     adminEl("adminMailboxBtn").title = t("adminMailbox");
     adminEl("adminBackupBtn").textContent = t("adminBackup"); adminEl("adminBackupBtn").title = t("adminBackup");
     adminEl("adminHelpersBtn").textContent = t("adminHelpers"); adminEl("adminHelpersBtn").title = t("adminHelpers");
-    adminEl("adminTagsBtn").textContent = t("tagMgrTitle"); adminEl("adminTagsBtn").title = t("tagMgrTitle"); // 77
+    if(typeof tagMgrButtonHtml === "function") adminEl("adminTagsBtn").innerHTML = tagMgrButtonHtml(); else adminEl("adminTagsBtn").textContent = t("tagMgrTitle"); adminEl("adminTagsBtn").title = t("tagMgrTitle"); // 77
     adminEl("adminNote").placeholder = t("adminNotePlaceholder");
     var cb = adminEl("adminCloseBtn");
     cb.title = t("settingsClose"); cb.setAttribute("aria-label", t("settingsClose"));
@@ -158,6 +158,7 @@
     var a = document.createElement("a");
     a.href = SEARCH_INDEX_WORKFLOW_URL; a.target = "_blank"; a.rel = "noopener";
     a.className = "toast-link"; a.textContent = t("adminIndexLink");
+    a.addEventListener("click", function(ev){ if(typeof openIndexGuide === "function"){ ev.preventDefault(); openIndexGuide(); } }); // 78
     toast.appendChild(a);
   }
 
@@ -195,7 +196,7 @@
   /* ---------------- Sub-modals (opened from the admin panel's button row) ----------------
      Own overlays inserted before #confirmOverlay (so confirms stack above). The Esc chain in 90 is
      not touched: a capture-phase listener below closes the topmost sub-modal first. */
-  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay"];
+  var ADMIN_SUB_IDS = ["mailboxOverlay", "adminBackupOverlay", "adminHelpersOverlay", "adminTagsOverlay", "adminIndexOverlay"];
   function adminSubModal(id, titleKey, extraClass){
     var ov = document.getElementById(id);
     if(!ov){

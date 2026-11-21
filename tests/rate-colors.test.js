@@ -46,7 +46,7 @@ test("dark: contrast vs bg rises monotonically", () => {
   for (let i = 1; i < r.length; i++) assert.ok(r[i] > r[i - 1], "dark step " + i);
 });
 test("light: contrast vs bg rises monotonically", () => {
-  const bg = "#F4F1EA";
+  const bg = "#D9DCE1";
   const r = STEPS.map((s) => ratio(light[s], bg));
   for (let i = 1; i < r.length; i++) assert.ok(r[i] > r[i - 1], "light step " + i);
 });

@@ -9,25 +9,29 @@
   ============================================================ */
   addStrings({
     zh:{ tagMgrTitle:"標籤管理", tagTabGrip:"握持＋部位", tagTabClass:"招式類別", tagTabText:"文字標籤",
-         tagMgrGripHint:"握持與部位是固定欄位，目前僅供檢視（之後會對應圖示）。", tagMgrNew:"新增", tagMgrEmpty:"（尚無項目）",
+         tagMgrGripHint:"握持與部位是固定欄位，僅供檢視。點部位可在圖上標示。", tagMgrNew:"新增", tagMgrEmpty:"（尚無項目）",
          tagMgrUsed:"{n} 個招式使用", tagMgrNameRequired:"請至少輸入一個名稱", tagMgrComboLabel:"持法與部位組合",
          tagMgrGripLabel:"握持（單選）", tagMgrPartsLabel:"部位（複選）", tagMgrNoCombo:"（無組合）", tagMgrEdit:"編輯" },
     jp:{ tagMgrTitle:"タグ管理", tagTabGrip:"持ち方＋部位", tagTabClass:"技のカテゴリ", tagTabText:"テキストタグ",
-         tagMgrGripHint:"持ち方と部位は固定項目で、現在は閲覧のみです（今後アイコンと対応予定）。", tagMgrNew:"追加", tagMgrEmpty:"（項目なし）",
+         tagMgrGripHint:"持ち方と部位は固定項目で、閲覧のみです。部位をタップすると図に表示されます。", tagMgrNew:"追加", tagMgrEmpty:"（項目なし）",
          tagMgrUsed:"{n} 件の技で使用", tagMgrNameRequired:"名前を1つ以上入力してください", tagMgrComboLabel:"持ち方と部位の組み合わせ",
          tagMgrGripLabel:"持ち方（単一選択）", tagMgrPartsLabel:"部位（複数選択）", tagMgrNoCombo:"（組み合わせなし）", tagMgrEdit:"編集" },
     en:{ tagMgrTitle:"Tag manager", tagTabGrip:"Grip + parts", tagTabClass:"Trick classes", tagTabText:"Text tags",
-         tagMgrGripHint:"Grip and parts are fixed fields, view-only for now (to be tied to icons later).", tagMgrNew:"Add", tagMgrEmpty:"(Nothing yet)",
+         tagMgrGripHint:"Grip and parts are fixed fields, view-only. Tap a part to highlight it on the diagram.", tagMgrNew:"Add", tagMgrEmpty:"(Nothing yet)",
          tagMgrUsed:"Used by {n} tricks", tagMgrNameRequired:"Enter at least one name", tagMgrComboLabel:"Grip and parts combo",
          tagMgrGripLabel:"Grip (single)", tagMgrPartsLabel:"Parts (multiple)", tagMgrNoCombo:"(No combo)", tagMgrEdit:"Edit" }
   });
 
   // tab: "grip" | "class" | "text"; editing: null | "new" | tag id; form: draft for the open form.
+  // Tag icon (own copy; js/06 is owned elsewhere). Used in the admin panel button label.
+  var ICON_TAG_MGR = '<svg class="tagmgr-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l7.6 7.6a1 1 0 0 1 0 1.4l-7.7 7.7a1 1 0 0 1-1.4 0L3.8 12.9a1 1 0 0 1-.3-.7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.2" cy="8.2" r="1.5" fill="currentColor"/></svg>';
+  function tagMgrButtonHtml(){ return ICON_TAG_MGR + '<span>' + escapeHtml(t("tagMgrTitle")) + '</span>'; }
+
   var tagMgr = { tab: "class", editing: null, form: null, box: null };
 
   function openAdminTags(){
     if(typeof isAdminAccount === "function" && !isAdminAccount()) return;
-    var ov = adminSubModal("adminTagsOverlay", "tagMgrTitle", "admin-sub-modal");
+    var ov = adminSubModal("adminTagsOverlay", "tagMgrTitle", "admin-sub-modal tagmgr-modal");
     ov.classList.add("show");
     tagMgr.editing = null; tagMgr.form = null;
     renderAdminTags(ov.querySelector(".modal-scroll"));
@@ -77,10 +81,20 @@
     var gr = document.createElement("div"); gr.className = "drawer-chip-row";
     GRIP_KEYS.forEach(function(k){ gr.appendChild(makeChip(t("grip_" + k), false)); });
     wrap.appendChild(gr);
+    // View-only highlight: one part at a time, shared by the diagram and the chips (updated in place).
+    var cur = null, chips = {};
+    var dia = createPartDiagram({ selected: [], interactive: true, onToggle: function(k){ pick(k); } });
+    function pick(k){
+      cur = cur === k ? null : k;
+      dia.update(cur ? [cur] : []);
+      Object.keys(chips).forEach(function(x){ chips[x].classList.toggle("active", x === cur); });
+    }
+    dia.classList.add("tagmgr-diagram");
+    wrap.insertBefore(dia, gt);
     var pt = document.createElement("div"); pt.className = "tagmgr-section-title"; pt.textContent = t("tagMgrPartsLabel");
     wrap.appendChild(pt);
     var pr = document.createElement("div"); pr.className = "drawer-chip-row";
-    fillPartGroups(pr, function(k){ return makeChip(t("part_" + k), false); });
+    fillPartGroups(pr, function(k){ return (chips[k] = makeChip(t("part_" + k), false, function(){ pick(k); })); });
     wrap.appendChild(pr);
   }
 
@@ -165,15 +179,13 @@
       form.appendChild(gr);
       var pt = document.createElement("div"); pt.className = "tagmgr-section-title"; pt.textContent = t("tagMgrPartsLabel");
       form.appendChild(pt);
-      var pr = document.createElement("div"); pr.className = "drawer-chip-row tagmgr-chips";
-      fillPartGroups(pr, function(k){
-        return makeChip(t("part_" + k), f.parts.indexOf(k) !== -1, function(){
-          var i = f.parts.indexOf(k);
-          if(i === -1) f.parts.push(k); else f.parts.splice(i, 1);
-          renderAdminTags(tagMgr.box);
-        });
-      });
-      form.appendChild(pr);
+      var dia = createPartDiagram({ selected: f.parts, interactive: true, onToggle: function(k){
+        var i = f.parts.indexOf(k);
+        if(i === -1) f.parts.push(k); else f.parts.splice(i, 1);
+        dia.update(f.parts);
+      } });
+      dia.classList.add("tagmgr-diagram");
+      form.appendChild(dia);
     }
     var acts = document.createElement("div");
     acts.className = "tagmgr-form-actions";

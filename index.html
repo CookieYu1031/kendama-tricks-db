@@ -78,10 +78,19 @@
       <div class="search-tag-suggest drawer-chip-row" id="searchTagSuggest"></div>
       <div class="search-section">
         <div class="search-label-row">
-          <div class="lang-switch search-seg-sm" id="searchGripRow"></div>
+          <div class="search-grip-group">
+            <span class="search-label" id="searchGripLabel"></span>
+            <div class="lang-switch search-seg-sm" id="searchGripRow"></div>
+          </div>
           <div class="lang-switch search-seg-sm" id="searchPartsMode"></div>
         </div>
-        <div class="drawer-chip-row" id="searchPartsRow"></div>
+        <div class="search-cond-row">
+          <div class="drawer-chip-row" id="searchPartsRow"></div>
+          <div class="search-class-box">
+            <span class="search-label" id="searchClassLabel"></span>
+            <div class="drawer-chip-row search-class-row" id="searchClassRow"></div>
+          </div>
+        </div>
       </div>
       <div class="search-results-bar">
         <span class="search-count" id="searchCount"></span>
@@ -154,13 +163,6 @@
               <span class="auth-menu-email" id="authMenuEmail"></span>
             </span>
           </div>
-          <div class="auth-menu-name-edit" id="authMenuNameEdit" hidden>
-            <input type="text" class="auth-menu-name-input" id="authMenuNameInput" maxlength="24" />
-            <div class="auth-menu-name-edit-actions">
-              <button type="button" class="auth-menu-name-cancel" id="authMenuNameCancel">取消</button>
-              <button type="button" class="auth-menu-name-save" id="authMenuNameSave">儲存</button>
-            </div>
-          </div>
           <div class="auth-menu-sync" id="authMenuSync">
             <span class="auth-menu-sync-text" id="authMenuSyncText"></span>
             <button type="button" class="auth-menu-edit-btn auth-menu-sync-btn" id="authMenuSyncBtn" title="立即同步" aria-label="立即同步">
@@ -196,8 +198,7 @@
           <span class="settings-item-label" id="settingsNoticesLabel">通知與近期更新</span>
         </button>
         <button type="button" class="settings-item" disabled>
-          <span class="settings-item-label" id="settingsSubmitLabel">招式投稿／申請協助者</span>
-          <span class="settings-item-note" id="settingsSubmitNote">欲大量投稿可申請成為協助者</span>
+          <span class="settings-item-label" id="settingsSubmitLabel">招式投稿</span>
           <span class="settings-soon" data-soon>即將推出</span>
         </button>
         <button type="button" class="settings-item" disabled>
@@ -226,6 +227,28 @@
       <button type="button" class="icon-btn settings-close" id="privacyCloseBtn"></button>
     </div>
     <div class="modal-scroll"><div class="settings-privacy" id="privacyText"></div></div>
+  </div>
+</div>
+
+<!-- Nickname edit modal (js/52-auth.js) -->
+<div class="modal-overlay" id="nicknameOverlay">
+  <div class="modal" id="nicknameModal">
+    <div class="settings-head">
+      <div class="modal-title" id="nicknameTitle">編輯暱稱</div>
+      <button type="button" class="icon-btn settings-close" id="nicknameCloseBtn"></button>
+    </div>
+    <div class="modal-scroll">
+      <div class="field" style="margin-top:14px;">
+        <input type="text" id="nicknameInput" maxlength="24" />
+      </div>
+      <div class="form-error" id="nicknameError"></div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="nicknameCancelBtn">取消</button>
+        <button type="button" class="btn btn-primary" id="nicknameSaveBtn">儲存</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -485,22 +508,13 @@
           <input type="text" id="addMainName" />
         </div>
       </div>
+      <div class="field-hint add-name-hint" id="addNameHint"></div>
       <div class="field-row" id="addAltRow">
         <div class="field"><label id="addAlt1Label"></label><input type="text" id="addAlt1" /></div>
         <div class="field"><label id="addAlt2Label"></label><input type="text" id="addAlt2" /></div>
       </div>
       <div id="addInfoSection" hidden>
-        <div class="field"><label id="addContentLabel"></label><textarea id="addContent" rows="4"></textarea></div>
-      </div>
-      <div id="addTrickSection" hidden>
-        <div id="addTrickFields">
-          <div class="field"><label id="addVideoLabel"></label><input type="url" id="addVideoUrl" placeholder="https://" /></div>
-          <div class="field"><div class="drawer-chip-row" id="addGripRow"></div></div>
-          <div class="field"><div class="drawer-chip-row" id="addPartsRow"></div></div>
-          <div class="field" id="addTagField"><label id="addTagsLabel"></label><div class="drawer-chip-row" id="addTagsRow"></div></div>
-          <div class="field" id="addOfficialField" hidden><label id="addOfficialLabel"></label><textarea id="addOfficialNote" rows="2"></textarea></div>
-          <div class="field"><label id="addNoteLabel"></label><textarea id="addNote" rows="3"></textarea></div>
-        </div>
+        <div class="field"><label id="addContentLabel"></label><textarea id="addContent" rows="3"></textarea></div>
       </div>
       <div class="form-error" id="addFormError"></div>
     </div>
@@ -592,6 +606,8 @@
 <script src="js/31-drawer-sections.js"></script>
 <script src="js/32-trick-drawer.js"></script>
 <script src="js/33-drawer-tags.js"></script>
+<script src="js/34-drawer-videos.js"></script>
+<script src="js/35-part-diagram.js"></script>
 <script src="js/40-modal-confirm-toast.js"></script>
 <script src="js/41-modal-video.js"></script>
 <script src="js/42-modal-media.js"></script>
@@ -620,8 +636,9 @@
 <script src="js/73-mailbox.js"></script>
 <script src="js/74-forms.js"></script>
 <script src="js/75-admin-stats.js"></script>
-<script src="js/76-submission-review.js"></script>
 <script src="js/77-admin-tags.js"></script>
+<script src="js/78-admin-index-guide.js"></script>
+<script src="js/79-xlsx.js"></script>
 <script src="js/80-tools.js"></script>
 <script src="js/90-events-and-init.js"></script>
 </body>

@@ -9,21 +9,21 @@
   ============================================================ */
   addStrings({
     zh:{ stRefresh:"重新整理", stLoading:"載入中…", stError:"讀取失敗", stEmpty:"尚無資料",
-      stRegistered:"註冊數", stCollected:"總表收錄數", stLang:"語言占比", stActive7:"7 天活躍", stActive30:"30 天活躍",
-      stTopFav:"最多收藏 Top 5", stTopLanded:"最多成招 Top 5", stRateDist:"成招率分布", stSubs:"投稿數",
-      stGa4:"GA4 月訪客：尚未設定", stGa4Hint:"需要 GA4 衡量 ID 才能顯示。", stNoAccess:"無權限",
+      stRegistered:"註冊數", stCollected:"總表收錄數", stLang:"使用者語言占比", stActive7:"7 天活躍", stActive30:"30 天活躍",
+      stTopFav:"最多收藏 Top 5", stSubs:"投稿數",
+      stNoAccess:"無權限",
       stT00:"總表", stT01:"檢定", stT02:"賽事", stPeople:"{n} 人",
       bkTitle:"備份：下載已發布版本", bkDownload:"下載", bkNone:"尚無已發布版本", bkFail:"下載失敗" },
     jp:{ stRefresh:"更新", stLoading:"読み込み中…", stError:"読み込みに失敗しました", stEmpty:"データなし",
-      stRegistered:"登録数", stCollected:"総表の収録数", stLang:"言語の割合", stActive7:"7日間アクティブ", stActive30:"30日間アクティブ",
-      stTopFav:"お気に入り Top 5", stTopLanded:"成功が多い技 Top 5", stRateDist:"成功率の分布", stSubs:"投稿数",
-      stGa4:"GA4 月間訪問者：未設定", stGa4Hint:"GA4 の測定 ID が必要です。", stNoAccess:"権限なし",
+      stRegistered:"登録数", stCollected:"総表の収録数", stLang:"ユーザーの言語割合", stActive7:"7日間アクティブ", stActive30:"30日間アクティブ",
+      stTopFav:"お気に入り Top 5", stSubs:"投稿数",
+      stNoAccess:"権限なし",
       stT00:"総表", stT01:"検定", stT02:"大会", stPeople:"{n} 人",
       bkTitle:"バックアップ：公開済みバージョン", bkDownload:"ダウンロード", bkNone:"公開済みバージョンなし", bkFail:"ダウンロードに失敗しました" },
     en:{ stRefresh:"Refresh", stLoading:"Loading…", stError:"Failed to load", stEmpty:"No data yet",
-      stRegistered:"Registered users", stCollected:"Tricks in the base", stLang:"Language share", stActive7:"Active (7 days)", stActive30:"Active (30 days)",
-      stTopFav:"Most favorited, top 5", stTopLanded:"Most landed, top 5", stRateDist:"Landing-rate distribution", stSubs:"Submissions",
-      stGa4:"GA4 monthly visitors: not set up", stGa4Hint:"A GA4 measurement ID is needed to show this.", stNoAccess:"No access",
+      stRegistered:"Registered users", stCollected:"Tricks in the base", stLang:"User language share", stActive7:"Active (7 days)", stActive30:"Active (30 days)",
+      stTopFav:"Most favorited, top 5", stSubs:"Submissions",
+      stNoAccess:"No access",
       stT00:"Master", stT01:"Certification", stT02:"Competition", stPeople:"{n}",
       bkTitle:"Backup: published versions", bkDownload:"Download", bkNone:"No published versions yet", bkFail:"Download failed" }
   });
@@ -38,8 +38,8 @@
   // docs: userStats data objects with lastActiveAt already in ms (or null). now: ms.
   function aggregateUserStats(docs, now){
     var out = { registered: docs.length, lang: { zh: 0, jp: 0, en: 0 }, active7: 0, active30: 0,
-      topFav: [], topLanded: [], rates: { rare: 0, sometimes: 0, most: 0, mastered: 0 } };
-    var fav = {}, lan = {};
+      topFav: [] };
+    var fav = {};
     docs.forEach(function(d){
       if(out.lang[d.lang] !== undefined) out.lang[d.lang]++;
       var at = d.lastActiveAt;
@@ -48,12 +48,8 @@
         if(now - at <= 30 * STATS_DAY_MS) out.active30++;
       }
       (d.favorites || []).forEach(function(id){ fav[id] = (fav[id] || 0) + 1; });
-      (d.landed || []).forEach(function(id){ lan[id] = (lan[id] || 0) + 1; });
-      var r = d.rates || {};
-      Object.keys(r).forEach(function(id){ if(out.rates[r[id]] !== undefined) out.rates[r[id]]++; });
     });
     out.topFav = topCounts(fav, 5);
-    out.topLanded = topCounts(lan, 5);
     return out;
   }
   // Counts base tricks per shared table (a trick counts once in each table whose container it sits in).
@@ -201,22 +197,6 @@
     el.appendChild(lb);
 
     el.appendChild(statsTop(t("stTopFav"), a.topFav, data.names));
-    el.appendChild(statsTop(t("stTopLanded"), a.topLanded, data.names));
-
-    var rateTotal = 0, rateParts = RATE_LEVELS.map(function(l){
-      rateTotal += a.rates[l];
-      return { label: t("rate_" + l), n: a.rates[l], color: RATE_COLORS[l] };
-    });
-    var rb = statsEl("div", "stats-block");
-    rb.appendChild(statsEl("div", "admin-card-subtitle", t("stRateDist")));
-    if(!rateTotal) rb.appendChild(statsEl("div", "stats-empty", t("stEmpty")));
-    else { rb.appendChild(statsBar(rateParts, rateTotal)); rb.appendChild(statsLegend(rateParts, rateTotal)); }
-    el.appendChild(rb);
-
-    var ga = statsEl("div", "stats-block stats-ga");
-    ga.appendChild(statsEl("div", "stats-ga-title", t("stGa4")));
-    ga.appendChild(statsEl("div", "stats-empty", t("stGa4Hint")));
-    el.appendChild(ga);
   }
 
   function renderAdminStats(el, force){

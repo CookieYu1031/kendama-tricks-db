@@ -89,7 +89,7 @@
     return { id: _sStr(tr.id, 40), name: _sName(tr.name), media: media, icon: _sIcon(tr.icon), color: _sStr(tr.color, 24),
       grip: typeof tr.grip === "string" ? tr.grip : null,
       parts: Array.isArray(tr.parts) ? tr.parts.filter(function(p){ return typeof p === "string"; }).slice(0, 20) : [],
-      officialNote: _sStr(tr.officialNote, SHARE_LIMITS.text), order: _sNum(tr.order), placements: [] };
+      order: _sNum(tr.order), placements: [] };
   }
 
   function shareBuildTrickPayload(trickId){
@@ -270,8 +270,7 @@
         if(pl.o !== null) obc[d] = pl.o;
       });
       return { id: map[tr.id], name: tr.name, media: tr.media.map(function(m){ return { id: idGen(), type: "video", title: m.title, url: m.url }; }),
-        categoryIds: ids, orderByCategory: obc, order: tr.order, icon: tr.icon, color: tr.color, grip: tr.grip, parts: tr.parts,
-        officialNote: tr.officialNote, custom: false };
+        categoryIds: ids, orderByCategory: obc, order: tr.order, icon: tr.icon, color: tr.color, grip: tr.grip, parts: tr.parts, custom: false };
     });
     var refs = p.refs.filter(function(r){ return hasTrick(r.trickId) && dest(r.c); })
       .map(function(r){ return { trickId: r.trickId, containerId: dest(r.c), order: r.o }; });

@@ -43,3 +43,24 @@
   @media (max-width: 860px){
     .admin-actions{ grid-template-columns: 1fr; }
   }
+
+  /* Search index guide (js/78) */
+  .idx-steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .idx-step{ display:flex; gap:12px; align-items:flex-start; }
+  .idx-mark{
+    flex:0 0 auto; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-family: var(--font-mono); border:1px solid var(--line-strong); color: var(--paper-dim);
+  }
+  .idx-active .idx-mark{ border-color: var(--lacquer-bright); color: var(--accent-text); }
+  .idx-done .idx-mark{ background: rgba(var(--lacquer-rgb), 0.18); border-color: var(--lacquer-bright); color: var(--accent-text); }
+  .idx-pending{ opacity:0.55; }
+  .idx-body{ min-width:0; flex:1; display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+  .idx-step-title{ font-size:14px; font-weight:600; color: var(--paper); }
+  .idx-status{ font-size:13px; color: var(--paper-dim); }
+  .idx-status.idx-ok{ color: var(--accent-text); }
+  .idx-wait{ display:flex; align-items:center; gap:8px; font-size:13px; color: var(--paper-dim); }
+  .idx-spinner{
+    width:14px; height:14px; border-radius:50%; border:2px solid var(--line-strong); border-top-color: var(--accent-text);
+    animation: idxSpin .8s linear infinite;
+  }
+  @keyframes idxSpin{ to{ transform: rotate(360deg); } }

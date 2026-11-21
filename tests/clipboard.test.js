@@ -181,3 +181,26 @@ test("image icon data URLs: only png/webp/jpeg base64, size capped", () => {
   assert.ok(!c.isImageIcon("img:data:image/png;base64," + "A".repeat(70000)));
   assert.strictEqual(c.imageIconSrc("img:data:image/webp;base64,AAAA"), "data:image/webp;base64,AAAA");
 });
+
+test("external trick (mailbox 複製招式): plan newTrick, paste creates a fresh trick once", () => {
+  const c = setup();
+  c.invalidateDbIndex();
+  const data = { name: { zh: "新招", jp: "", en: "New" }, urls: ["https://youtu.be/a", "https://youtu.be/b"], grip: "ken", parts: ["sara"], tagIds: ["gone"], note: "n" };
+  const k = c.clipSetExternalTrick(data);
+  assert.strictEqual(c.clipboardItem, k);
+  assert.strictEqual(k.type, "extTrick");
+  const p = c.clipPlanPaste(k, "e1", env);
+  assert.deepStrictEqual({ ok: p.ok, op: p.op }, { ok: true, op: "newTrick" });
+  const before = c.db.tricks.length;
+  c.clipApplyPaste(k, "e1", p, env);
+  assert.strictEqual(c.db.tricks.length, before + 1);
+  const tr = c.db.tricks[c.db.tricks.length - 1];
+  assert.strictEqual(tr.name.zh, "新招");
+  assert.strictEqual(tr.media.length, 2);
+  assert.strictEqual(tr.grip, "ken");
+  assert.deepStrictEqual(Array.from(tr.categoryIds), ["e1"]);
+  assert.strictEqual(tr.tagIds.length, 0); // unknown tag id dropped
+  assert.strictEqual(tr.landed, false);
+  // guest cannot paste
+  assert.strictEqual(c.clipPlanPaste({ type: "extTrick" }, "e1", env).ok, false);
+});

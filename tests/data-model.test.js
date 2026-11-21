@@ -26,7 +26,7 @@ test("normalizeDB fills trick defaults", () => {
   assert.strictEqual(t.landed, false);
   assert.strictEqual(t.favorite, false);
   assert.strictEqual(t.custom, false);
-  assert.strictEqual(t.officialNote, "");
+  assert.strictEqual(t.officialNote, undefined);
   assert.strictEqual(t.note, "");
   assert.ok(!("proficiency" in t));
   assert.strictEqual(d.infos.length, 0);

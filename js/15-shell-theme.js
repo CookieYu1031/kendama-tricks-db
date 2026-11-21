@@ -36,7 +36,7 @@
       document.documentElement.setAttribute("data-theme", theme);
       if(document.documentElement.style) document.documentElement.style.colorScheme = theme;
       var meta = document.querySelector && document.querySelector('meta[name="theme-color"]');
-      if(meta) meta.setAttribute("content", theme === "light" ? "#F4F1EA" : "#121212");
+      if(meta) meta.setAttribute("content", theme === "light" ? "#D9DCE1" : "#121212");
     }
     return theme;
   }

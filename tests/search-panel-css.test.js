@@ -6,21 +6,27 @@ const fs = require("fs");
 const path = require("path");
 const css = fs.readFileSync(path.join(__dirname, "..", "css", "search-panel.css"), "utf8");
 
-test("part groups have no divider in the search panel", () => {
-  assert.match(css, /\.search-panel \.part-group \+ \.part-group\{[^}]*border-top:none/);
-});
-test("ken group takes its own row; ito/tama flow together", () => {
-  assert.match(css, /part-group\[data-group="ken"\]\{[^}]*flex:0 0 100%/);
-  assert.match(css, /data-group="ito"\][^{]*data-group="tama"\]\{[^}]*display:contents/);
+test("conditions: row2 grip+mode, row3 diagram left + class chips right", () => {
+  assert.match(css, /\.search-cond-row\{[^}]*display:flex/);
+  assert.match(css, /\.search-class-row\{[^}]*max-height:200px;[^}]*overflow-y:auto/);
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(html.indexOf('id="searchGripRow"') < html.indexOf('id="searchPartsRow"'));
+  assert.ok(html.indexOf('id="searchPartsRow"') < html.indexOf('id="searchClassRow"'));
+  assert.match(css, /\.part-diagram-box\{[^}]*width:200px/);
+  assert.doesNotMatch(css, /part-group/);
 });
 test("conditions rows wrap", () => {
   assert.match(css, /\.search-label-row\{[^}]*flex-wrap:wrap/);
   assert.match(css, /\.search-results-bar\{[^}]*flex-wrap:wrap/);
 });
-test("open panel stays flex (gap) and slides from the top-right", () => {
+test("open panel stays flex (gap), right-aligned, drops from the top edge like a drawer", () => {
   assert.match(css, /\.search-panel\.show\{[^}]*display:flex/);
-  assert.match(css, /transform-origin: top right/);
   assert.match(css, /right: calc\(var\(--safe-r, 0px\) \+ 12px\)/);
+  assert.match(css, /\.search-panel\{[^}]*top:0;/);
+  assert.match(css, /\.search-panel\{[^}]*transform: translateY\(calc\(-100% - 24px\)\)/);
+  assert.match(css, /transform: translateY\(0\);/);
+  assert.doesNotMatch(css, /clip-path/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
 });
 test("search button sits in the right topbar actions, before the avatar", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
