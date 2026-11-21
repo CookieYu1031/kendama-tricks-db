@@ -59,11 +59,12 @@ test("hasOnly field lists exact", function () {
     "kind,text,trickName,from,createdAt,read",
     "read",
     "lang,favorites,lastActiveAt,createdAt",
-    "ownerUid,itemId,createdAt,kind,title,payload,v"
+    "ownerUid,itemId,createdAt,kind,title,payload,v",
+    "lists,clientUpdatedAt,updatedAt"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 14); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 15); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -147,4 +148,13 @@ test("v0.10: no submissions collection, no officialNote, userStats has no landed
   b = b.slice(0, b.indexOf("match /shares/"));
   assert.ok(!/landed|rates/.test(b));
   assert.match(b, /hasOnly\(\['lang', 'favorites', 'lastActiveAt', 'createdAt'\]\)/);
+});
+
+test("v0.12: meta/practice branch (lists <= 20, number stamp, owner only)", function () {
+  var b = src.slice(src.indexOf("metaId == 'practice'"), src.indexOf("match /spaceData/{sid}"));
+  assert.match(b, /hasOnly\(\['lists', 'clientUpdatedAt', 'updatedAt'\]\)/);
+  assert.match(b, /lists is list && request\.resource\.data\.lists\.size\(\) <= 20/);
+  assert.match(b, /clientUpdatedAt is number/);
+  assert.match(b, /updatedAt == request\.time/);
+  assert.match(src, /allow create, update: if isOwner\(uid\) && \(/);
 });
