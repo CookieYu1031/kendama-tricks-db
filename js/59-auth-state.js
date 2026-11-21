@@ -20,6 +20,7 @@
       syncReconcile({}).then(function(){
         renderAuthUI();
         maybeShowBaseUpdateBanner();
+        if(typeof shareOnAuth === "function") shareOnAuth();
       });
     } else {
       hideBaseUpdateBanner();

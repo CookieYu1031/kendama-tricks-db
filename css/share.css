@@ -1,0 +1,19 @@
+/* Share (js/58-share.js): column share button + receive preview list. Reuses .modal-lg / .btn / glass vars. */
+  .col-share-btn{
+    position:absolute; left:14px; bottom:14px; z-index:2; width:26px; height:26px; border-radius:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+    border:1px solid var(--glass-border-strong); color: var(--accent-text); background: var(--glass-3);
+    box-shadow: var(--shadow-sm), var(--glass-highlight);
+    transition: transform .18s var(--ease), opacity .24s var(--ease), background .18s var(--ease);
+  }
+  .col-share-btn svg{ width:13px; height:13px; display:block; }
+  .col-share-btn:hover{ background: var(--glass-2); transform: translateY(-1px); }
+  .col-share-btn:active{ transform: scale(.94); }
+  .m-col.collapsed:not(:hover) .col-share-btn{ opacity:0; transform:scale(.6); pointer-events:none; }
+
+  .share-name{ font: 600 16px var(--font-body); margin-bottom:4px; word-break:break-word; }
+  .share-list{ display:flex; flex-direction:column; gap:4px; max-height:260px; overflow-y:auto; }
+  .share-row{ display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; background: var(--glass-3); font-size:13px; }
+  .share-row svg{ width:14px; height:14px; flex:0 0 auto; }
+  .share-row.share-more{ background:transparent; color: var(--paper-faint); }
+  .drawer-foot .col-add-btn-share{ flex:0 0 44px; padding:9px 0; }

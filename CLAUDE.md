@@ -101,11 +101,13 @@
 | 管理員郵件箱、站內訊息發送（`openMailbox`、`sendInboxMessage`） | `js/73-mailbox.js`、`css/mailbox.css` |
 | 使用者表單：問題回報、招式投稿／申請協助者、防灌水 | `js/74-forms.js` |
 | 通知與近期更新頁、站內訊息收件、紅點 | `js/16-shell-updates.js` |
+| 一鍵分享（payload、`shares/{id}`、`?share=` 預覽與加入；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
 | 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
 | 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
 | 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
+| 小工具（左欄按鈕、面板、TOOLS registry） | `js/80-tools.js`、`css/tools.css` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |

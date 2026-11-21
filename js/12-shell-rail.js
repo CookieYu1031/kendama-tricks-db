@@ -182,6 +182,16 @@
     });
   }
 
+  // Guests have no edit button but may still use the tools: bottom zone with
+  // just the 小工具 button, pushed to the bottom (margin-top:auto).
+  function appendRailToolsOnly(rail){
+    if(typeof buildToolsRailBtn !== "function") return;
+    var z = buildRailZone("rail-zone-bottom");
+    z.style.marginTop = "auto";
+    z.appendChild(buildToolsRailBtn());
+    rail.appendChild(z);
+  }
+
   // Three zones (see railZones in 20-browse-order.js): top = 00/01/02,
   // middle = 收藏 + custom tables (+ the edit-mode "new table" button; scrolls
   // by itself), bottom = function buttons pinned to the bottom.
@@ -198,7 +208,10 @@
     });
     rail.appendChild(topZone);
 
-    if(!zones.showMiddle) return; // D8: guests see only the top zone
+    if(!zones.showMiddle){ // D8: guests see only the top zone (+ the tools button)
+      appendRailToolsOnly(rail);
+      return;
+    }
 
     rail.appendChild(buildRailDivider());
     var midZone = buildRailZone("rail-zone-mid");
@@ -228,6 +241,8 @@
     if(!zones.showBottom) return;
     rail.appendChild(buildRailDivider());
     var bottomZone = buildRailZone("rail-zone-bottom");
+    // 小工具 button sits directly above the edit button (js/80-tools.js).
+    if(typeof buildToolsRailBtn === "function") bottomZone.appendChild(buildToolsRailBtn());
     var toggle = document.createElement("button");
     toggle.type = "button";
     var reviewing = typeof isReviewMode === "function" && isReviewMode();

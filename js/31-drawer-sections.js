@@ -299,7 +299,7 @@
     return isGuest() ? buildGuestFoot() : profFoot;
   }
 
-  // Edit mode footer: add variant + delete trick.
+  // Edit mode footer: add variant + share (own tricks) + delete trick.
   function buildDrawerEditFoot(tr){
     var foot = document.createElement("div");
     foot.className = "drawer-foot";
@@ -315,7 +315,18 @@
     delB.title = t("delete");
     delB.innerHTML = ICON_TRASH;
     delB.addEventListener("click", function(){ requestDeleteTrick(tr.id, "*"); });
-    foot.appendChild(addVarB); foot.appendChild(delB);
+    foot.appendChild(addVarB);
+    // Share: the user's own tricks only (base 總表 tricks are never shared by value).
+    if(typeof shareIsBaseTrick === "function" && !shareIsBaseTrick(tr)){
+      var shB = document.createElement("button");
+      shB.className = "col-add-btn col-add-btn-share";
+      shB.title = t("shareBtn");
+      shB.setAttribute("aria-label", t("shareBtn"));
+      shB.innerHTML = ICON_SHARE;
+      shB.addEventListener("click", function(){ shareRun("trick", tr.id); });
+      foot.appendChild(shB);
+    }
+    foot.appendChild(delB);
     return foot;
   }
 
