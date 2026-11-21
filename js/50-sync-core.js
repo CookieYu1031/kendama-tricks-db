@@ -3,7 +3,7 @@
   /* ============================================================
      CLOUD SYNC CORE — base data, per-space diff, merge, admin flag
      ------------------------------------------------------------
-     `db` (01-data-model.js) keeps its flat-array shape; this file only
+     `db` (01-data-storage.js) keeps its flat-array shape; this file only
      defines how it maps to/from the per-space diff. Layout (CLOUD_SCHEMA 3):
 
        users/{uid}/meta/spaces -> { spaces, tags, schema:3, clientUpdatedAt, updatedAt }

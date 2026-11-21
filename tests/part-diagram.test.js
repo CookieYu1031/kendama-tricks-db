@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const { load } = require("./_load");
 
-const c = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/05-data-helpers.js",
+const c = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
   "js/07-id.js", "js/08-loc-code.js", "js/09-names.js", "js/30-drawer-logic.js", "js/31-drawer-sections.js",
   "js/32-trick-drawer.js", "js/33-drawer-tags.js", "js/34-drawer-videos.js", "js/35-part-diagram.js"],
   { URL, state: { lang: "zh", activeSpace: "t00" } });
@@ -57,7 +57,7 @@ test("diagram: lit parent lights child area (inh); child can be lit alone", () =
 test("createPartDiagram.update re-colors in place", () => {
   const els = {};
   const mk = k => { const e = { a: {}, getAttribute: n => (n === "data-part" ? k : e.a[n]), setAttribute: (n, v) => { e.a[n] = v; } }; els[k] = e; return e; };
-  const ctx = load(["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/05-data-helpers.js", "js/35-part-diagram.js"],
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/35-part-diagram.js"],
     { URL, state: { lang: "zh" } });
   ctx.document.createElement = () => ({ innerHTML: "", className: "", addEventListener() {}, querySelectorAll() { return ctx.PART_KEYS.map(mk); } });
   const box = ctx.createPartDiagram({ selected: ["kensaki"], interactive: true, onToggle() {} });

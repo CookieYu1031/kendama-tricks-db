@@ -57,11 +57,14 @@
 | 需求 | 位置 |
 |---|---|
 | Firebase 初始化 | `js/00-firebase-config.js` |
-| 資料模型、localStorage、space 定義 | `js/01-data-model.js` |
+| 資料模型常數、space 定義、權限、ID | `js/01-data-model.js` |
+| 本機快取、normalizeDB、loadDB/saveDB、`db` 初始化 | `js/01-data-storage.js` |
 | 顏色、icon 常數 | `js/02-constants-colors-icons.js` |
 | i18n 字串、假名轉羅拼、名稱顯示 | `js/03-i18n.js` |
 | UI state | `js/04-state.js` |
-| 資料查詢 helpers、escapeHtml、isSafeHttpUrl | `js/05-data-helpers.js` |
+| 資料索引與查詢 helpers（getChildren、getTrick…） | `js/05-data-helpers.js` |
+| 收藏、標籤、刪除、層級規則（canAddChild）、雜項 | `js/05-data-ops.js` |
+| 影片平台、escapeHtml、isSafeHttpUrl、icon 字寬、容器路徑 | `js/05-data-util.js` |
 | SVG icons | `js/06-icons-svg.js` |
 | 更新頁（通知與近期更新、未讀紅點） | `js/16-shell-updates.js` |
 | 管理員面板（發布、待發布摘要、版本號）| `js/70-admin-panel.js`、`css/admin-panel.css` |
@@ -99,7 +102,7 @@
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
 | 登入、登出、暱稱、帳號選單（含同步時間與手動同步鈕） | `js/52-auth.js` |
 | 雲端分塊（切塊、批次、讀寫 users 雲端資料） | `js/53-sync-chunks.js` |
-| Local-first 同步佇列（dirty、觸發點、admins 旗標、使用者快取） | `js/54-sync-queue.js`（快取讀寫在 `js/01-data-model.js`） |
+| Local-first 同步佇列（dirty、觸發點、admins 旗標、使用者快取） | `js/54-sync-queue.js`（快取讀寫在 `js/01-data-storage.js`） |
 | 同步衝突（三方合併、三選一彈窗） | `js/55-sync-conflict.js` |
 | 待更新區：未發布紅點、紅叉幽靈列、還原、發布摘要（admin） | `js/56-pending.js`（發布範圍和版本標籤在 `js/51-shared-base.js`） |
 | 使用者統計 payload、變更雜湊、寫入 `userStats/{uid}` | `js/57-user-stats.js`（由 54 同步成功後呼叫） |

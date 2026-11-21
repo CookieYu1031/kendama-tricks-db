@@ -5,7 +5,7 @@
      userStats/{uid}. Feeds the admin stats card (js/75-admin-stats.js). Written after a
      successful cloud sync (hook in 54), only when it changed or once per day, so
      lastActiveAt stays fresh for the 7/30-day active counts.
-     Holds only trick ids from t00/t01/t02 + landing rates; no names, no personal notes.
+     Holds only favorite trick ids from t00/t01/t02 (no landed/rates since v0.10); no names, no personal notes.
   ============================================================ */
   var USER_STATS_MAX = 2000;
   var USER_STATS_TABLES = ["t00", "t01", "t02"];
@@ -14,23 +14,19 @@
 
   // Pure. tricks: db.tricks; belongsFn(trick, spaceId) -> bool; lang: "zh"|"jp"|"en".
   function buildUserStatsPayload(tricks, belongsFn, lang){
-    var favorites = [], landed = [], rates = {}, nRates = 0;
+    var favorites = [];
     (tricks || []).forEach(function(tr){
       if(!tr || !tr.id) return;
       var pub = USER_STATS_TABLES.some(function(sid){ return belongsFn(tr, sid); });
       if(!pub) return;
       if(tr.favorite && favorites.length < USER_STATS_MAX) favorites.push(tr.id);
-      if(RATE_LEVELS.indexOf(tr.rate) !== -1 && nRates < USER_STATS_MAX){
-        rates[tr.id] = tr.rate; landed.push(tr.id); nRates++;
-      }
     });
-    favorites.sort(); landed.sort();
-    return { lang: (lang === "jp" || lang === "en") ? lang : "zh", favorites: favorites, landed: landed, rates: rates };
+    favorites.sort();
+    return { lang: (lang === "jp" || lang === "en") ? lang : "zh", favorites: favorites };
   }
   // Pure, order-stable string hash of a payload.
   function userStatsHash(p){
-    var rk = Object.keys(p.rates).sort();
-    var s = p.lang + "|" + p.favorites.join(",") + "|" + p.landed.join(",") + "|" + rk.map(function(k){ return k + ":" + p.rates[k]; }).join(",");
+    var s = p.lang + "|" + p.favorites.join(",");
     var h = 5381;
     for(var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
     return String(h >>> 0) + ":" + s.length;
@@ -65,11 +61,18 @@
     var pre = needCreated ? ref.get().then(function(s){ return !s.exists; }) : Promise.resolve(false);
     return pre.then(function(isNew){
       var data = {
-        lang: payload.lang, favorites: payload.favorites, landed: payload.landed, rates: payload.rates,
+        lang: payload.lang, favorites: payload.favorites,
         lastActiveAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       if(isNew) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      return ref.set(data, { merge: true });
+      // Full set (no merge): drops legacy landed/rates keys so the hasOnly rule accepts old docs.
+      // createdAt is preserved by re-reading it when the doc exists (rule requires it unchanged).
+      if(isNew) return ref.set(data);
+      return ref.get().then(function(s){
+        var old = s.exists ? s.data() : null;
+        if(old && old.createdAt) data.createdAt = old.createdAt;
+        return ref.set(data);
+      });
     }).then(function(){
       writeUserStatsMark(uid, { hash: hash, at: now, created: true });
       _userStatsBusy = false;

@@ -135,25 +135,6 @@ service cloud.firestore {
         request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$');
       allow delete: if isAdmin();
     }
-    // submissions/{subId}: contributor trick submissions awaiting admin review.
-    match /submissions/{subId} {
-      allow create: if isContributor() &&
-        request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'trick', 'parentId', 'status', 'createdAt']) &&
-        request.resource.data.uid == request.auth.uid &&
-        request.resource.data.email == request.auth.token.email.lower() &&
-        request.resource.data.status == 'pending' &&
-        request.resource.data.name is string && request.resource.data.name.size() <= 60 &&
-        request.resource.data.parentId is string && request.resource.data.parentId.size() <= 64 &&
-        request.resource.data.createdAt == request.time &&
-        request.resource.data.trick is map &&
-        request.resource.data.trick.keys().hasOnly(['id', 'name', 'media', 'icon', 'color', 'grip', 'parts', 'officialNote', 'tagIds']) &&
-        request.resource.data.trick.name is map &&
-        request.resource.data.trick.media is list && request.resource.data.trick.media.size() <= 10 &&
-        request.resource.data.trick.officialNote is string && request.resource.data.trick.officialNote.size() <= 2000;
-      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
-      allow update, delete: if isAdmin();
-    }
-
     // reports/{rid}: problem reports, trick submissions from the form, contributor applications (v0.7 D5).
     // Rate limit: the same batch must stamp rateLimits/{uid}.lastReportAt = now, and the previous stamp must be >60s old.
     match /reports/{rid} {
@@ -198,11 +179,9 @@ service cloud.firestore {
       allow get: if isOwner(uid) || isAdmin();
       allow list: if isAdmin();
       allow create, update: if isOwner(uid) &&
-        request.resource.data.keys().hasOnly(['lang', 'favorites', 'landed', 'rates', 'lastActiveAt', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(['lang', 'favorites', 'lastActiveAt', 'createdAt']) &&
         request.resource.data.lang in ['zh', 'jp', 'en'] &&
         request.resource.data.favorites is list && request.resource.data.favorites.size() <= 2000 &&
-        request.resource.data.landed is list && request.resource.data.landed.size() <= 2000 &&
-        request.resource.data.rates is map && request.resource.data.rates.keys().size() <= 2000 &&
         (resource == null || !('createdAt' in resource.data) ||
           request.resource.data.createdAt == resource.data.createdAt);
       allow delete: if isOwner(uid);

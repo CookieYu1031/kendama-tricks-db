@@ -8,7 +8,7 @@ function stubEl(){
   return { addEventListener(){}, classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } }, setAttribute(){}, style: {} };
 }
 function ctx(){
-  const c = load(["js/01-data-model.js","js/02-constants-colors-icons.js","js/03-i18n.js","js/04-state.js","js/05-data-helpers.js","js/16-shell-updates.js","js/70-admin-panel.js"], {
+  const c = load(["js/01-data-model.js", "js/01-data-storage.js","js/02-constants-colors-icons.js","js/03-i18n.js","js/04-state.js","js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js","js/16-shell-updates.js","js/70-admin-panel.js"], {
     document: { getElementById: stubEl, querySelector(){ return null; }, querySelectorAll: () => [], addEventListener(){}, createElement: stubEl, documentElement: stubEl() }
   });
   return c;

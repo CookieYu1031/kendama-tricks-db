@@ -3,15 +3,15 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { load } = require("./_load");
 
-const FILES = ["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
-  "js/05-data-helpers.js", "js/50-sync-core.js", "js/53-sync-chunks.js", "js/54-sync-queue.js", "js/55-sync-conflict.js"];
+const FILES = ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
+  "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/50-sync-core.js", "js/53-sync-chunks.js", "js/54-sync-queue.js", "js/55-sync-conflict.js"];
 let seq = 0;
 const stubs = () => ({ nextId: (taken) => { let id; do { id = "id" + (++seq); } while(taken && taken(id)); return id; } });
 
 function fresh(){ return load(FILES, stubs()); }
 // loadDB() runs at script load, so storage must be filled before loading.
 function loadWith(storage){
-  const ls = load(["js/01-data-model.js"], {}).localStorage;
+  const ls = load(["js/01-data-model.js", "js/01-data-storage.js"], {}).localStorage;
   Object.keys(storage).forEach((k) => ls.setItem(k, storage[k]));
   return load(FILES, { ...stubs(), localStorage: ls });
 }

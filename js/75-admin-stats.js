@@ -2,7 +2,7 @@
 
   /* ============================================================
      ADMIN STATS + BACKUP (企劃書 §三.8, D6 / G5). Mounted by the admin panel:
-       renderAdminStats(containerEl)   - reads userStats/*, the published base, submissions
+       renderAdminStats(containerEl)   - reads userStats/*, the published base, trick submissions (reports kind "trick")
        renderAdminBackup(containerEl)  - last 20 published versions, download as JSON
      Spark plan can't schedule exports; every published version is a full snapshot in
      sharedBase/space-index/versions and is never deleted. Download is read-only.
@@ -129,7 +129,7 @@
       });
       return docs;
     });
-    var subs = fbStore.collection("submissions").get().then(function(qs){ return qs.size; }).catch(function(){ return null; });
+    var subs = fbStore.collection("reports").where("kind", "==", "trick").get().then(function(qs){ return qs.size; }).catch(function(){ return null; });
     var base = fetchSharedBasePointer().then(function(p){ return fetchSharedBaseVersion(p.latestVersion); });
     return Promise.all([uStats, subs, base]).then(function(r){
       return { agg: aggregateUserStats(r[0], Date.now()), subs: r[1], counts: countBaseTricksBySpace(r[2]), names: baseNameMap(r[2]) };

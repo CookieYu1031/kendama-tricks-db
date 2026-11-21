@@ -7,7 +7,7 @@ const { load } = require("./_load");
 function setup(loggedIn){
   let seq = 0;
   const ctx = load(
-    ["js/01-data-model.js", "js/02-constants-colors-icons.js", "js/04-state.js", "js/05-data-helpers.js", "js/20-browse-order.js"],
+    ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/20-browse-order.js"],
     {
       localize: (n) => n && n.zh,
       nextId: (taken) => { let id; do { id = "id" + (++seq); } while(taken && taken(id)); return id; },
