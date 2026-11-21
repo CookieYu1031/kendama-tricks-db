@@ -1,0 +1,70 @@
+/* Practice List tool (js/84-practice-panel.js). Reuses .modal-lg / .field / .btn / .item-icon / .search-empty. */
+  #confirmOverlay{ z-index:70; } /* confirm opened from the practice modal must sit above it */
+  .practice-modal .settings-head{ align-items:center; }
+  .practice-modal .modal-scroll{ overflow-x:hidden; }
+  .prac-title-box{ flex:1 1 auto; min-width:0; }
+  .prac-title-box .modal-title{ margin-bottom:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prac-name{ display:block; max-width:100%; background:none; border:0; padding:0; color:inherit; text-align:left; cursor:pointer; }
+  .prac-name:hover{ color: var(--lacquer-bright); }
+  .prac-name-input{
+    width:100%; background: var(--glass-2); border:1px solid var(--lacquer); color: var(--paper); border-radius:9px;
+    padding:7px 10px; font-family: var(--font-display); font-size:17px; font-weight:700; outline:none;
+  }
+  .prac-new{ width:100%; margin-bottom:10px; }
+  .prac-new:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .prac-lists{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .prac-list-row{
+    display:flex; align-items:center; gap:10px; width:100%; min-width:0; padding:12px 14px; text-align:left;
+    border-radius:14px; border:1px solid var(--glass-border); color: var(--paper); font-family:inherit; cursor:pointer;
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+    transition: transform .15s var(--ease), background .18s var(--ease);
+  }
+  .prac-list-row:hover{ background: var(--glass-3); transform: translateY(-1px); }
+  .prac-list-row.done{ border-color: var(--lacquer); }
+  .prac-list-text{ flex:1 1 auto; min-width:0; }
+  .prac-list-name{ font-family: var(--font-display); font-size:15px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prac-list-meta{ font-size:12px; color: var(--paper-faint); margin-top:3px; }
+  .prac-chev{ flex:0 0 auto; width:18px; height:18px; color: var(--paper-faint); }
+  .prac-chev svg{ width:100%; height:100%; }
+  .prac-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .prac-rows{ display:flex; flex-direction:column; gap:10px; }
+  .prac-row{
+    display:flex; flex-direction:column; gap:10px; padding:12px; min-width:0;
+    border-radius:14px; border:1px solid var(--glass-border);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+  }
+  .prac-row.done{ border-color: var(--lacquer); box-shadow: 0 0 0 1px rgba(var(--lacquer-rgb),0.35) inset; }
+  .prac-row-top{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .prac-icon{ flex:0 0 auto; cursor:pointer; }
+  .prac-row-name{ flex:1 1 auto; min-width:0; font-family: var(--font-display); font-size:14.5px; font-weight:700; word-break:break-word; }
+  .prac-check{ display:none; flex:0 0 auto; width:20px; height:20px; color: var(--lacquer-bright); }
+  .prac-row.done .prac-check{ display:block; }
+  .prac-check svg{ width:100%; height:100%; }
+  .prac-remove{ flex:0 0 auto; width:28px; height:28px; }
+  .prac-remove svg{ width:14px; height:14px; }
+  .prac-row-ctl{ display:flex; align-items:center; gap:8px; min-width:0; }
+  .prac-minus{ flex:0 0 auto; width:44px; height:44px; padding:0; font-size:15px; }
+  .prac-plus{ flex:1 1 auto; min-width:0; height:56px; font-size:22px; font-weight:700; }
+  .prac-count{ flex:0 0 auto; min-width:64px; text-align:center; font-family: var(--font-mono); white-space:nowrap; }
+  .prac-count-n{ font-size:22px; font-weight:700; }
+  .prac-count-t{ font-size:13px; color: var(--paper-faint); }
+  .prac-target{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; color: var(--paper-faint); }
+  .prac-target input{
+    width:56px; padding:6px 4px; text-align:center; font-family: var(--font-mono); font-size:14px;
+    background: var(--glass-2); border:1px solid var(--glass-border); color: var(--paper); border-radius:9px; outline:none;
+  }
+  .prac-target input:focus{ border-color: var(--lacquer); }
+  .prac-add-btn{ margin-right:auto; }
+  .prac-add-btn.active{ border-color: var(--lacquer); }
+  .prac-add{ margin:0 0 12px; }
+  .prac-results{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .prac-result{
+    display:flex; align-items:center; gap:10px; width:100%; min-width:0; padding:8px 10px; text-align:left;
+    border-radius:10px; border:1px solid var(--glass-border); background: var(--glass-1); color: var(--paper);
+    font-family:inherit; font-size:13.5px; cursor:pointer;
+  }
+  .prac-result:hover{ background: var(--glass-2); }
+  .prac-result.in{ opacity:.55; cursor:default; }
+  .prac-result-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prac-result-tag{ flex:0 0 auto; font-size:11.5px; color: var(--paper-faint); }
+  .prac-result-tag svg{ width:16px; height:16px; }

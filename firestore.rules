@@ -53,6 +53,13 @@ service cloud.firestore {
               (request.resource.data.viewingVersion is int && request.resource.data.viewingVersion >= 0)) &&
             (!('updatedAt' in request.resource.data) ||
               (request.resource.data.updatedAt is timestamp && request.resource.data.updatedAt == request.time)))
+          ||
+          // Practice list (v0.12): personal lists, max 20.
+          (metaId == 'practice' &&
+            request.resource.data.keys().hasOnly(['lists', 'clientUpdatedAt', 'updatedAt']) &&
+            request.resource.data.lists is list && request.resource.data.lists.size() <= 20 &&
+            request.resource.data.clientUpdatedAt is number &&
+            (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt == request.time))
         );
       }
 

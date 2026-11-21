@@ -40,6 +40,7 @@
       });
       if(typeof shareOnGuest === "function") shareOnGuest(); // pending ?s=&i= share link: ask to sign in
     }
+    if(typeof practiceOnAuth === "function") practiceOnAuth(user);
     if(typeof maybeStartTour==="function") maybeStartTour(user);
     _authFirstStateSeen = true;
   });

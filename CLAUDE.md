@@ -119,6 +119,8 @@
 | 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
 | 小工具（左欄按鈕、面板、TOOLS registry） | `js/80-tools.js`、`css/tools.css` |
 | 隨機抽招（條件、抽取／重抽、同輪不重複、紀錄；純邏輯與 UI 分開） | `js/81-random-logic.js`（純邏輯）、`js/82-random-panel.js`、`css/random.css` |
+| 練習清單（清單／招式增刪、目標與計數、上限 20 清單／50 招；個人資料不連成功率） | `js/83-practice-logic.js`（純邏輯、同步決策）、`js/84-practice-panel.js`、`css/practice.css` |
+| 練習清單儲存與雲端同步（localStorage 每帳號一份、`users/{uid}/meta/practice`、debounce、dirty 重試、訪客資料帶入；`practiceOnAuth` 由 `js/59-auth-state.js` 呼叫） | `js/85-practice-sync.js` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |

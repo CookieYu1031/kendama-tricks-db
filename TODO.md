@@ -201,6 +201,7 @@
 ### v0.12 練習清單
 - 選招建立清單、每招設定目標次數、點按計數
 - 資料：登入後雲端同步（個人資料；需新增 Firestore 路徑與規則），訪客只存本機
+- [x] 完成：`js/83-practice-logic.js`、`js/84-practice-panel.js`、`js/85-practice-sync.js`、`css/practice.css`；雲端 `users/{uid}/meta/practice`（rules 已加），改動 1.5 秒後寫入、切到背景時立即寫入；登入時比 `clientUpdatedAt` 新者勝，帳號沒有任何資料時把訪客清單帶進帳號；「新增清單」直接建立「練習清單 N」並可改名
 - 決策（2026-11-21）：清單上限 20 個、每清單最多 50 招；只存目前計數（目標、目前次數，可歸零），不留歷史；不連動成招率
 
 ### v0.13 KWC 工具
