@@ -43,7 +43,8 @@
     var btn = document.getElementById("searchToggleBtn");
     btn.classList.add("active");
     btn.setAttribute("aria-expanded", "true");
-    document.getElementById("searchInput").focus();
+    // Touch: no auto-focus (keyboard pops up); the user taps the field to type.
+    if(!(typeof pwaIsTouch === "function" && pwaIsTouch())) document.getElementById("searchInput").focus();
   }
   function closeSearchPanel(){
     document.getElementById("searchPanel").classList.remove("show");

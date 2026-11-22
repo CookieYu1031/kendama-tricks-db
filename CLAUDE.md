@@ -31,8 +31,11 @@
 
 ## 測試（A5）
 
-- 每個新功能和它的關聯項目，都寫一個小型局部測試 `tests/<feature>.test.js`。做法見 `local-test` skill。
-- 執行：`node --test "tests/*.test.js"`。CI 部署前會跑，測試失敗就不會部署。
+- 每個新功能和它的關聯項目，都寫一個小型局部測試，放進對應類別資料夾 `tests/<類別>/<feature>.test.js`。做法見 `local-test` skill。
+- 類別：`core`（js/00–09）、`shell`（10–19、sw、manifest）、`browse`（20–29）、`drawer`（30–39）、`modals`（40–49）、`sync`（50–57、59）、`share`（58）、`search`（60–69、搜尋索引腳本）、`admin`（70–79）、`tools`（80–89）、`firestore`（rules）、`rules`（專案規則：單檔行數、字級／圓角／斷點、三語字串一致、runner 本身）。
+- 開發時執行：`node scripts/test.js`，只跑和改動相關的測試（對應類別＋載入了改動檔的測試＋改到的測試檔；動到 js/00–09、js/90、index.html、`tests/_load.js` 就跑全部；動到 js/css 會加跑 `rules`）。`--list` 只列出要跑的、`<類別…>` 指定類別、`--all` 全部。
+- CI 部署前跑 `node scripts/test.js --all`，測試失敗就不會部署。
+- 只測純邏輯與專案規則；不寫「已移除的功能不存在」、CSS／HTML 字串比對、單一功能的三語字串檢查（`rules/i18n` 已涵蓋），版面改用截圖檢查。
 - 畫面檢查：`preview` skill（`scripts/shot.sh` headless 截圖）。
 
 ## 分支與部署
@@ -78,7 +81,7 @@
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
 | 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、隱私說明連結在署名右側、管理員面板入口） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
-| PWA：SW 註冊、離線 toast、安裝列與一次性橫幅 | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
+| PWA：SW 註冊、離線 toast、安裝列與一次性橫幅；依瀏覽器的安裝引導卡（`js/17-shell-pwa-guide.js`） | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
 | 新手教學（設定頁入口、兩條路線各 10 頁、管理員逐頁編輯、`tutorial/{track}`、`TUTORIAL_PUBLIC` 旗標） | `js/19-tutorial-logic.js`（純邏輯）、`js/19-shell-tutorial.js`（UI／Firestore）、`css/tutorial.css` |
 | 互動式導覽（首次使用／首次登入、設定頁快速導覽） | `js/18-shell-tour.js`、`css/tour.css`（觸發點在 `js/59-auth-state.js`） |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
@@ -128,5 +131,5 @@
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |
 | 部署 | `firebase.json`、`.github/workflows/deploy.yml` |
-| 測試、截圖、console 檢查 | `tests/_load.js`、`tests/*.test.js`、`scripts/shot.sh`、`scripts/console.sh` |
+| 測試、截圖、console 檢查 | `tests/_load.js`、`tests/<類別>/*.test.js`、`scripts/test.js`（依改動挑測試）、`scripts/shot.sh`、`scripts/console.sh` |
 

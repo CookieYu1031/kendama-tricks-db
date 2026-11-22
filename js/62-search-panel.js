@@ -140,7 +140,7 @@
     state.searchQuery = "";
     syncSearchChips();
     runSearchPanel();
-    input.focus();
+    if(!(typeof pwaIsTouch === "function" && pwaIsTouch())) input.focus();
   }
 
   // Lazy one-time fetch of the published index; any failure silently keeps in-memory search.

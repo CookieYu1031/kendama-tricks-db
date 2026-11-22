@@ -12,8 +12,6 @@ addStrings({
     pwaInstall: "加到主畫面",
     pwaInstallDesktop: "建立桌面捷徑",
     pwaInstalled: "已安裝",
-    pwaUnsupported: "請使用瀏覽器選單加入",
-    pwaIosHint: "點分享鈕 → 加入主畫面",
     pwaBannerTitle: "把劍玉招式庫加到主畫面",
     pwaBannerBody: "像 App 一樣開啟，離線也能看。",
     pwaBannerInstall: "加到主畫面",
@@ -25,8 +23,6 @@ addStrings({
     pwaInstall: "ホーム画面に追加",
     pwaInstallDesktop: "デスクトップにショートカット作成",
     pwaInstalled: "インストール済み",
-    pwaUnsupported: "ブラウザのメニューから追加してください",
-    pwaIosHint: "共有ボタン → ホーム画面に追加",
     pwaBannerTitle: "劍玉招式庫をホーム画面に追加",
     pwaBannerBody: "アプリのように開けて、オフラインでも見られます。",
     pwaBannerInstall: "追加",
@@ -38,8 +34,6 @@ addStrings({
     pwaInstall: "Add to Home Screen",
     pwaInstallDesktop: "Create desktop shortcut",
     pwaInstalled: "Installed",
-    pwaUnsupported: "Use your browser menu to add it",
-    pwaIosHint: "Tap Share → Add to Home Screen",
     pwaBannerTitle: "Add Kendama Trick DB to your device",
     pwaBannerBody: "Opens like an app and works offline.",
     pwaBannerInstall: "Add",
@@ -124,13 +118,12 @@ function pwaPromptInstall(){
 
 function renderPwaBanner(){
   if(!pwaBannerEl) return;
-  var isIos = pwaInstallState(pwaEnv()) === "ios";
   pwaBannerEl.innerHTML =
     '<div class="pwa-banner-text">' +
       '<div class="pwa-banner-title">' + escapeHtml(t("pwaBannerTitle")) + '</div>' +
-      '<div class="pwa-banner-body">' + escapeHtml(isIos ? t("pwaIosHint") : t("pwaBannerBody")) + '</div>' +
+      '<div class="pwa-banner-body">' + escapeHtml(t("pwaBannerBody")) + '</div>' +
     '</div>' +
-    (isIos ? '' : '<button type="button" class="btn btn-primary btn-sm" data-pwa="install">' + escapeHtml(t("pwaBannerInstall")) + '</button>') +
+    '<button type="button" class="btn btn-primary btn-sm" data-pwa="install">' + escapeHtml(t("pwaBannerInstall")) + '</button>' +
     '<button type="button" class="btn btn-ghost btn-sm pwa-banner-x" data-pwa="dismiss" aria-label="' + escapeHtml(t("pwaBannerDismiss")) + '">✕</button>';
 }
 
@@ -143,7 +136,7 @@ function pwaShowBanner(){
     var b = e.target && e.target.closest ? e.target.closest("[data-pwa]") : null;
     if(!b) return;
     var act = b.getAttribute("data-pwa");
-    if(act === "install") pwaPromptInstall();
+    if(act === "install") pwaInstallAction();
     pwaDismiss();
   });
   document.body.appendChild(pwaBannerEl);
@@ -160,26 +153,23 @@ function pwaMaybeShowBanner(tries){
   if(shouldShowPwaBanner(pwaInstallState(pwaEnv()), pwaGetLaunches(), pwaIsDismissed(), false)) pwaShowBanner();
 }
 
+// Settings row: label only (no note under it); disabled once installed.
 function renderPwaSettingsRow(){
   var btn = document.getElementById("settingsInstallBtn");
   if(!btn) return;
   var label = document.getElementById("settingsInstallLabel");
-  var note = document.getElementById("settingsInstallNote");
-  var state = pwaInstallState(pwaEnv());
-  if(label) label.textContent = t(pwaIsTouch() ? "pwaInstall" : "pwaInstallDesktop");
-  var text = "";
-  if(state === "installed") text = t("pwaInstalled");
-  else if(state === "ios") text = t("pwaIosHint");
-  else if(state === "unsupported") text = t("pwaUnsupported");
-  if(note) note.textContent = text;
-  btn.disabled = state === "installed" || state === "unsupported";
+  var installed = pwaInstallState(pwaEnv()) === "installed";
+  if(label) label.textContent = installed ? t("pwaInstalled") : t(pwaIsTouch() ? "pwaInstall" : "pwaInstallDesktop");
+  btn.disabled = installed;
   renderPwaBanner();
 }
 
-function pwaSettingsClick(){
+// Native prompt when the browser offers one; otherwise the per-browser guide (js/17-shell-pwa-guide.js).
+function pwaInstallAction(){
   var state = pwaInstallState(pwaEnv());
+  if(state === "installed") return;
   if(state === "available") pwaPromptInstall();
-  else if(state === "ios") pwaShowBanner();
+  else pwaShowGuide();
 }
 
 function pwaCanRegister(){
@@ -210,7 +200,7 @@ function pwaInit(){
   });
   localStorage.setItem(PWA_LAUNCH_KEY, String(pwaGetLaunches() + 1));
   var btn = document.getElementById("settingsInstallBtn");
-  if(btn) btn.addEventListener("click", pwaSettingsClick);
+  if(btn) btn.addEventListener("click", pwaInstallAction);
 }
 
 pwaInit();

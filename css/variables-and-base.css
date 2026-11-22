@@ -98,8 +98,11 @@
     --body-glow-3: rgba(168,123,60,0.16);
     --body-glow-4: rgba(47,134,204,0.12);
   }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  /* touch-action: manipulation turns off double-tap zoom (pinch still works); more specific rules (pan-y, none) still win. */
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   html,body{ height:100%; }
+  /* Canvas colour behind the safe areas / Safari toolbars, so they never show blank or black. */
+  html{ background-color: var(--ink); }
   body{
     margin:0;
     background: var(--ink);
@@ -120,6 +123,10 @@
   ::-webkit-scrollbar-track{ background: transparent; }
   button{ font-family: inherit; }
   input, select, textarea{ font-family: inherit; }
+  /* iOS zooms the page when a focused field's text is under 16px: keep touch fields at 16px. */
+  @media (pointer: coarse){
+    input, select, textarea{ font-size: 16px !important; }
+  }
 
   #app{ height:100%; display:flex; flex-direction:column; }
   .body-row{ flex:1 1 auto; display:flex; min-height:0; overflow:hidden; }
