@@ -14,7 +14,7 @@
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
          addLinkedToast:"已連結招式",
-         addHintEmpty:"輸入名稱，或輸入 @ID 連結既有招式" },
+         addHintEmpty:"名稱，或 @ID 連結" },
     jp:{ addTypeTrick:"技", addTypeFolder:"フォルダ", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
@@ -23,7 +23,7 @@
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
          addLinkedToast:"技をリンクしました",
-         addHintEmpty:"名前、または @ID で既存の技をリンク" },
+         addHintEmpty:"名前、または @ID でリンク" },
     en:{ addTypeTrick:"Trick", addTypeFolder:"Folder", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
@@ -32,7 +32,7 @@
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
          addLinkedToast:"Trick linked",
-         addHintEmpty:"Type a name, or @ID to link an existing trick" }
+         addHintEmpty:"Name, or @ID to link" }
   });
 
   /* ---------------- Pure logic ---------------- */

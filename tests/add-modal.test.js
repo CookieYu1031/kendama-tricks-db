@@ -215,3 +215,10 @@ test("createTrickRecord keeps all three names plus grip and parts", () => {
   assert.strictEqual(rec.grip, c.GRIP_KEYS[0]);
   assert.ok(Array.isArray(rec.parts));
 });
+
+test("add modal: one fixed height for every type (switching tabs never resizes)", () => {
+  const css = require("fs").readFileSync(require("path").join(__dirname, "..", "css", "buttons-and-modals.css"), "utf8");
+  const rule = /\.modal\.add-modal\{([^}]*)\}/.exec(css);
+  assert.ok(rule && /height:min\(/.test(rule[1]) && !/height:auto/.test(rule[1]), "fixed height");
+  assert.ok(!/\.add-modal \.modal-scroll\{[^}]*min-height/.test(css), "no per-body min-height");
+});
