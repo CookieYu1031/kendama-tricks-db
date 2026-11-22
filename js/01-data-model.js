@@ -5,7 +5,6 @@
   ============================================================ */
   // v2 (企劃書 v0.2): the old v1 data (incl. static base files) is dropped, not migrated.
   var STORAGE_KEY = "kendama-trick-db-v2";
-  var OLD_STORAGE_KEY = "kendama-trick-db-v1";
   // v0.3 local-first: only signed-in users persist data, in a per-uid cache (see saveDB below).
   var USER_CACHE_PREFIX = "kendama-trick-db-v2:u:";
   var LAST_UID_KEY = "kendama-last-uid";
@@ -16,8 +15,7 @@
   // load time of this file, before 02 is loaded. Labels / colors live in 02.
   var MAX_VIDEOS = 3;                       // B9: videos per trick
   var GRIP_KEYS = ["ken", "tama", "ito"];  // 持劍 / 持球 / 持線 (single choice)
-  // Parts (multi), grouped ken / ito / tama. Dropped keys ("kensakiSide", "saraDo", "stringHole") vanish
-  // via normalization (unknown keys are filtered). tamaTop is shown as 球面; "junction" (交界) is a pseudo-part.
+  // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球面; "junction" (交界) is a pseudo-part.
   var PART_GROUPS = [
     { key:"ken",  parts:["kenchou","kensaki","sara","saraEdge","junction","kenBody","suberidome","chuzara","chuzaraEdge"] },
     { key:"ito",  parts:["string"] },

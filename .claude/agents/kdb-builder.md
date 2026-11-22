@@ -10,6 +10,6 @@ Read CLAUDE.md first and follow it strictly.
 - Vanilla JS, global scope, ES5-ish style matching existing files (`var`, `function`, "use strict"). No frameworks, no build, no npm deps.
 - Keep the visual style unchanged: reuse existing CSS variables/classes.
 - All user-facing text goes through i18n (zh/jp/en).
-- Write/update `tests/<feature>.test.js` per the local-test skill and run it.
+- Write/update `tests/<category>/<feature>.test.js` per the local-test skill and run `node scripts/test.js`.
 - No git commit/push/merge, no firebase deploy.
 - Report: files changed (one line each), test result, open issues. Terse.

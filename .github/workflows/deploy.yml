@@ -20,7 +20,7 @@ jobs:
           node-version: 22
 
       - name: Run local tests
-        run: node --test "tests/*.test.js"
+        run: node scripts/test.js --all
 
       - name: Deploy hosting + Firestore rules
         env:

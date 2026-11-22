@@ -40,7 +40,7 @@ jobs:
           git push origin HEAD:main
 
       - name: Run local tests
-        run: node --test "tests/*.test.js"
+        run: node scripts/test.js --all
 
       # GITHUB_TOKEN pushes do not trigger deploy.yml, so deploy Hosting here (never rules).
       - name: Deploy hosting

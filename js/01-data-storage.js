@@ -44,8 +44,7 @@
   }
 
   function loadDB(){
-    // Old guest data is discarded on purpose (guests are read-only since v0.3).
-    try{ localStorage.removeItem(OLD_STORAGE_KEY); }catch(e){ /* ignore */ }
+    // Guest data is discarded on purpose (guests are read-only since v0.3).
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){ /* ignore */ }
     userCache = null;
     _optimisticUid = null;
@@ -162,21 +161,16 @@
     });
     var tags = (raw.tags||[]).filter(function(g){ return g && g.id; }).map(normalizeTag);
     var tricks = (raw.tricks||[]).map(function(t, idx){
-      // Videos only (note-type media dropped), at most MAX_VIDEOS — the first ones are kept.
-      var legacyNotes = [];
+      // Videos only (other media types dropped), at most MAX_VIDEOS — the first ones are kept.
       var media = [];
       (Array.isArray(t.media) ? t.media : []).forEach(function(m){
-        if(m.type === "note"){ if(m.content) legacyNotes.push(m.content); return; }
+        if(m.type && m.type !== "video") return;
         media.push({ id: m.id || newItemId(), type:"video", title: typeof m.title === "string" ? m.title : "", url: m.url || "",
           platform: m.platform || (typeof detectPlatform === "function" ? detectPlatform(m.url || "") : "") });
       });
-      // Migrate the legacy single videoUrl field (pre media[] versions) into one video entry.
-      if(!media.length && t.videoUrl){
-        media = [{ id: newItemId(), type:"video", title:"", url: t.videoUrl, platform: typeof detectPlatform === "function" ? detectPlatform(t.videoUrl) : "" }];
-      }
       media = media.slice(0, MAX_VIDEOS);
-      // landed is derived from rate (drawer has no separate toggle): legacy landed w/o rate -> "rare".
-      var rateVal = RATE_LEVELS.indexOf(t.rate) !== -1 ? t.rate : (t.landed ? "rare" : null);
+      // landed is derived from rate (drawer has no separate toggle).
+      var rateVal = RATE_LEVELS.indexOf(t.rate) !== -1 ? t.rate : null;
       var ot = {
         id:t.id, name: nameOf(t.name),
         media: media, categoryIds: Array.isArray(t.categoryIds)? t.categoryIds.slice() : [],
@@ -187,7 +181,7 @@
         tagIds: Array.isArray(t.tagIds) ? t.tagIds.slice() : [],
         grip: GRIP_KEYS.indexOf(t.grip) !== -1 ? t.grip : null,
         parts: Array.isArray(t.parts) ? PART_KEYS.filter(function(k){ return t.parts.indexOf(k) !== -1; }) : [],
-        note: typeof t.note === "string" ? t.note : legacyNotes.join("\n\n"),
+        note: typeof t.note === "string" ? t.note : "",
         landed: !!rateVal,
         rate: rateVal,
         favorite: !!t.favorite,

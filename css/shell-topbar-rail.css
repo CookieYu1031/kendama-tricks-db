@@ -308,7 +308,10 @@
   .edit-toggle.on .edit-toggle-label{ color: var(--paper); }
 
   @media (max-width: 860px){
-    .brand-text{ display:none; }
+    .brand-sub{ display:none; }
+    .brand{ flex:1 1 auto; min-width:0; }
+    .brand-text{ min-width:0; }
+    .brand-title{ font-size:17px; overflow:hidden; text-overflow:ellipsis; }
     .topbar{ padding: 0 12px; gap:10px; }
     .edit-toggle-label{ display:none; }
     .edit-toggle{ padding:5px; }
