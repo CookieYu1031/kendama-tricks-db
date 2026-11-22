@@ -118,9 +118,10 @@
   .emoji-cell.selected{ border-color: var(--wood); background: var(--wood-tint-cell); }
   /* ---------- Unified add modal (js/47-modal-add.js) ---------- */
   /* Fixed size for every type (trick / folder / info): body scrolls inside. */
-  .modal.add-modal{ width:480px; height:auto; max-height:calc((100dvh / var(--ui-zoom)) - 32px); }
-  /* Same body height for all three types (info is the tallest), so switching tabs never jumps. */
-  .add-modal .modal-scroll{ overscroll-behavior:contain; min-height:282px; padding-bottom:6px; }
+  /* One fixed height for all three types, sized to the tallest (trick: names + parts diagram),
+     so switching tabs never jumps; short screens cap it and the body scrolls. */
+  .modal.add-modal{ width:480px; height:min(540px, calc((100dvh / var(--ui-zoom)) - 32px)); max-height:none; }
+  .add-modal .modal-scroll{ overscroll-behavior:contain; padding-bottom:6px; }
   .add-name-hint{ min-height:16px; margin:-6px 0 10px; font-size:12px; }
   .add-name-hint.form-error{ display:block; margin:-6px 0 10px; }
   .add-modal-head{ margin-bottom:12px !important; }
