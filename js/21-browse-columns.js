@@ -334,8 +334,20 @@
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
-      // No inline buttons on rows: folders are edited via the column's "edit this folder"
-      // pill (js/26), info items in the info modal, tricks (edit + delete) in the drawer.
+      // Folders and info items get an edit button left of the chevron; tricks are edited in the drawer.
+      if(canEditRow(it, parentId, admin)){
+        var actions = document.createElement("div"), editBtn = document.createElement("button");
+        actions.className = "item-edit-actions";
+        editBtn.type = "button"; editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
+        editBtn.title = t("rowEdit"); editBtn.setAttribute("aria-label", t("rowEdit"));
+        editBtn.addEventListener("click", function(ev){
+          ev.stopPropagation();
+          if(it.type === "category") openCategoryModal(it.id, parentId);
+          else openInfoModal(it.id, parentId, true);
+        });
+        actions.appendChild(editBtn);
+        row.appendChild(actions);
+      }
 
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the

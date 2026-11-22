@@ -1,8 +1,32 @@
 "use strict";
 
   /* ============================================================
-     VIDEO MODAL
+     VIDEO MODAL — header: title, mirror toggle, speed (YouTube only), close
   ============================================================ */
+  addStrings({
+    zh:{ videoMirror:"鏡像", videoSpeed:"播放速度" },
+    jp:{ videoMirror:"左右反転", videoSpeed:"再生速度" },
+    en:{ videoMirror:"Mirror", videoSpeed:"Playback speed" }
+  });
+
+  var VIDEO_RATES = [1, 0.75, 0.5, 0.25];
+  // Next rate in the 1 -> 0.75 -> 0.5 -> 0.25 -> 1 cycle (unknown rate restarts at 1).
+  function nextVideoRate(r){
+    var i = VIDEO_RATES.indexOf(r);
+    return VIDEO_RATES[(i + 1) % VIDEO_RATES.length];
+  }
+  function videoRateLabel(r){ return r + "x"; }
+  // Which header tools a video gets: mirror for any embedded player (CSS flip),
+  // speed only for YouTube (IFrame API over postMessage; needs enablejsapi=1).
+  function videoToolsFor(info){
+    var embedded = !!(info && info.embedUrl);
+    return { mirror: embedded, speed: embedded && info.type === "youtube" };
+  }
+  // YouTube IFrame API command message (sent to the iframe's contentWindow).
+  function ytCommandMessage(func, args){
+    return JSON.stringify({ event:"command", func: func, args: args || [] });
+  }
+
   function getEmbedInfo(url){
     if(!url) return null;
     var u;
@@ -13,7 +37,7 @@
       if(host==="youtu.be") vid = u.pathname.slice(1);
       else vid = u.searchParams.get("v") || u.pathname.split("/").filter(Boolean).pop();
       if(!vid) return { type:"other", embedUrl:null, originalUrl:url };
-      return { type:"youtube", embedUrl: "https://www.youtube.com/embed/" + vid };
+      return { type:"youtube", embedUrl: "https://www.youtube.com/embed/" + encodeURIComponent(vid) + "?enablejsapi=1&playsinline=1" };
     }
     if(host==="vimeo.com" || host==="player.vimeo.com"){
       var parts = u.pathname.split("/").filter(Boolean);
@@ -45,17 +69,50 @@
     closeBtn.innerHTML = ICON_X;
     closeBtn.addEventListener("click", closeVideoModal);
 
-    // Header bar above the video (title + close never cover the player).
+    // Header bar above the video (title + tools + close never cover the player).
     var head = document.createElement("div");
     head.className = "video-modal-head";
     head.appendChild(titleBar);
-    head.appendChild(closeBtn);
     modal.appendChild(head);
 
+    var tools = videoToolsFor(info);
+    var frameWrap = null, iframe = null;
+    if(tools.mirror){
+      var mirrorBtn = document.createElement("button");
+      mirrorBtn.type = "button";
+      mirrorBtn.className = "icon-btn video-tool-btn";
+      mirrorBtn.title = t("videoMirror"); mirrorBtn.setAttribute("aria-label", t("videoMirror"));
+      mirrorBtn.setAttribute("aria-pressed", "false");
+      mirrorBtn.innerHTML = ICON_MIRROR;
+      mirrorBtn.addEventListener("click", function(){
+        var on = !frameWrap.classList.contains("mirrored");
+        frameWrap.classList.toggle("mirrored", on);
+        mirrorBtn.classList.toggle("active", on);
+        mirrorBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      head.appendChild(mirrorBtn);
+    }
+    if(tools.speed){
+      var rate = 1;
+      var speedBtn = document.createElement("button");
+      speedBtn.type = "button";
+      speedBtn.className = "icon-btn video-tool-btn video-speed-btn";
+      speedBtn.title = t("videoSpeed"); speedBtn.setAttribute("aria-label", t("videoSpeed"));
+      speedBtn.textContent = videoRateLabel(rate);
+      speedBtn.addEventListener("click", function(){
+        rate = nextVideoRate(rate);
+        speedBtn.textContent = videoRateLabel(rate);
+        speedBtn.classList.toggle("active", rate !== 1);
+        if(iframe && iframe.contentWindow) iframe.contentWindow.postMessage(ytCommandMessage("setPlaybackRate", [rate]), "https://www.youtube.com");
+      });
+      head.appendChild(speedBtn);
+    }
+    head.appendChild(closeBtn);
+
     if(info && info.embedUrl){
-      var frameWrap = document.createElement("div");
+      frameWrap = document.createElement("div");
       frameWrap.className = "video-frame-wrap";
-      var iframe = document.createElement("iframe");
+      iframe = document.createElement("iframe");
       iframe.src = info.embedUrl;
       iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
       iframe.setAttribute("allowfullscreen", "true");

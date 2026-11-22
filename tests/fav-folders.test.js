@@ -98,12 +98,13 @@ test("fab / add modal / paste / drop are blocked in blocked containers", () => {
   assert.strictEqual(c.canReparent({ type: "category", id: "fav-external", ref: c.getCategory("fav-external") }, null, "c1"), false);
 });
 
-test("fixed folders have no edit pill; imported folder does", () => {
+test("fixed folders have no row edit button; imported folder does", () => {
   const c = setup();
   c.isLoggedIn = () => true;
-  assert.strictEqual(c.colEditTarget("fav-external", "fav", false), null);
-  assert.strictEqual(c.colEditTarget("fav-external-single", "fav", false), null);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.colEditTarget("imp1", "fav", false))), { kind: "folder", id: "imp1", parentId: "fav-external" });
+  const r = (id) => ({ type: "category", id, ref: c.getCategory(id) });
+  assert.strictEqual(c.canEditRow(r("fav-external"), null, false), false);
+  assert.strictEqual(c.canEditRow(r("fav-external-single"), "fav-external", false), false);
+  assert.strictEqual(c.canEditRow(r("imp1"), "fav-external", false), true);
 });
 
 test("favNoCreate i18n exists in zh/jp/en", () => {

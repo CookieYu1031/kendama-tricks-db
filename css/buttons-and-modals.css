@@ -138,6 +138,7 @@
   .add-disabled{ opacity:.45; pointer-events:none; }
   .add-modal [hidden]{ display:none !important; }
   .add-modal .field-row .field{ min-width:0; }
+  .add-parts .part-diagram{ height:150px; }
   .modal-actions-split{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:10px; }
   .form-error{ font-size:12px; color: var(--danger-bright); margin-top: -6px; margin-bottom:12px; display:none; }
   .form-error.show{ display:block; }
@@ -150,6 +151,11 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .video-modal-close{ flex:0 0 auto; }
+  .video-tool-btn{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; color: var(--paper-dim); cursor:pointer; }
+  .video-tool-btn svg{ width:18px; height:18px; display:block; }
+  .video-tool-btn.active{ color: var(--accent-text); border-color: var(--lacquer-bright); }
+  .video-speed-btn{ width:auto; min-width:44px; padding:0 8px; font: 600 13px var(--font-body); font-variant-numeric: tabular-nums; }
+  .video-frame-wrap.mirrored iframe{ transform: scaleX(-1); }
   .video-fallback{ padding: 40px 30px; text-align:center; }
   .video-fallback svg{ width:30px; height:30px; color: var(--paper-faint); margin-bottom:14px; }
   .video-fallback p{ color: var(--paper-dim); font-size:13.5px; margin-bottom:18px; }
