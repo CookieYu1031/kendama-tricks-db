@@ -111,6 +111,13 @@
     if(!sp || !sp.locked) return true;
     return !!isAdmin;
   }
+  // Row edit button (left of ">"): folders and info items the user may modify,
+  // except the fixed 收藏 folders. Tricks are edited in the drawer.
+  function canEditRow(it, parentId, isAdmin){
+    if(it.type !== "category" && it.type !== "info") return false;
+    if(it.type === "category" && isFixedFavFolder(it.id)) return false;
+    return canModifyItem(it, parentId, isAdmin);
+  }
   // Reorder / reparent drag: same rule, but custom tricks in a locked table stay put for non-admins.
   function canDragItem(it, parentId, isAdmin){
     if(!canModifyItem(it, parentId, isAdmin)) return false;

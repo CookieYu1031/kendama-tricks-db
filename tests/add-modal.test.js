@@ -193,8 +193,25 @@ test("createTrickRecord from a detected single name: only that language is fille
   assert.strictEqual(rec.name.en, "");
 });
 
-test("add modal markup: trick form has no grip/parts/tags/video/note fields", () => {
+test("add modal markup: three name boxes + grip/parts diagram; no tags/video/note fields", () => {
   const html = require("fs").readFileSync(require("path").join(__dirname, "..", "index.html"), "utf8");
-  ["addGripRow", "addPartsRow", "addTagsRow", "addVideoUrl", "addNote\""].forEach((id) => assert.ok(html.indexOf("id=\"" + id.replace("\"", "") + "\"") === -1, id));
-  assert.ok(html.indexOf('id="addNameHint"') !== -1);
+  ["addTagsRow", "addVideoUrl", "addNote"].forEach((id) => assert.ok(html.indexOf('id="' + id + '"') === -1, id));
+  ["addNameHint", "addAlt1", "addAlt2", "addPartsSection", "addParts", "addGrips"].forEach((id) => assert.ok(html.indexOf('id="' + id + '"') !== -1, id));
+});
+
+test("addTrickLinkTarget: @id in any box; bare id only alone in main box and existing", () => {
+  const c = setup();
+  assert.strictEqual(c.addTrickLinkTarget("", "@a000000", ""), "a000000");
+  assert.strictEqual(c.addTrickLinkTarget("a000000", "", ""), "a000000");
+  assert.strictEqual(c.addTrickLinkTarget("a000000", "Ama", ""), null);
+  assert.strictEqual(c.addTrickLinkTarget("zzzzzzz", "", ""), null);
+  assert.strictEqual(c.addTrickLinkTarget("飛行機", "ひこうき", "Airplane"), null);
+});
+
+test("createTrickRecord keeps all three names plus grip and parts", () => {
+  const c = setup();
+  const rec = c.createTrickRecord("c1", "t00", { zh: "飛行機", jp: "ひこうき", en: "Airplane", grip: c.GRIP_KEYS[0], parts: ["oozara"] }, false);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(rec.name)), { zh: "飛行機", jp: "ひこうき", en: "Airplane" });
+  assert.strictEqual(rec.grip, c.GRIP_KEYS[0]);
+  assert.ok(Array.isArray(rec.parts));
 });

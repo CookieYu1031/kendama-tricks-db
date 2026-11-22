@@ -14,7 +14,7 @@
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
          addLinkedToast:"已連結招式",
-         addHintZh:"將建立中文名稱", addHintJp:"將建立日文名稱", addHintEn:"將建立英文名稱", addHintEmpty:"輸入名稱，或輸入既有招式 ID 來連結" },
+         addHintEmpty:"輸入名稱，或輸入 @ID 連結既有招式" },
     jp:{ addTypeTrick:"技", addTypeFolder:"フォルダ", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
@@ -23,7 +23,7 @@
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
          addLinkedToast:"技をリンクしました",
-         addHintZh:"中国語名で作成します", addHintJp:"日本語名で作成します", addHintEn:"英語名で作成します", addHintEmpty:"名前、または既存の技IDでリンク" },
+         addHintEmpty:"名前、または @ID で既存の技をリンク" },
     en:{ addTypeTrick:"Trick", addTypeFolder:"Folder", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
@@ -32,7 +32,7 @@
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
          addLinkedToast:"Trick linked",
-         addHintZh:"Will create a Chinese name", addHintJp:"Will create a Japanese name", addHintEn:"Will create an English name", addHintEmpty:"Type a name, or an existing trick ID to link" }
+         addHintEmpty:"Type a name, or @ID to link an existing trick" }
   });
 
   /* ---------------- Pure logic ---------------- */
@@ -106,6 +106,15 @@
     return { kind: "name", lang: "en" };
   }
 
+  // Trick name boxes -> trick id to link, or null. "@id" in any box links;
+  // a bare 7-char id links only when typed alone in the main box and that trick exists.
+  function addTrickLinkTarget(main, alt1, alt2){
+    var at = findLinkTarget([main, alt1, alt2]);
+    if(at) return at;
+    var d = detectAddName(main);
+    return (d.kind === "link" && !(alt1 || "").trim() && !(alt2 || "").trim()) ? d.id : null;
+  }
+
   // ArrowUp/Down between text fields. Returns the target index, or -1 to leave the key alone.
   // f: { key, multiline, value, selStart, selEnd, idx, count, composing }
   // Textareas only hand focus over when the caret sits on the first (Up) / last (Down) line.
@@ -174,13 +183,10 @@
     sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_FOLDER);
   }
 
-  function addDetected(){
-    return addForm && addForm.type === "trick" ? detectAddName(addEl("addMainName").value) : { kind: "empty" };
-  }
   // Link target id (trick type only), else null.
   function addLinkTarget(){
-    var d = addDetected();
-    return d.kind === "link" ? d.id : null;
+    if(!addForm || addForm.type !== "trick") return null;
+    return addTrickLinkTarget(addEl("addMainName").value, addEl("addAlt1").value, addEl("addAlt2").value);
   }
   function addIsLinking(){ return !!addLinkTarget(); }
   function addNoteEl(){ return addEl("addNameHint"); }
@@ -193,9 +199,10 @@
     Array.prototype.forEach.call(addEl("addTypeSwitch").children, function(b){
       b.classList.toggle("active", b.dataset.type === type);
     });
-    // Trick: one auto-detected name box. Folder: three names. Info: one title + content.
-    addEl("addAltRow").hidden = type !== "folder";
-    addEl("addMainLabel").textContent = isTrick ? t("addNameLabel") : addForm.mainLabel;
+    // Trick and folder: three names (trick adds grip + parts diagram). Info: one title + content.
+    addEl("addAltRow").hidden = type === "info";
+    addEl("addPartsSection").hidden = !isTrick;
+    addEl("addMainLabel").textContent = addForm.mainLabel;
     addEl("addMainName").placeholder = isTrick ? t("addHintEmpty") : "";
     updateAddIconPreview();
     syncAddLinking();
@@ -210,8 +217,6 @@
     note.classList.remove("form-error", "show");
     note.hidden = addForm.type !== "trick";
     if(addForm.type !== "trick"){ note.textContent = ""; return; }
-    var d = addDetected();
-    if(d.kind === "name"){ note.textContent = t(d.lang === "jp" ? "addHintJp" : d.lang === "en" ? "addHintEn" : "addHintZh"); return; }
     if(!id){ note.textContent = ""; return; }
     key = validateLinkTrick(id, addForm.parentId, addForm.spaceId, isAdminNow());
     if(key){
@@ -239,6 +244,28 @@
     if(n < 0) return;
     ev.preventDefault();
     list[n].focus();
+  }
+
+  // Grip chips + clickable part diagram (same widgets as the 投稿 form, js/74).
+  function buildAddParts(){
+    var tr = addForm.tr = { grip: null, parts: [] };
+    var wrap = addEl("addParts"), gripCol = addEl("addGrips"), gripBtns = {};
+    addEl("addPartsLabel").textContent = t("formPartsGrip");
+    Array.prototype.slice.call(wrap.querySelectorAll(".part-diagram-box")).forEach(function(n){ n.remove(); });
+    gripCol.innerHTML = "";
+    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){ togglePart(tr, key); sync(); } });
+    wrap.insertBefore(diagram, gripCol);
+    GRIP_KEYS.forEach(function(k){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "drawer-chip"; b.textContent = t("grip_" + k);
+      b.addEventListener("click", function(){ toggleGrip(tr, k); sync(); });
+      gripCol.appendChild(b); gripBtns[k] = b;
+    });
+    function sync(){
+      diagram.update(tr.parts);
+      GRIP_KEYS.forEach(function(k){ gripBtns[k].classList.toggle("active", tr.grip === k); });
+    }
+    sync();
   }
 
   function openAddModal(parentId, spaceId){
@@ -276,9 +303,12 @@
     if(!addInputsBound){
       addInputsBound = true;
       addEl("addModal").addEventListener("keydown", onAddArrowKey);
-      // Trick name box: live language / ID-link detection.
-      addEl("addMainName").addEventListener("input", function(){ if(addForm) syncAddLinking(); });
+      // Name boxes: live ID-link detection.
+      ["addMainName", "addAlt1", "addAlt2"].forEach(function(id){
+        addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); });
+      });
     }
+    buildAddParts();
     addEl("addContentLabel").textContent = t("addContentLabel");
     addEl("addCancelBtn").textContent = t("cancel");
     addEl("addSaveBtn").textContent = t("save");
@@ -308,11 +338,8 @@
     }
 
     var f = {};
-    if(type === "trick"){
-      var det = detectAddName(addEl("addMainName").value);
-      if(det.kind === "name") f[det.lang] = addEl("addMainName").value;
-    } else {
-      f[addForm.mainLang] = addEl("addMainName").value;
+    f[addForm.mainLang] = addEl("addMainName").value;
+    if(type !== "info"){
       f[addForm.alt1Lang] = addEl("addAlt1").value;
       f[addForm.alt2Lang] = addEl("addAlt2").value;
     }
@@ -329,9 +356,10 @@
       createInfoRecord(parentId, spaceId, f);
       showToast(t("savedInfo"));
     } else {
+      f.grip = addForm.tr.grip; f.parts = addForm.tr.parts.slice();
       var rec = createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);
       showToast(t("savedTrick"));
-      // Continue in the drawer (edit mode): grip, parts, tags, videos, note live there.
+      // Continue in the drawer (edit mode): tags, videos, note live there.
       saveDB(); closeAddModal(); state.editMode = true; render(); openDrawerFor(rec.id);
       return;
     }
