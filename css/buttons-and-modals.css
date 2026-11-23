@@ -26,6 +26,7 @@
   }
   .modal-overlay.show{ opacity:1; pointer-events:auto; }
   #iconPickerOverlay{ z-index: 75; }
+  #customColorOverlay{ z-index: 76; }
   .modal{
     width: 440px; max-width:100%; max-height: calc(86vh / var(--ui-zoom)); overflow:hidden;
     background: linear-gradient(165deg, var(--surface-modal-a), var(--surface-modal-b));
@@ -90,7 +91,7 @@
   }
   .color-swatch-row{ display:flex; flex-wrap:wrap; gap:10px; }
   .color-swatch{
-    width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex:0 0 auto;
+    width:32px; height:32px; padding:0; border-radius:50%; cursor:pointer; border:2px solid transparent; flex:0 0 auto;
     display:flex; align-items:center; justify-content:center; transition: transform .15s var(--ease), border-color .15s var(--ease);
   }
   .color-swatch:hover{ transform: scale(1.08); }
@@ -102,15 +103,14 @@
   .emoji-input-row input[type=text]{ flex:1 1 auto; min-width:0; }
   .emoji-input-row .btn{ flex:0 0 auto; white-space:nowrap; }
   .emoji-input-row .btn[hidden]{ display:none; }
+  /* 4 rows x 8, one plain table: no row separators, no inner scroll. */
   .emoji-grid{
-    display:flex; flex-direction:column; gap:10px; max-height: 220px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:4px;
     border:1px solid var(--glass-border); border-radius:var(--radius-xs); padding:10px; background: var(--glass-1);
   }
   .emoji-group{
     display:grid; grid-template-columns: repeat(8, 1fr); gap:6px;
-    padding-bottom: 10px; border-bottom: 1px solid var(--line);
   }
-  .emoji-group:last-child{ padding-bottom:0; border-bottom:none; }
   .emoji-cell{
     width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:18px;
     border-radius:var(--radius-xs); cursor:pointer; border:1px solid transparent; background: transparent; transition: background .15s var(--ease), border-color .15s var(--ease);
@@ -192,27 +192,58 @@
   .color-swatch-row{ display:grid; grid-template-columns: repeat(8, 1fr); gap:8px; justify-items:center; }
   .color-swatch-row .color-swatch{ width:100%; max-width:36px; height:auto; aspect-ratio:1; }
   .color-swatch-row .color-swatch svg{ width:45%; height:45%; }
+  /* 自訂 pill: .btn.btn-ghost look; spans from the left of the col-7 circle to the right of the col-8 circle. */
+  .color-swatch-row{ container-type:inline-size; }
   .color-custom-btn{
-    grid-column: span 2; width:100%; max-width:80px; aspect-ratio:auto; height:100%; min-height:28px; cursor:pointer;
-    border:2px solid var(--glass-border); border-radius:999px; background: var(--glass-2); color: var(--paper-dim);
-    font-size:12px; font-family:inherit; transition: border-color .15s var(--ease);
+    grid-column: 7 / span 2; justify-self:stretch; width:auto; min-width:0; white-space:nowrap;
+    --cs-inset: max(0px, calc(((100cqw - 56px) / 8 - 36px) / 2));
+    margin-inline: var(--cs-inset);
+    /* same height as the circles (cell width capped at 36px), centred: top/bottom edges match 紅 */
+    --cs-size: min(36px, calc((100cqw - 56px) / 8));
+    height: var(--cs-size); min-height:0; padding-block:0; align-self:center; box-sizing:border-box;
+    display:flex; align-items:center; justify-content:center;
   }
   .color-custom-btn.has-color{ background: var(--custom-color); color:#fff; text-shadow:0 0 3px rgba(0,0,0,.6); }
   .color-custom-btn.selected{ border-color: var(--paper); }
-  .color-custom-panel{ grid-column: 1 / -1; width:100%; display:flex; flex-direction:column; gap:8px; padding:10px;
-    border:1px solid var(--glass-border); border-radius:var(--radius-xs); background: var(--glass-1); }
-  .color-custom-top{ display:flex; gap:8px; align-items:center; }
-  .color-custom-native{ width:44px; height:34px; padding:0; border:1px solid var(--glass-border); border-radius:var(--radius-xs); background:transparent; cursor:pointer; flex:0 0 auto; }
-  .color-custom-hex{ flex:1 1 auto; min-width:0; }
-  .color-custom-hex.invalid{ border-color: var(--danger); }
-  .color-custom-presets{ display:grid; grid-template-columns: repeat(8, 1fr); gap:8px; justify-items:center; }
-  .color-custom-presets .color-swatch{ width:100%; max-width:36px; height:auto; aspect-ratio:1; }
-  .color-custom-panel .form-error{ margin:0; }
   /* Theme-adaptive "default" item colour (light grey on dark theme, dark grey on light theme). */
-  :root{ --color-default:#B4B3AF; }
-  :root[data-theme="light"]{ --color-default:#5F5E5B; }
+  :root{ --color-default:#B5B3AE; --color-contrast:#FFFFFF; --color-contrast-tick:#111111; }
+  :root[data-theme="light"]{ --color-default:#5F5E5B; --color-contrast:#1F1F1F; --color-contrast-tick:#FFFFFF; }
+  .color-swatch[data-key="contrast"] svg{ color: var(--color-contrast-tick); filter:none; }
   /* 8 emoji per row at every width (cells shrink instead of overflowing). */
-  .emoji-grid{ padding:8px; scrollbar-gutter:stable; }
+  .emoji-grid{ padding:8px; }
   .emoji-group{ grid-template-columns: repeat(8, minmax(0, 1fr)); gap:4px; }
   .emoji-cell{ min-width:0; font-size:17px; }
-  .color-swatch-row, .color-custom-presets{ grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .color-swatch-row{ grid-template-columns: repeat(8, minmax(0, 1fr)); }
+
+  /* ---------- Custom colour modal (js/49-modal-color-custom.js) ---------- */
+  .ccm-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .ccm-head .modal-title{ flex:1 1 auto; margin-bottom:0; }
+  .ccm-hexrow.field{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .ccm-preview{ width:36px; height:36px; border-radius:50%; flex:0 0 auto; border:2px solid var(--glass-border-strong); }
+  .ccm-hex{ flex:1 1 auto; min-width:0; font-family: var(--font-mono); }
+  .ccm-hex.invalid{ border-color: var(--danger); }
+  #ccmError{ margin:-6px 0 10px; }
+  .ccm-sv, .ccm-hue{ position:relative; width:100%; touch-action:none; user-select:none; -webkit-user-select:none; cursor:crosshair; }
+  .ccm-sv{ height:160px; border-radius:var(--radius-xs); margin-bottom:16px;
+    background-image: linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+  .ccm-hue{ height:20px; border-radius:999px; margin-bottom:4px;
+    background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%); }
+  .ccm-knob{ position:absolute; width:22px; height:22px; margin:-11px 0 0 -11px; border-radius:50%; border:3px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.5); pointer-events:none; }
+  .ccm-hue .ccm-knob{ top:50%; }
+  .ccm-bottom{ display:flex; align-items:center; gap:12px; }
+  .ccm-recent{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:4px; }
+  .ccm-recent-label{ font-size:12px; color: var(--paper-faint); }
+  .ccm-slots{ display:flex; gap:10px; }
+  .ccm-slot{ width:34px; height:34px; border-radius:50%; flex:0 0 auto; cursor:pointer; padding:0; border:2px solid transparent; }
+  .ccm-slot.selected{ border-color: var(--paper); }
+  .ccm-slot.empty{ background:transparent; border:2px dashed var(--glass-border-strong); cursor:default; }
+  .ccm-bottom .btn{ flex:0 0 auto; }
+  /* Icon picker must not need scrolling: emoji cells keep a fixed 36px height (wide modal no longer
+     stretches them into tall squares), and its scroll area shows no bar (very short screens can still scroll). */
+  #iconPickerModal .emoji-cell{ aspect-ratio:auto; height:36px; }
+  #iconPickerModal .modal-scroll{ overflow-x:hidden; scrollbar-width:none; }
+  #iconPickerModal .modal-scroll::-webkit-scrollbar{ display:none; }
+  /* Bigger, bolder selected tick. */
+  .color-swatch-row .color-swatch svg{ width:70%; height:70%; }
+  .color-swatch-row .color-swatch svg path{ stroke-width:3.2; }

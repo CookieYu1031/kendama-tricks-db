@@ -159,11 +159,18 @@
 
     // Sections below the names; view mode renders only those with data (drawerSections).
     var expandContent = document.createElement("div");
-    if(sec.videos) buildDrawerVideoSlots(tr, canEditTrick, expandContent);
-    if(sec.diagram) expandContent.appendChild(buildPartDiagram(tr, false)); // view mode (edit mode embeds it in buildDrawerGripParts)
+    // Order: diagram / grip picker, tags, videos, note. View mode puts the diagram and the chip
+    // flow in one .drawer-viz box (side by side when the drawer body is wide, see detail-drawer.css).
     if(sec.gripParts) buildDrawerGripParts(tr, expandContent);
     if(sec.tags) buildDrawerTags(tr, canEditTrick, expandContent);
-    if(sec.flow) buildDrawerFlowChips(tr, expandContent);
+    if(sec.diagram || sec.flow){
+      var viz = document.createElement("div");
+      viz.className = "drawer-viz" + (sec.diagram ? " has-diagram" : "");
+      if(sec.diagram) viz.appendChild(buildPartDiagram(tr, false)); // view mode (edit mode embeds it in buildDrawerGripParts)
+      if(sec.flow) buildDrawerFlowChips(tr, viz);
+      if(viz.children.length) expandContent.appendChild(viz);
+    }
+    if(sec.videos) buildDrawerVideoSlots(tr, canEditTrick, expandContent);
     if(sec.note) buildDrawerNote(tr, state.editMode, expandContent);
     body.appendChild(expandContent);
 

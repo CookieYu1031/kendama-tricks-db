@@ -159,7 +159,7 @@
 
   // Color values stored on items: a palette key (see COLOR_PALETTE in js/02) or strict "#rrggbb".
   // Lives here because normalizeDB runs at load time, before js/02.
-  var COLOR_KEYS = ["default","brown","orange","yellow","lime","green","teal","sky","blue","purple","magenta","red","pink","gray"];
+  var COLOR_KEYS = ["default","contrast","brown","orange","yellow","lime","green","teal","sky","blue","purple","magenta","red","pink","gray"];
   var HEX6_RE = /^#[0-9a-f]{6}$/i;
   // "#RGB" / "#RRGGBB" (any case) -> "#rrggbb"; anything else -> "".
   function normalizeHexColor(v){

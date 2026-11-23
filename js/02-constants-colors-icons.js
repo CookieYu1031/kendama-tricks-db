@@ -3,22 +3,23 @@
   /* ============================================================
      COLOR PALETTE & ICON SET (Notion-like)
   ============================================================ */
-  // Picker order (8 per row). "default" is theme-adaptive via --color-default (dark grey in light
+  // Picker order (2 rows x 8 cells; 自訂 pill takes the last 2 cells). "default" is theme-adaptive via --color-default (dark grey in light
   // theme, light grey in dark theme). Keys marked legacy stay valid so old data still renders.
   var COLOR_PALETTE = [
-    { key:"default", hex:"var(--color-default)" },
-    { key:"brown",   hex:"#A87A56" },
-    { key:"orange",  hex:"#D9822B" },
-    { key:"yellow",  hex:"#DFAB01" },
-    { key:"lime",    hex:"#8DB63C" },
-    { key:"green",   hex:"#4F9768" },
-    { key:"teal",    hex:"#2F9E8F" },
-    { key:"sky",     hex:"#58B4E0" },
-    { key:"blue",    hex:"#3B82C4" },
-    { key:"purple",  hex:"#9065B0" },
-    { key:"magenta", hex:"#C14C8A" },
-    { key:"red",     hex:"#D44C47" },
-    { key:"pink",    hex:"#E88BAA" }
+    { key:"default",  hex:"var(--color-default)" },
+    { key:"contrast", hex:"var(--color-contrast)" }, // white on dark theme, near-black on light theme
+    { key:"brown",    hex:"#A87A56" },
+    { key:"orange",   hex:"#D9822B" },
+    { key:"yellow",   hex:"#DFAB01" },
+    { key:"lime",     hex:"#8DB63C" },
+    { key:"green",    hex:"#4F9768" },
+    { key:"teal",     hex:"#2F9E8F" },
+    { key:"sky",      hex:"#58B4E0" },
+    { key:"blue",     hex:"#3B82C4" },
+    { key:"purple",   hex:"#9065B0" },
+    { key:"magenta",  hex:"#C14C8A" },
+    { key:"pink",     hex:"#E88BAA" },
+    { key:"red",      hex:"#D44C47" }
   ];
   var COLOR_LEGACY = [ { key:"gray", hex:"#8B8A86" } ];
   var CUSTOM_COLOR_PRESETS = ["#E5484D", "#F5A524", "#17C964", "#0E8AAA", "#7C5CFF", "#FF6BA9", "#6B7280", "#111827"];
@@ -36,7 +37,6 @@
   var ICON_EMOJI_GROUPS = [
     ["📌","✨","❤️","🔥","👍","💡","🔰","💎"],
     ["📆","🎯","🎲","⚔️","🏆","🥇","🥈","🥉"],
-    ["🗂️","📓","📕","📗","📘","📙","📄","📖"],
     ["✈️","🌍","🕯️","🕊️","🌙","🪓","🪝","🛸"],
     ["🌀","☁️","🌪️","⚡","🦵","💪","🤹","🍞"]
   ];
@@ -79,7 +79,7 @@
   // addStrings() in 04-state.js, because 03-i18n.js loads after this file.
   var DATA_MODEL_STRINGS = {
     zh: {
-      resetDefaultOption:"還原預設", color_default:"預設", color_brown:"棕", color_orange:"橙", color_yellow:"黃", color_lime:"淺綠", color_green:"綠", color_teal:"藍綠", color_sky:"淺藍", color_blue:"藍", color_purple:"紫", color_magenta:"洋紅", color_red:"紅", color_pink:"粉紅", color_custom:"自訂", colorHexInvalid:"請輸入 #RGB 或 #RRGGBB",
+      resetDefaultOption:"還原預設", color_default:"預設", color_contrast:"高對比", color_brown:"棕", color_orange:"橙", color_yellow:"黃", color_lime:"淺綠", color_green:"綠", color_teal:"藍綠", color_sky:"淺藍", color_blue:"藍", color_purple:"紫", color_magenta:"洋紅", color_red:"紅", color_pink:"粉紅", color_custom:"自訂", colorHexInvalid:"請輸入 #RGB 或 #RRGGBB",
       // grip_<key> = full label (view chips, mailbox...); gripS_<key> = short label (picker chips)
       grip_ken:"持劍", grip_ken_ken:"持劍", grip_ken_sara:"持皿", grip_ken_candle:"持蠟燭",
       grip_ken_gun:"持轉劍", grip_ken_space:"持劍尾", grip_ken_stall:"持極意", grip_ken_swivel:"扣皿",
@@ -97,7 +97,7 @@
       iconTextTooLong:"圖示文字過長：最多 1 個全形字或 2 個半形字"
     },
     jp: {
-      resetDefaultOption:"デフォルトに戻す", color_default:"デフォルト", color_brown:"茶", color_orange:"オレンジ", color_yellow:"黄", color_lime:"黄緑", color_green:"緑", color_teal:"青緑", color_sky:"水色", color_blue:"青", color_purple:"紫", color_magenta:"マゼンタ", color_red:"赤", color_pink:"ピンク", color_custom:"カスタム", colorHexInvalid:"#RGB または #RRGGBB で入力してください",
+      resetDefaultOption:"デフォルトに戻す", color_default:"デフォルト", color_contrast:"ハイコントラスト", color_brown:"茶", color_orange:"オレンジ", color_yellow:"黄", color_lime:"黄緑", color_green:"緑", color_teal:"青緑", color_sky:"水色", color_blue:"青", color_purple:"紫", color_magenta:"マゼンタ", color_red:"赤", color_pink:"ピンク", color_custom:"カスタム", colorHexInvalid:"#RGB または #RRGGBB で入力してください",
       // grip_<key> = full label (view chips, mailbox...); gripS_<key> = short label (picker chips)
       grip_ken:"けん持ち", grip_ken_ken:"けん持ち", grip_ken_sara:"皿持ち", grip_ken_candle:"キャンドル持ち",
       grip_ken_gun:"ガンスリンガー持ち", grip_ken_space:"スペースウォーク持ち", grip_ken_stall:"ストール持ち", grip_ken_swivel:"スウィベルけん持ち",
@@ -115,7 +115,7 @@
       iconTextTooLong:"アイコン文字が長すぎます：全角1文字か半角2文字まで"
     },
     en: {
-      resetDefaultOption:"Reset to default", color_default:"Default", color_brown:"Brown", color_orange:"Orange", color_yellow:"Yellow", color_lime:"Lime", color_green:"Green", color_teal:"Teal", color_sky:"Sky", color_blue:"Blue", color_purple:"Purple", color_magenta:"Magenta", color_red:"Red", color_pink:"Pink", color_custom:"Custom", colorHexInvalid:"Enter #RGB or #RRGGBB",
+      resetDefaultOption:"Reset to default", color_default:"Default", color_contrast:"High contrast", color_brown:"Brown", color_orange:"Orange", color_yellow:"Yellow", color_lime:"Lime", color_green:"Green", color_teal:"Teal", color_sky:"Sky", color_blue:"Blue", color_purple:"Purple", color_magenta:"Magenta", color_red:"Red", color_pink:"Pink", color_custom:"Custom", colorHexInvalid:"Enter #RGB or #RRGGBB",
       // grip_<key> = full label (view chips, mailbox...); gripS_<key> = short label (picker chips)
       grip_ken:"Ken grip", grip_ken_ken:"Ken grip", grip_ken_sara:"Sara grip", grip_ken_candle:"Candle grip",
       grip_ken_gun:"Gunslinger grip", grip_ken_space:"Spacewalk grip", grip_ken_stall:"Stall grip", grip_ken_swivel:"Swivel ken grip",

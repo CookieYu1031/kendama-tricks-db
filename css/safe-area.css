@@ -55,5 +55,18 @@
   /* Credit line under the settings modal (moved off the browse view in v0.8.1). */
   #settingsOverlay{ flex-direction:column; gap:10px; }
   .settings-credit{ font-size:12px; color: var(--paper-faint); text-align:center; }
-  .settings-credit a{ color: var(--paper-dim); text-decoration:none; }
-  .settings-credit a:hover{ color: var(--accent-text); text-decoration:underline; }
+
+  /* v0.14.10: on narrow screens the browse column ends where the drawer card ends (both float
+     max(16px, home-indicator + 8px) above the screen bottom), so nothing sits under the home indicator.
+     The "+" FAB then needs no inset of its own, and the rail's bottom buttons line up with it. */
+  @media (max-width: 860px){
+    :root{ --col-bottom: max(16px, calc(var(--safe-b) + 8px)); }
+    .miller-wrap{ padding-bottom: var(--col-bottom); }
+    .m-col.mobile-under{ bottom: var(--col-bottom); }
+    .col-add-fab, html.is-standalone .col-add-fab{ bottom: 14px; }
+    .space-rail, html.is-standalone .space-rail{ padding-bottom: calc(var(--col-bottom) + 14px); }
+  }
+  @media (max-width: 860px) and (display-mode: standalone){
+    .col-add-fab{ bottom: 14px; }
+    .space-rail{ padding-bottom: calc(var(--col-bottom) + 14px); }
+  }

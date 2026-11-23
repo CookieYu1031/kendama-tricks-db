@@ -24,7 +24,6 @@
   .tut-id-msg{ font-size:12px; color: var(--paper-dim); margin-top:6px; min-height:16px; }
   .tut-id-msg.field-error{ color: var(--danger-bright); }
   .tut-menu .tool-card-text{ gap:4px; }
-  .settings-credit .credit-sep{ margin:0 6px; }
   .settings-credit .credit-privacy{
     background:none; border:0; padding:0; font:inherit; color: var(--paper-dim); cursor:pointer; text-decoration:none;
   }

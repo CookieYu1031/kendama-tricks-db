@@ -68,11 +68,7 @@
   document.getElementById("addIconBtn").addEventListener("click", function(){ openIconPicker("add"); });
 
   // Icon & color picker modal
-  document.getElementById("iconPickerNoneBtn").addEventListener("click", function(){
-    setDraftIcon(state.iconPickerTarget, "");
-    setDraftColor(state.iconPickerTarget, state.iconPickerTarget === "drawer" ? "" : "default");
-    closeIconPicker();
-  });
+  document.getElementById("iconPickerNoneBtn").addEventListener("click", resetIconPickerDraft);
   document.getElementById("iconPickerDoneBtn").addEventListener("click", closeIconPicker);
   document.getElementById("iconPickerOverlay").addEventListener("click", function(ev){ if(ev.target.id==="iconPickerOverlay") closeIconPicker(); });
 
