@@ -193,6 +193,16 @@
   .vid-slot-main:hover{ color: var(--paper); background: var(--glass-3); }
   .vid-slot-main svg{ width:15px; height:15px; flex:0 0 auto; }
   .drawer-flow{ margin-bottom:16px; }
+  /* View mode: part diagram + chip flow. Narrow drawer body: stacked; wide: diagram left, chips right. */
+  .drawer-body{ container-type:inline-size; container-name:drawer-body; }
+  .drawer-viz .part-diagram-box{ margin:0 0 12px; }
+  .drawer-viz .part-diagram{ height:150px; }
+  .drawer-viz .drawer-flow{ margin-bottom:16px; }
+  @container drawer-body (min-width: 300px){
+    .drawer-viz.has-diagram{ display:flex; align-items:flex-start; gap:16px; margin-bottom:16px; }
+    .drawer-viz.has-diagram .part-diagram-box{ flex:0 0 auto; margin:0; }
+    .drawer-viz.has-diagram .drawer-flow{ flex:1 1 0; min-width:0; margin:0; }
+  }
 
   /* Rate label row + "i" hint button/popover */
   .drawer-rate-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }

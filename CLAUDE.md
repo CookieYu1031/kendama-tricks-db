@@ -75,7 +75,7 @@
 | Firebase 初始化 | `js/00-firebase-config.js` |
 | 資料模型常數、space 定義、權限、ID | `js/01-data-model.js` |
 | 本機快取、normalizeDB、loadDB/saveDB、`db` 初始化 | `js/01-data-storage.js` |
-| 顏色（13 色 COLOR_PALETTE、自訂 #rrggbb；驗證 `sanitizeColorKey` 在 `js/01-data-storage.js`）、icon 常數 | `js/02-constants-colors-icons.js` |
+| 顏色（14 色 COLOR_PALETTE（兩列 8 格，含高對比）、自訂 #rrggbb；驗證 `sanitizeColorKey` 在 `js/01-data-storage.js`）、icon 常數 | `js/02-constants-colors-icons.js` |
 | i18n 字串、假名轉羅拼、名稱顯示 | `js/03-i18n.js` |
 | UI state | `js/04-state.js` |
 | 資料索引與查詢 helpers（getChildren、getTrick…） | `js/05-data-helpers.js` |
@@ -90,7 +90,7 @@
 | rail 底部編輯鈕（編輯／完成編輯 切換） | `js/12-shell-rail.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
-| 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、隱私說明連結在署名右側、管理員面板入口） | `js/14-shell-settings.js` |
+| 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、網站製作者列（顯示 @cookie_yu_1031，連到 IG）、底部隱私說明連結；標題列圖示鈕：管理員面板（限管理員）、通知、用戶統計（敬請期待）、×） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
 | PWA：SW 註冊、離線 toast、安裝列與一次性橫幅；依瀏覽器的安裝引導卡（`js/17-shell-pwa-guide.js`） | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
 | 新手教學（設定頁入口、兩條路線各 10 頁、管理員逐頁編輯、`tutorial/{track}`、`TUTORIAL_PUBLIC` 旗標） | `js/19-tutorial-logic.js`（純邏輯）、`js/19-shell-tutorial.js`（UI／Firestore）、`css/tutorial.css` |
@@ -117,6 +117,7 @@
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
+| 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
 | 登入、登出、暱稱、帳號選單（含同步時間與手動同步鈕） | `js/52-auth.js` |

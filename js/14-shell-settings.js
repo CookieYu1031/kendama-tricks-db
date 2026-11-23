@@ -121,12 +121,9 @@
     if(!credit) return;
     var link = credit.querySelector(".credit-privacy");
     if(!link){
-      var sep = document.createElement("span");
-      sep.className = "credit-sep"; sep.textContent = "·";
       link = document.createElement("button");
       link.type = "button"; link.className = "credit-privacy";
       link.addEventListener("click", openPrivacy);
-      credit.appendChild(sep);
       credit.appendChild(link);
     }
     link.textContent = t("settingsPrivacy");
@@ -148,11 +145,18 @@
     // Admin panel button: admin-only (panel itself lives in 70-admin-panel.js).
     var adminBtn = document.getElementById("settingsAdminBtn");
     adminBtn.hidden = !(typeof isAdminAccount === "function" && isAdminAccount());
-    adminBtn.textContent = t("adminOpen");
+    if(!adminBtn.firstChild) adminBtn.innerHTML = ICON_SHIELD;
     adminBtn.title = t("adminOpen");
+    adminBtn.setAttribute("aria-label", t("adminOpen"));
 
     setText("settingsGuideLabel", t("settingsGuide"));
-    setText("settingsNoticesLabel", t("settingsNotices"));
+    setText("settingsCreatorLabel", t("settingsCreator"));
+    var nb = document.getElementById("settingsNoticesBtn");
+    nb.title = t("settingsNotices"); nb.setAttribute("aria-label", t("settingsNotices"));
+    if(!nb.firstChild) nb.innerHTML = ICON_BELL;
+    var sb = document.getElementById("settingsStatsBtn");
+    sb.title = t("settingsStats"); sb.setAttribute("aria-label", t("settingsStats"));
+    if(!sb.firstChild) sb.innerHTML = ICON_STATS;
     setText("settingsSubmitLabel", t("settingsSubmit"));
     setText("settingsReportLabel", t("settingsReport"));
     // index.html keeps the old ids: settingsPrivacyBtn/Label now hold 新手教學 (v0.14);
@@ -191,6 +195,14 @@
 
   document.getElementById("settingsBtn").addEventListener("click", openSettings);
   document.getElementById("settingsCloseBtn").addEventListener("click", closeSettings);
+  document.getElementById("settingsStatsBtn").addEventListener("click", function(){
+    if(typeof showToast === "function") showToast(t("statsSoon"));
+  });
+  if(typeof addStrings === "function") addStrings({
+    zh:{ settingsCreator:"網站製作者", settingsStats:"用戶統計", statsSoon:"敬請期待" },
+    jp:{ settingsCreator:"サイト制作者", settingsStats:"ユーザー統計", statsSoon:"近日公開" },
+    en:{ settingsCreator:"Site creator", settingsStats:"User stats", statsSoon:"Coming soon" }
+  });
   document.getElementById("settingsOverlay").addEventListener("click", function(ev){
     if(ev.target.id === "settingsOverlay") closeSettings();
   });

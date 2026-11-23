@@ -347,6 +347,9 @@
   .settings-head{ display:flex; align-items:center; gap:10px; padding: 18px 22px 0; flex:0 0 auto; }
   .settings-head .modal-title{ flex:1 1 auto; margin-bottom:0; }
   .settings-close{ flex:0 0 auto; }
+  .settings-head .icon-btn{ position:relative; }
+  .settings-item.settings-creator{ flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; text-decoration:none; cursor:pointer; }
+  .settings-creator-handle{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:400; color: var(--paper-dim); }
   .settings-body{ display:flex; flex-direction:column; gap:16px; }
   .settings-row{ min-width:0; }
   .settings-pair{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }

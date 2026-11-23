@@ -142,7 +142,9 @@
   <div class="modal modal-lg settings-modal" id="settingsModal">
     <div class="settings-head">
       <div class="modal-title" id="settingsTitle">設定</div>
-      <button type="button" class="btn btn-ghost btn-sm settings-admin-btn" id="settingsAdminBtn" hidden></button>
+      <button type="button" class="icon-btn settings-close settings-admin-btn" id="settingsAdminBtn" hidden></button>
+      <button type="button" class="icon-btn settings-close" id="settingsNoticesBtn"></button>
+      <button type="button" class="icon-btn settings-close" id="settingsStatsBtn"></button>
       <button type="button" class="icon-btn settings-close" id="settingsCloseBtn"></button>
     </div>
     <div class="modal-scroll settings-body">
@@ -201,9 +203,10 @@
         <button type="button" class="settings-item" id="settingsGuideBtn">
           <span class="settings-item-label" id="settingsGuideLabel">快速導覽</span>
         </button>
-        <button type="button" class="settings-item" id="settingsNoticesBtn">
-          <span class="settings-item-label" id="settingsNoticesLabel">通知與近期更新</span>
-        </button>
+        <a class="settings-item settings-creator" id="settingsCreatorBtn" href="https://www.instagram.com/cookie_yu_1031/" target="_blank" rel="noopener noreferrer">
+          <span class="settings-item-label" id="settingsCreatorLabel">網站製作者</span>
+          <span class="settings-creator-handle">@cookie_yu_1031</span>
+        </a>
         <button type="button" class="settings-item" disabled>
           <span class="settings-item-label" id="settingsSubmitLabel">招式投稿</span>
           <span class="settings-soon" data-soon>即將推出</span>
@@ -222,7 +225,7 @@
       </div>
     </div>
   </div>
-  <div class="settings-credit">Designed by <a href="https://www.instagram.com/cookie_yu_1031/" target="_blank" rel="noopener noreferrer">@cookie_yu_1031</a></div>
+  <div class="settings-credit"></div>
 </div>
 
 <!-- Privacy notice modal (js/14-shell-settings.js) -->
@@ -374,6 +377,31 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" id="iconPickerNoneBtn">無圖示</button>
         <button class="btn btn-primary" id="iconPickerDoneBtn">完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom colour modal (js/49-modal-color-custom.js), opened from the icon & colour picker -->
+<div class="modal-overlay" id="customColorOverlay">
+  <div class="modal modal-sm ccm-modal" id="customColorModal">
+    <div class="modal-scroll">
+      <div class="ccm-head">
+        <div class="modal-title" id="ccmTitle">自訂顏色</div>
+        <button type="button" class="icon-btn" id="ccmCloseBtn"></button>
+      </div>
+      <div class="ccm-hexrow field">
+        <span class="ccm-preview" id="ccmPreview"></span>
+        <input type="text" id="ccmHex" class="ccm-hex" maxlength="7" spellcheck="false" placeholder="#RRGGBB" autocomplete="off" />
+      </div>
+      <div class="form-error" id="ccmError"></div>
+      <div class="ccm-sv" id="ccmSV"><span class="ccm-knob" id="ccmSVKnob"></span></div>
+      <div class="ccm-hue" id="ccmHue"><span class="ccm-knob" id="ccmHueKnob"></span></div>
+    </div>
+    <div class="modal-footer">
+      <div class="ccm-bottom">
+        <div class="ccm-recent"><span class="ccm-recent-label" id="ccmRecentLabel"></span><div class="ccm-slots" id="ccmSlots"></div></div>
+        <button type="button" class="btn btn-primary" id="ccmOkBtn">確認</button>
       </div>
     </div>
   </div>
@@ -633,6 +661,7 @@
 <script src="js/46-modal-info.js"></script>
 <script src="js/47-modal-add.js"></script>
 <script src="js/48-modal-grip-info.js"></script>
+<script src="js/49-modal-color-custom.js"></script>
 <script src="js/50-sync-core.js"></script>
 <script src="js/51-shared-base.js"></script>
 <script src="js/52-auth.js"></script>

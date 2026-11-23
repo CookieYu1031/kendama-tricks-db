@@ -21,7 +21,8 @@ test("sanitizeColorKey: palette, legacy and hex kept; others fall back", () => {
 test("COLOR_PALETTE keys are all valid stored keys; order starts with default", () => {
   ctx.COLOR_PALETTE.forEach(c => assert.ok(ctx.isValidColorKey(c.key), c.key));
   assert.strictEqual(ctx.COLOR_PALETTE[0].key, "default");
-  assert.strictEqual(ctx.COLOR_PALETTE.length, 13);
+  assert.strictEqual(ctx.COLOR_PALETTE.length, 14);
+  assert.deepStrictEqual(Array.from(ctx.COLOR_PALETTE.map(c => c.key)), ["default", "contrast", "brown", "orange", "yellow", "lime", "green", "teal", "sky", "blue", "purple", "magenta", "pink", "red"]);
 });
 test("colorHex / hexToRgba: hex passes through, unknown -> default, var() uses color-mix", () => {
   assert.strictEqual(ctx.colorHex("#ABCDEF"), "#abcdef");
