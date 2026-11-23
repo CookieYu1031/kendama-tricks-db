@@ -130,6 +130,33 @@
     return tag;
   }
 
+  // v0.14.7 admin-editable names of the fixed grips / parts: db.labels = { "<i18nKey>": { zh, jp, en } }.
+  // Keys: grip_<k> / gripS_<k> (k in GRIP_KEYS) and part_<k> (k in PART_KEYS). An empty language
+  // means "use the built-in name"; an entry with all three empty is dropped.
+  var LABEL_NAME_MAX = 60;
+  function labelKeyList(){
+    var out = [];
+    GRIP_KEYS.forEach(function(k){ out.push("grip_" + k, "gripS_" + k); });
+    PART_KEYS.forEach(function(k){ out.push("part_" + k); });
+    return out;
+  }
+  function isLabelKey(key){ return typeof key === "string" && labelKeyList().indexOf(key) !== -1; }
+  function normalizeLabels(raw){
+    var out = {};
+    if(!raw || typeof raw !== "object") return out;
+    labelKeyList().forEach(function(key){
+      var v = raw[key];
+      if(!v || typeof v !== "object") return;
+      var e = {}, any = false;
+      ["zh", "jp", "en"].forEach(function(l){
+        var s = typeof v[l] === "string" ? v[l].trim().slice(0, LABEL_NAME_MAX) : "";
+        e[l] = s; if(s) any = true;
+      });
+      if(any) out[key] = e;
+    });
+    return out;
+  }
+
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -190,7 +217,7 @@
       if(typeof t.sharedFrom === "string" && t.sharedFrom) ot.sharedFrom = t.sharedFrom.slice(0, 120);
       return ot;
     });
-    return { categories: cats, tricks: tricks, infos: infos, tags: tags, spaces: spaces };
+    return { categories: cats, tricks: tricks, infos: infos, tags: tags, labels: normalizeLabels(raw.labels === undefined && typeof labelsFallback === "function" ? labelsFallback() : raw.labels), spaces: spaces };
   }
 
   // Local-first persistence (企劃書 §五.3): only a signed-in user (or the last-known user

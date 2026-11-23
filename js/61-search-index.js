@@ -90,7 +90,8 @@
   // query: parseSearchQuery result. filters: { grip:null|key, parts:[], partsMode:"any"|"all" }.
   function matchEntry(e, query, filters, tagLookup){
     filters = filters || {};
-    if(filters.grip && e.grip !== filters.grip) return false;
+    // A category filter (ken / tama / ito) also matches that category's sub-grips (gripMatches, js/01).
+    if(filters.grip && !gripMatches(e.grip, filters.grip)) return false;
     var parts = filters.parts || [];
     if(parts.length){
       // partMatches (js/01): a 劍頂 filter also matches 劍尖 tags, 中皿 matches 中皿邊.

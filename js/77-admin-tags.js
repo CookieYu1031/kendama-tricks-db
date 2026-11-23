@@ -2,22 +2,28 @@
 
   /* ============================================================
      ADMIN TAG MANAGER (v0.9.2, admin only) — sub-modal opened from the admin panel.
-     Three tabs: 握持＋部位 (read-only list of the fixed grip/part fields),
+     Three tabs: 握持手勢＋部位 (read-only list of the fixed grip/part fields),
      招式類別 (db.tags kind "class" + combo), 文字標籤 (kind "text").
      Edits go through createTag/updateTag/removeTag (saveDB -> pending -> 發布更新).
      Pure logic: js/30-drawer-logic.js (tests/tags.test.js).
   ============================================================ */
   addStrings({
-    zh:{ tagMgrTitle:"標籤管理", tagTabGrip:"握持＋部位", tagTabClass:"招式類別", tagTabText:"文字標籤",
-         tagMgrGripHint:"握持與部位是固定欄位，僅供檢視。點部位可在圖上標示。", tagMgrNew:"新增", tagMgrEmpty:"（尚無項目）",
-         tagMgrUsed:"{n} 個招式使用", tagMgrNameRequired:"請至少輸入一個名稱", tagMgrComboLabel:"持法與部位組合",
-         tagMgrGripLabel:"握持（單選）", tagMgrPartsLabel:"部位（複選）", tagMgrNoCombo:"（無組合）", tagMgrEdit:"編輯" },
+    zh:{ tagMgrTitle:"標籤管理", tagTabGrip:"握持手勢＋部位", tagTabClass:"招式類別", tagTabText:"文字標籤",
+         tagMgrGripHint:"握持手勢與部位的數量和圖上位置是固定的，只能修改三語名稱（發布後所有人看到新名稱）。點圖上部位可標示對應按鈕，點按鈕可編輯名稱。",
+         labelMgrFull:"完整名稱", labelMgrShort:"簡稱（選擇鈕上顯示）", labelMgrReset:"還原預設", labelMgrSaved:"名稱已更新",
+         labelMgrBlankHint:"留空＝使用預設名稱（灰字）。", tagMgrNew:"新增", tagMgrEmpty:"（尚無項目）",
+         tagMgrUsed:"{n} 個招式使用", tagMgrNameRequired:"請至少輸入一個名稱", tagMgrComboLabel:"握持手勢與部位組合",
+         tagMgrGripLabel:"握持手勢（單選）", tagMgrPartsLabel:"部位（複選）", tagMgrNoCombo:"（無組合）", tagMgrEdit:"編輯" },
     jp:{ tagMgrTitle:"タグ管理", tagTabGrip:"持ち方＋部位", tagTabClass:"技のカテゴリ", tagTabText:"テキストタグ",
-         tagMgrGripHint:"持ち方と部位は固定項目で、閲覧のみです。部位をタップすると図に表示されます。", tagMgrNew:"追加", tagMgrEmpty:"（項目なし）",
+         tagMgrGripHint:"持ち方と部位の数・図上の位置は固定で、3言語の名前のみ編集できます（公開後、全員に反映）。図の部位をタップすると対応ボタンを強調表示、ボタンをタップすると名前を編集できます。",
+         labelMgrFull:"正式名称", labelMgrShort:"略称（選択ボタンに表示）", labelMgrReset:"初期値に戻す", labelMgrSaved:"名前を更新しました",
+         labelMgrBlankHint:"空欄＝初期名称を使用（グレーの文字）。", tagMgrNew:"追加", tagMgrEmpty:"（項目なし）",
          tagMgrUsed:"{n} 件の技で使用", tagMgrNameRequired:"名前を1つ以上入力してください", tagMgrComboLabel:"持ち方と部位の組み合わせ",
          tagMgrGripLabel:"持ち方（単一選択）", tagMgrPartsLabel:"部位（複数選択）", tagMgrNoCombo:"（組み合わせなし）", tagMgrEdit:"編集" },
     en:{ tagMgrTitle:"Tag manager", tagTabGrip:"Grip + parts", tagTabClass:"Trick classes", tagTabText:"Text tags",
-         tagMgrGripHint:"Grip and parts are fixed fields, view-only. Tap a part to highlight it on the diagram.", tagMgrNew:"Add", tagMgrEmpty:"(Nothing yet)",
+         tagMgrGripHint:"The number of grips and parts and their diagram positions are fixed; only the three-language names can be edited (everyone sees them once published). Tap a part on the diagram to highlight its button; tap a button to edit its name.",
+         labelMgrFull:"Full name", labelMgrShort:"Short name (shown on picker buttons)", labelMgrReset:"Reset to default", labelMgrSaved:"Names updated",
+         labelMgrBlankHint:"Blank = use the default name (grey text).", tagMgrNew:"Add", tagMgrEmpty:"(Nothing yet)",
          tagMgrUsed:"Used by {n} tricks", tagMgrNameRequired:"Enter at least one name", tagMgrComboLabel:"Grip and parts combo",
          tagMgrGripLabel:"Grip (single)", tagMgrPartsLabel:"Parts (multiple)", tagMgrNoCombo:"(No combo)", tagMgrEdit:"Edit" }
   });
@@ -27,13 +33,13 @@
   var ICON_TAG_MGR = '<svg class="tagmgr-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l7.6 7.6a1 1 0 0 1 0 1.4l-7.7 7.7a1 1 0 0 1-1.4 0L3.8 12.9a1 1 0 0 1-.3-.7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.2" cy="8.2" r="1.5" fill="currentColor"/></svg>';
   function tagMgrButtonHtml(){ return ICON_TAG_MGR + '<span>' + escapeHtml(t("tagMgrTitle")) + '</span>'; }
 
-  var tagMgr = { tab: "class", editing: null, form: null, box: null };
+  var tagMgr = { tab: "class", editing: null, form: null, box: null, labelEdit: null };
 
   function openAdminTags(){
     if(typeof isAdminAccount === "function" && !isAdminAccount()) return;
     var ov = adminSubModal("adminTagsOverlay", "tagMgrTitle", "admin-sub-modal tagmgr-modal");
     ov.classList.add("show");
-    tagMgr.editing = null; tagMgr.form = null;
+    tagMgr.editing = null; tagMgr.form = null; tagMgr.labelEdit = null;
     renderAdminTags(ov.querySelector(".modal-scroll"));
   }
 
@@ -61,7 +67,7 @@
     tabs.className = "tagmgr-tabs";
     [["grip", "tagTabGrip"], ["class", "tagTabClass"], ["text", "tagTabText"]].forEach(function(x){
       tabs.appendChild(tagMgrButton("drawer-chip" + (tagMgr.tab === x[0] ? " active" : ""), t(x[1]), function(){
-        tagMgr.tab = x[0]; tagMgr.editing = null; tagMgr.form = null; renderAdminTags(box);
+        tagMgr.tab = x[0]; tagMgr.editing = null; tagMgr.form = null; tagMgr.labelEdit = null; renderAdminTags(box);
       }));
     });
     wrap.appendChild(tabs);
@@ -70,93 +76,263 @@
     box.appendChild(wrap);
   }
 
-  // Tab 1: read-only grips + parts.
+  /* ---- Label (name) overrides: pure helpers (tests/admin/labels.test.js) ---- */
+  var LABEL_LANGS = ["zh", "jp", "en"];
+  // New labels object after setting `key` to vals {zh,jp,en}. A language equal to its built-in
+  // name (or empty) is stored as "" (= use built-in); an all-empty entry is removed.
+  function applyLabelEdit(labels, key, vals){
+    var out = JSON.parse(JSON.stringify(labels || {}));
+    if(!isLabelKey(key)) return out;
+    var e = {}, any = false;
+    LABEL_LANGS.forEach(function(l){
+      var s = String((vals && vals[l]) || "").trim().slice(0, LABEL_NAME_MAX);
+      if(s === defaultText(key, l)) s = "";
+      e[l] = s; if(s) any = true;
+    });
+    if(any) out[key] = e; else delete out[key];
+    return normalizeLabels(out);
+  }
+  function labelEffective(key, lang){ return labelOverride(key, lang) || defaultText(key, lang); }
+
+  // Draft edit state: tagMgr.labelEdit = { id, keys, vals: { full:{zh,jp,en}, short:{...} } }.
+  function openLabelEdit(kind, base){
+    var keys = kind === "grip" ? { full: "grip_" + base, short: "gripS_" + base } : { full: "part_" + base };
+    var vals = { full: {} };
+    LABEL_LANGS.forEach(function(l){ vals.full[l] = labelOverride(keys.full, l); });
+    if(keys.short){ vals.short = {}; LABEL_LANGS.forEach(function(l){ vals.short[l] = labelOverride(keys.short, l); }); }
+    tagMgr.labelEdit = { id: kind + ":" + base, keys: keys, vals: vals };
+    renderAdminTags(tagMgr.box);
+    var ed = tagMgr.box && tagMgr.box.querySelector(".labelmgr-form");
+    if(ed && ed.scrollIntoView) ed.scrollIntoView({ block: "nearest" });
+  }
+  function labelChip(kind, base, cls){
+    var id = kind + ":" + base;
+    var b = makeChip(t(kind + "_" + base), !!(tagMgr.labelEdit && tagMgr.labelEdit.id === id), function(){ openLabelEdit(kind, base); });
+    if(cls) b.classList.add(cls);
+    return b;
+  }
+
+  function buildLabelForm(){
+    var le = tagMgr.labelEdit;
+    var form = document.createElement("div");
+    form.className = "tagmgr-form labelmgr-form";
+    [["full", "labelMgrFull"], ["short", "labelMgrShort"]].forEach(function(grp){
+      if(!le.keys[grp[0]]) return;
+      if(le.keys.short){
+        var tt = document.createElement("div"); tt.className = "tagmgr-section-title"; tt.textContent = t(grp[1]);
+        form.appendChild(tt);
+      }
+      [["zh", "中文"], ["jp", "日本語"], ["en", "English"]].forEach(function(l){
+        var fd = document.createElement("div"); fd.className = "field";
+        var lb = document.createElement("label"); lb.textContent = l[1];
+        var inp = document.createElement("input");
+        inp.type = "text"; inp.maxLength = LABEL_NAME_MAX; inp.autocomplete = "off";
+        inp.value = le.vals[grp[0]][l[0]];
+        inp.placeholder = defaultText(le.keys[grp[0]], l[0]);
+        inp.addEventListener("input", function(){ le.vals[grp[0]][l[0]] = inp.value; });
+        fd.appendChild(lb); fd.appendChild(inp);
+        form.appendChild(fd);
+      });
+    });
+    var hint = document.createElement("div"); hint.className = "field-hint"; hint.textContent = t("labelMgrBlankHint");
+    form.appendChild(hint);
+    var acts = document.createElement("div"); acts.className = "tagmgr-form-actions";
+    acts.appendChild(tagMgrButton("btn btn-ghost btn-sm", t("cancel"), function(){ tagMgr.labelEdit = null; renderAdminTags(tagMgr.box); }));
+    acts.appendChild(tagMgrButton("btn btn-ghost btn-sm", t("labelMgrReset"), function(){
+      saveLabelEdit({ full: { zh: "", jp: "", en: "" }, short: { zh: "", jp: "", en: "" } });
+    }));
+    acts.appendChild(tagMgrButton("btn btn-primary btn-sm", t("save"), function(){ saveLabelEdit(le.vals); }));
+    form.appendChild(acts);
+    return form;
+  }
+
+  function saveLabelEdit(vals){
+    if(typeof isAdminAccount === "function" && !isAdminAccount()) return;
+    var le = tagMgr.labelEdit;
+    if(!le) return;
+    var labels = db.labels || {};
+    ["full", "short"].forEach(function(g){
+      if(le.keys[g]) labels = applyLabelEdit(labels, le.keys[g], vals[g]);
+    });
+    db.labels = labels;
+    tagMgr.labelEdit = null;
+    tagMgrRefresh();
+    showToast(t("labelMgrSaved"));
+  }
+
+  // Tab 1: the fixed grips + parts (counts and diagram positions can't change); names are editable.
+  // Diagram: tap a region to highlight its part chip (one at a time). Chips open the name editor.
   function renderTagMgrGrip(wrap){
     var hint = document.createElement("div");
     hint.className = "field-hint";
     hint.textContent = t("tagMgrGripHint");
     wrap.appendChild(hint);
-    var gt = document.createElement("div"); gt.className = "tagmgr-section-title"; gt.textContent = t("tagMgrGripLabel");
-    wrap.appendChild(gt);
-    var gr = document.createElement("div"); gr.className = "drawer-chip-row";
-    GRIP_KEYS.forEach(function(k){ gr.appendChild(makeChip(t("grip_" + k), false)); });
-    wrap.appendChild(gr);
-    // View-only highlight: one part at a time, shared by the diagram and the chips (updated in place).
-    var cur = null, chips = {};
-    var dia = createPartDiagram({ selected: [], interactive: true, onToggle: function(k){ pick(k); } });
-    function pick(k){
+    var cur = null, partChips = {};
+    var dia = createPartDiagram({ selected: [], interactive: true, onToggle: function(k){
       cur = cur === k ? null : k;
       dia.update(cur ? [cur] : []);
-      Object.keys(chips).forEach(function(x){ chips[x].classList.toggle("active", x === cur); });
-    }
+      Object.keys(partChips).forEach(function(x){ partChips[x].classList.toggle("hi", x === cur); });
+    } });
     dia.classList.add("tagmgr-diagram");
-    wrap.insertBefore(dia, gt);
+    wrap.appendChild(dia);
+    var gt = document.createElement("div"); gt.className = "tagmgr-section-title"; gt.textContent = t("tagMgrGripLabel");
+    wrap.appendChild(gt);
+    var gr = document.createElement("div"); gr.className = "labelmgr-grips";
+    GRIP_GROUPS.forEach(function(g){
+      var grp = document.createElement("div"); grp.className = "labelmgr-grip-group";
+      grp.appendChild(labelChip("grip", g.key, "labelmgr-cat"));
+      g.grips.forEach(function(k){ grp.appendChild(labelChip("grip", k, "")); });
+      gr.appendChild(grp);
+    });
+    wrap.appendChild(gr);
     var pt = document.createElement("div"); pt.className = "tagmgr-section-title"; pt.textContent = t("tagMgrPartsLabel");
     wrap.appendChild(pt);
     var pr = document.createElement("div"); pr.className = "drawer-chip-row";
-    fillPartGroups(pr, function(k){ return (chips[k] = makeChip(t("part_" + k), false, function(){ pick(k); })); });
+    fillPartGroups(pr, function(k){ return (partChips[k] = labelChip("part", k, "")); });
     wrap.appendChild(pr);
+    if(tagMgr.labelEdit) wrap.appendChild(buildLabelForm());
   }
 
-  // Tabs 2 / 3: list of tags of one kind + add / edit form.
+  /* ---- Drag to reorder chips (mouse: press + move >6px; touch: long-press 350ms). Esc / cancel / drop outside cancels. ---- */
+  var TAG_DRAG_PX = 6, TAG_LONG_PRESS_MS = 350, TAG_LONG_PRESS_CANCEL = 8;
+  function attachTagDrag(chip, list, kind, id){
+    var timer = null, sx = 0, sy = 0, pending = false;
+    function clearPending(){ clearTimeout(timer); timer = null; pending = false; }
+    chip.addEventListener("contextmenu", function(ev){ if(ev.pointerType === "touch" || pending) ev.preventDefault(); });
+    chip.addEventListener("pointerdown", function(ev){
+      if(ev.pointerType === "mouse" && ev.button !== 0) return;
+      if(typeof isAdminAccount === "function" && !isAdminAccount()) return;
+      sx = ev.clientX; sy = ev.clientY; pending = true;
+      clearTimeout(timer);
+      if(ev.pointerType !== "mouse") timer = setTimeout(function(){ if(pending){ pending = false; beginTagDrag(ev, chip, list, kind, id); } }, TAG_LONG_PRESS_MS);
+    });
+    chip.addEventListener("pointermove", function(ev){
+      if(!pending) return;
+      var d = Math.max(Math.abs(ev.clientX - sx), Math.abs(ev.clientY - sy));
+      if(ev.pointerType === "mouse"){ if(d > TAG_DRAG_PX){ pending = false; beginTagDrag(ev, chip, list, kind, id); } }
+      else if(d > TAG_LONG_PRESS_CANCEL) clearPending();
+    });
+    chip.addEventListener("pointerup", clearPending);
+    chip.addEventListener("pointercancel", clearPending);
+  }
+  // Insertion slot among `rects` (other chips, reading order) for pointer (x, y) in a wrapping row:
+  // first chip that is on a later line than the pointer, or on the same line and right of the pointer's x.
+  function tagDropSlot(rects, x, y){
+    for(var i = 0; i < rects.length; i++){
+      var b = rects[i];
+      if(y < b.top) return i;
+      if(y <= b.bottom && x < b.left + b.width / 2) return i;
+    }
+    return rects.length;
+  }
+  function beginTagDrag(ev, chip, list, kind, id){
+    try{ chip.setPointerCapture(ev.pointerId); }catch(e){}
+    chip.classList.add("dragging");
+    chip.dataset.suppressClick = "1";
+    var chips = Array.prototype.slice.call(list.querySelectorAll(".tagmgr-chip"));
+    var fromIdx = chips.indexOf(chip), toIdx = fromIdx, inside = true;
+    function clearMarks(){ chips.forEach(function(r){ r.classList.remove("drop-before", "drop-after"); }); }
+    function stopTouch(e){ e.preventDefault(); }
+    document.addEventListener("touchmove", stopTouch, { passive: false });
+    function onMove(mv){
+      mv.preventDefault();
+      clearMarks();
+      var rc = (tagMgr.box || list).getBoundingClientRect();
+      inside = mv.clientX >= rc.left && mv.clientX <= rc.right && mv.clientY >= rc.top && mv.clientY <= rc.bottom;
+      if(!inside) return;
+      var others = chips.filter(function(r){ return r !== chip; });
+      var rects = others.map(function(r){ return r.getBoundingClientRect(); });
+      var slot = tagDropSlot(rects, mv.clientX, mv.clientY);
+      toIdx = slot;
+      if(!others.length) return;
+      // At a line break show the bar after the previous chip (end of the pointer's line) instead of before the next line's first chip.
+      if(slot > 0 && slot < others.length && rects[slot].top > rects[slot - 1].bottom - 4 && mv.clientY <= rects[slot - 1].bottom && mv.clientY >= rects[slot - 1].top){
+        others[slot - 1].classList.add("drop-after");
+      }else if(slot < others.length) others[slot].classList.add("drop-before");
+      else others[others.length - 1].classList.add("drop-after");
+    }
+    function finish(commit){
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onCancel);
+      document.removeEventListener("keydown", onKey, true);
+      document.removeEventListener("touchmove", stopTouch);
+      chip.classList.remove("dragging");
+      clearMarks();
+      setTimeout(function(){ chip.dataset.suppressClick = ""; }, 30);
+      if(commit && inside && toIdx !== fromIdx){
+        db.tags = moveTag(db.tags, kind, id, toIdx);
+        tagMgrRefresh();
+      }
+    }
+    function onUp(){ finish(true); }
+    function onCancel(){ finish(false); }
+    function onKey(k){ if(k.key === "Escape"){ k.stopPropagation(); k.preventDefault(); finish(false); } }
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onCancel);
+    document.addEventListener("keydown", onKey, true);
+  }
+
+  function tagMgrOpenEdit(g){
+    if(tagMgr.editing === g.id){ tagMgr.editing = null; tagMgr.form = null; }
+    else{
+      tagMgr.editing = g.id;
+      tagMgr.form = { zh: g.name.zh || "", jp: g.name.jp || "", en: g.name.en || "",
+                      grip: g.combo ? g.combo.grip : null, parts: g.combo ? g.combo.parts.slice() : [] };
+    }
+    renderAdminTags(tagMgr.box);
+    var ed = tagMgr.box && tagMgr.box.querySelector(".tagmgr-form");
+    if(ed && ed.scrollIntoView) ed.scrollIntoView({ block: "nearest" });
+  }
+
+  // Tabs 2 / 3: tags of one kind as chips (click = edit below, drag = reorder, last chip = add).
   function renderTagMgrList(wrap, kind){
     var tags = (db.tags || []).filter(function(g){ return tagKind(g) === kind; });
     var list = document.createElement("div");
-    list.className = "tagmgr-list";
-    if(!tags.length){
+    list.className = "drawer-chip-row tagmgr-list";
+    tags.forEach(function(g){
+      var chip = makeChip(resolveDisplayName(g.name).text || g.id, tagMgr.editing === g.id, function(){ tagMgrOpenEdit(g); });
+      chip.classList.add("tagmgr-chip");
+      chip.dataset.tagId = g.id;
+      chip.addEventListener("click", function(ev){
+        if(chip.dataset.suppressClick === "1"){ ev.stopPropagation(); ev.preventDefault(); }
+      }, true);
+      attachTagDrag(chip, list, kind, g.id);
+      list.appendChild(chip);
+    });
+    var add = makeChip("+ " + t("tagMgrNew"), tagMgr.editing === "new", function(){
+      if(tagMgr.editing === "new"){ tagMgr.editing = null; tagMgr.form = null; }
+      else{
+        tagMgr.editing = "new";
+        tagMgr.form = { zh: "", jp: "", en: "", grip: null, parts: [] };
+      }
+      renderAdminTags(tagMgr.box);
+      var ed = tagMgr.box && tagMgr.box.querySelector(".tagmgr-form");
+      if(ed && ed.scrollIntoView) ed.scrollIntoView({ block: "nearest" });
+    });
+    add.classList.add("tagmgr-add-chip");
+    list.appendChild(add);
+    wrap.appendChild(list);
+    if(!tags.length && !tagMgr.editing){
       var none = document.createElement("div");
       none.className = "field-hint"; none.textContent = t("tagMgrEmpty");
-      list.appendChild(none);
+      wrap.appendChild(none);
     }
-    tags.forEach(function(g){
-      var row = document.createElement("div");
-      row.className = "tagmgr-row";
-      var main = document.createElement("div");
-      main.className = "tagmgr-row-main";
-      var nm = document.createElement("div");
-      nm.className = "tagmgr-row-name";
-      nm.textContent = [g.name.zh, g.name.jp, g.name.en].filter(Boolean).join(" / ");
-      var sub = document.createElement("div");
-      sub.className = "tagmgr-row-sub";
-      var used = t("tagMgrUsed").replace("{n}", tagUsageCount(g.id));
-      sub.textContent = kind === "class" ? ((comboLabel(g.combo) || t("tagMgrNoCombo")) + " · " + used) : used;
-      main.appendChild(nm); main.appendChild(sub);
-      var acts = document.createElement("div");
-      acts.className = "tagmgr-row-actions";
-      var ed = document.createElement("button");
-      ed.type = "button"; ed.className = "mini-btn"; ed.title = t("tagMgrEdit"); ed.innerHTML = ICON_EDIT;
-      ed.addEventListener("click", function(){
-        tagMgr.editing = g.id;
-        tagMgr.form = { zh: g.name.zh || "", jp: g.name.jp || "", en: g.name.en || "",
-                        grip: g.combo ? g.combo.grip : null, parts: g.combo ? g.combo.parts.slice() : [] };
-        renderAdminTags(tagMgr.box);
-      });
-      var del = document.createElement("button");
-      del.type = "button"; del.className = "mini-btn danger"; del.title = t("delete"); del.innerHTML = ICON_TRASH;
-      del.addEventListener("click", function(){
-        openConfirm(t("confirmDeleteTagTitle"), t("confirmDeleteTagBody") + " (" + t("tagMgrUsed").replace("{n}", tagUsageCount(g.id)) + ")", function(){
-          removeTag(g.id);
-          if(tagMgr.editing === g.id){ tagMgr.editing = null; tagMgr.form = null; }
-          tagMgrRefresh();
-        });
-      });
-      acts.appendChild(ed); acts.appendChild(del);
-      row.appendChild(main); row.appendChild(acts);
-      list.appendChild(row);
-    });
-    wrap.appendChild(list);
-    if(tagMgr.editing){ wrap.appendChild(buildTagMgrForm(kind)); return; }
-    wrap.appendChild(tagMgrButton("col-add-btn", "+ " + t("tagMgrNew"), function(){
-      tagMgr.editing = "new";
-      tagMgr.form = { zh: "", jp: "", en: "", grip: null, parts: [] };
-      renderAdminTags(tagMgr.box);
-    }));
+    if(tagMgr.editing) wrap.appendChild(buildTagMgrForm(kind));
   }
 
   function buildTagMgrForm(kind){
     var f = tagMgr.form;
     var form = document.createElement("div");
     form.className = "tagmgr-form";
+    var cur = tagMgr.editing !== "new" ? getTag(tagMgr.editing) : null;
+    if(cur){
+      var used = t("tagMgrUsed").replace("{n}", tagUsageCount(cur.id));
+      var info = document.createElement("div"); info.className = "field-hint tagmgr-info";
+      info.textContent = kind === "class" ? ((comboLabel(cur.combo) || t("tagMgrNoCombo")) + " · " + used) : used;
+      form.appendChild(info);
+    }
     [["zh", "中文"], ["jp", "日本語"], ["en", "English"]].forEach(function(l){
       var fd = document.createElement("div");
       fd.className = "field";
@@ -172,11 +348,7 @@
       form.appendChild(cl);
       var gt = document.createElement("div"); gt.className = "tagmgr-section-title"; gt.textContent = t("tagMgrGripLabel");
       form.appendChild(gt);
-      var gr = document.createElement("div"); gr.className = "drawer-chip-row tagmgr-chips";
-      GRIP_KEYS.forEach(function(k){
-        gr.appendChild(makeChip(t("grip_" + k), f.grip === k, function(){ f.grip = f.grip === k ? null : k; renderAdminTags(tagMgr.box); }));
-      });
-      form.appendChild(gr);
+      form.appendChild(buildGripPicker({ value: f.grip, onChange: function(v){ f.grip = v; } }));
       var pt = document.createElement("div"); pt.className = "tagmgr-section-title"; pt.textContent = t("tagMgrPartsLabel");
       form.appendChild(pt);
       var dia = createPartDiagram({ selected: f.parts, interactive: true, onToggle: function(k){
@@ -189,6 +361,13 @@
     }
     var acts = document.createElement("div");
     acts.className = "tagmgr-form-actions";
+    if(cur) acts.appendChild(tagMgrButton("btn btn-danger btn-sm tagmgr-del", t("delete"), function(){
+      openConfirm(t("confirmDeleteTagTitle"), t("confirmDeleteTagBody") + " (" + t("tagMgrUsed").replace("{n}", tagUsageCount(cur.id)) + ")", function(){
+        removeTag(cur.id);
+        tagMgr.editing = null; tagMgr.form = null;
+        tagMgrRefresh();
+      });
+    }));
     acts.appendChild(tagMgrButton("btn btn-ghost btn-sm", t("cancel"), function(){
       tagMgr.editing = null; tagMgr.form = null; renderAdminTags(tagMgr.box);
     }));

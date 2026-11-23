@@ -36,12 +36,46 @@
     });
     return out;
   }
+  // Order of a merged list (tags): follows whichever side re-ordered since base (both -> newer side);
+  // ids not in the chosen order go last.
+  function mergeOrder(merged, baseList, localList, cloudList, localIsNewer){
+    var have = {}; merged.forEach(function(x){ have[x.id] = x; });
+    function ids(list){ return (list || []).map(function(x){ return x.id; }).filter(function(id){ return have[id]; }); }
+    var bi = ids(baseList), li = ids(localList), ci = ids(cloudList);
+    function moved(side){ var inSide = {}; side.forEach(function(id){ inSide[id] = true; });
+      var inBase = {}; bi.forEach(function(id){ inBase[id] = true; });
+      return side.filter(function(id){ return inBase[id]; }).join("|") !== bi.filter(function(id){ return inSide[id]; }).join("|"); }
+    var localMoved = moved(li), cloudMoved = moved(ci);
+    var pref = localMoved && (!cloudMoved || localIsNewer) ? li : (cloudMoved ? ci : li);
+    var seen = {}, out = [];
+    pref.concat(li, ci).forEach(function(id){ if(!seen[id]){ seen[id] = true; out.push(have[id]); } });
+    return out;
+  }
+  // Same rule for a { key: value } map (db.labels), per key.
+  function mergeMap(baseMap, localMap, cloudMap, localIsNewer){
+    baseMap = baseMap || {}; localMap = localMap || {}; cloudMap = cloudMap || {};
+    var keys = [], seen = {}, out = {};
+    [localMap, cloudMap].forEach(function(m){
+      Object.keys(m).forEach(function(k){ if(!seen[k]){ seen[k] = true; keys.push(k); } });
+    });
+    keys.forEach(function(k){
+      var l = localMap[k], c = cloudMap[k], b = baseMap[k], pick;
+      if(deepEqual(l, c)) pick = l;
+      else if(deepEqual(l, b)) pick = c;
+      else if(deepEqual(c, b)) pick = l;
+      else pick = localIsNewer ? l : c;
+      if(pick !== undefined) out[k] = pick;
+    });
+    return out;
+  }
   function threeWayMerge(base, local, cloud, localIsNewer){
     base = base || {};
     var out = {};
     ["spaces", "categories", "tricks", "infos", "tags"].forEach(function(k){
       out[k] = mergeCollection(base[k], local[k], cloud[k], !!localIsNewer);
     });
+    out.tags = mergeOrder(out.tags, base.tags, local.tags || [], cloud.tags || [], !!localIsNewer);
+    out.labels = mergeMap(base.labels, local.labels, cloud.labels, !!localIsNewer);
     return out;
   }
 

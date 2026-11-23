@@ -11,18 +11,19 @@ function setup(){
     "js/07-id.js", "js/09-names.js", "js/61-search-index.js", "js/62-search-panel.js"]);
 }
 
-test("default filters: grip ken, parts empty, mode any", () => {
+test("default filters: grip null (categories are headers), parts empty, mode any", () => {
   const c = setup();
-  assert.strictEqual(c.searchFilters.grip, "ken");
+  assert.strictEqual(c.searchFilters.grip, null);
   assert.strictEqual(c.searchFilters.partsMode, "any");
   assert.strictEqual(c.searchFilters.parts.length, 0);
 });
 
 
-test("grip default filters out tricks without a grip (text-only search keeps others only with grip off)", () => {
+test("no default grip: empty filters are not a criterion", () => {
   const c = setup();
   const idx = [{ id: "a", grip: "ken", parts: [], tagIds: [], names: [], text: "abc", locs: [] }, { id: "b", grip: null, parts: [], tagIds: [], names: [], text: "abc", locs: [] }];
-  assert.ok(c.searchHasCriteria(c.parseSearchQuery(""), c.searchFilters)); // default grip counts as a criterion
+  assert.ok(!c.searchHasCriteria(c.parseSearchQuery(""), c.searchFilters)); // default grip is null
+  assert.ok(c.searchHasCriteria(c.parseSearchQuery(""), { grip: "ken_sara", parts: [], partsMode: "any" }));
   const noGrip = { grip: null, parts: [], partsMode: "any" };
   assert.ok(!c.searchHasCriteria(c.parseSearchQuery(""), noGrip));
 });
@@ -35,12 +36,13 @@ test("source: mode buttons carry title + aria-label; reset returns to default gr
   assert.match(src, /searchInteracted = false;\s+var input/);
 });
 
-test("results gated on interaction: default grip alone shows hint", () => {
+test("results gated on interaction: empty filters show hint", () => {
   const c = setup();
   const q = c.parseSearchQuery("");
   assert.strictEqual(c.searchInteracted, false);
   assert.strictEqual(c.searchShouldShowResults(q, c.searchFilters, c.searchInteracted), false);
-  assert.strictEqual(c.searchShouldShowResults(q, c.searchFilters, true), true);
+  assert.strictEqual(c.searchShouldShowResults(q, c.searchFilters, true), false);
+  assert.strictEqual(c.searchShouldShowResults(q, { grip: "ken_sara", parts: [], partsMode: "any" }, true), true);
   assert.strictEqual(c.searchShouldShowResults(q, { grip: null, parts: [], partsMode: "any" }, true), false);
   assert.strictEqual(c.searchShouldShowResults(c.parseSearchQuery("abc"), { grip: null, parts: [] }, true), true);
 });

@@ -126,8 +126,26 @@ test("admin side: single + bulk reports -> items; item -> clipboard trick data (
 test("template rows: header = column labels + notes row", () => {
   const c = ctx();
   const rows = c.bulkTemplateRows();
-  eq(rows[0], HEAD);
+  eq(rows[0], HEAD.map((h) => (h === "握持" ? "握持手勢" : h)));
   assert.ok(rows[1][0].charAt(0) === "※");
 });
 
 
+
+test("bulk: grip column accepts categories and subs in zh/jp/en (full + short), plus the old 握持 header", () => {
+  const c = ctx();
+  const one = (g, head) => c.bulkParseSheet([head || HEAD, row(Object.assign({}, good, { "握持": g }))]);
+  const grip = (g) => one(g).items[0].grip;
+  assert.strictEqual(grip("持皿"), "ken_sara");
+  assert.strictEqual(grip("蠟燭"), "ken_candle");
+  assert.strictEqual(grip("提燈台"), "ito_lighthouse");
+  assert.strictEqual(grip("持線"), "ito");
+  assert.strictEqual(grip("ken_sara"), "ken_sara");
+  assert.strictEqual(grip("皿持ち"), "ken_sara");
+  assert.strictEqual(grip("ライトハウス持ち"), "ito_lighthouse");
+  assert.strictEqual(grip("玉持ち"), "tama");
+  assert.strictEqual(one("不明").bad.length, 1);
+  const newHead = HEAD.map((h) => (h === "握持" ? "握持手勢" : h));
+  assert.strictEqual(one("持皿", newHead).items[0].grip, "ken_sara");
+  assert.ok(c.bulkTemplateRows()[0].indexOf("握持手勢") !== -1);
+});

@@ -5,32 +5,33 @@
      results list. Matching logic: js/61-search-index.js.
   ============================================================ */
   addStrings({
-    zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchGripLabel:"持法", searchPartsLabel:"部位",
+    zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchPartsLabel:"部位",
          searchModeAny:"其一符合", searchModeAll:"全符合", searchReset:"清除條件", searchMore:"顯示更多",
-         searchHint:"輸入招式名稱，或用 #標籤、持法、部位來篩選", searchEmpty:"找不到符合的招式",
+         searchHint:"輸入招式名稱，或用 #標籤、握持手勢、部位來篩選", searchEmpty:"找不到符合的招式",
          searchCountN:"{n} 個結果", searchNoTag:"（沒有符合的標籤）",
-         searchStartGrip:"起始握持", searchClassLabel:"招式類別", searchNoClass:"尚無招式類別" },
-    jp:{ searchPlaceholder:"技名、または #タグで検索…", searchGripLabel:"持ち方", searchPartsLabel:"部位",
+         searchClassLabel:"招式類別", searchNoClass:"尚無招式類別" },
+    jp:{ searchPlaceholder:"技名、または #タグで検索…", searchPartsLabel:"部位",
          searchModeAny:"いずれか一致", searchModeAll:"すべて一致", searchReset:"条件をクリア", searchMore:"もっと見る",
          searchHint:"技名を入力、または #タグ・持ち方・部位で絞り込み", searchEmpty:"該当する技がありません",
          searchCountN:"{n} 件", searchNoTag:"（該当するタグなし）",
-         searchStartGrip:"開始時の持ち方", searchClassLabel:"技の分類", searchNoClass:"技の分類はまだありません" },
-    en:{ searchPlaceholder:"Search trick names, or type #tag…", searchGripLabel:"Grip", searchPartsLabel:"Parts",
+         searchClassLabel:"技の分類", searchNoClass:"技の分類はまだありません" },
+    en:{ searchPlaceholder:"Search trick names, or type #tag…", searchPartsLabel:"Parts",
          searchModeAny:"Match any", searchModeAll:"Match all", searchReset:"Clear filters", searchMore:"Show more",
          searchHint:"Type a trick name, or filter by #tag, grip and parts", searchEmpty:"No matching tricks",
          searchCountN:"{n} results", searchNoTag:"(no matching tags)",
-         searchStartGrip:"Starting grip", searchClassLabel:"Trick class", searchNoClass:"No trick classes yet" }
+         searchClassLabel:"Trick class", searchNoClass:"No trick classes yet" }
   });
 
   var SEARCH_PAGE = 50;
   var TAG_SUGGEST_MAX = 12;
-  var SEARCH_DEFAULT_GRIP = "ken";
+  var SEARCH_DEFAULT_GRIP = null; // categories are headers only: no default grip
   var SEARCH_MODE_SYMBOL = { any: "≈", all: "≅" }; // ≈ any match, ≅ all match
   var searchFilters = { grip: SEARCH_DEFAULT_GRIP, parts: [], partsMode: "any" };
   var searchView = { ids: [], limit: SEARCH_PAGE, active: -1 };
   var searchChromeBuilt = false;
   var searchInteracted = false;  // results stay hidden (hint only) until the user interacts
   var searchDiagram = null;
+  var searchGripPicker = null;
   var searchClassId = null;      // selected class tag chip (deselect keeps grip / parts)
 
   function spEl(id){ return document.getElementById(id); }
@@ -43,19 +44,22 @@
 
   function searchTouch(){ searchInteracted = true; syncSearchChips(); runSearchPanel(); }
 
+  function mountSearchGrip(){
+    var host = spEl("searchGripHost");
+    host.innerHTML = "";
+    searchGripPicker = buildGripPicker({ value: searchFilters.grip, onChange: function(v){
+      searchFilters.grip = v;
+      searchTouch();
+    } });
+    host.appendChild(searchGripPicker);
+  }
+
   // Builds the static conditions UI once; texts are (re)applied by updateSearchPanelTexts().
   function buildSearchPanelChrome(){
     if(searchChromeBuilt) return;
     searchChromeBuilt = true;
-    var gripRow = spEl("searchGripRow");
-    GRIP_KEYS.forEach(function(k){
-      var b = spButton("lang-btn", "", function(){
-        searchFilters.grip = searchFilters.grip === k ? null : k;
-        searchTouch();
-      });
-      b.setAttribute("data-grip", k);
-      gripRow.appendChild(b);
-    });
+    // Grip picker (js/36): category = matches every sub-grip of it (gripMatches, js/01).
+    mountSearchGrip();
     var modeRow = spEl("searchPartsMode");
     ["any", "all"].forEach(function(m){
       var b = spButton("lang-btn", "", function(){
@@ -104,11 +108,11 @@
   }
 
   function updateSearchPanelTexts(){
-    spEl("searchGripLabel").textContent = t("searchStartGrip");
     spEl("searchClassLabel").textContent = t("searchClassLabel");
     buildSearchClassChips();
     spEl("searchResetBtn").textContent = t("searchReset");
-    Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){ b.textContent = t("grip_" + b.getAttribute("data-grip")); });
+    // Rebuild the picker so chip labels follow the language.
+    if(searchGripPicker) mountSearchGrip();
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
       var m = b.getAttribute("data-mode"), full = t(m === "all" ? "searchModeAll" : "searchModeAny");
       b.textContent = SEARCH_MODE_SYMBOL[m];
@@ -118,9 +122,7 @@
   }
 
   function syncSearchChips(){
-    Array.prototype.forEach.call(spEl("searchGripRow").children, function(b){
-      b.classList.toggle("active", searchFilters.grip === b.getAttribute("data-grip"));
-    });
+    if(searchGripPicker) searchGripPicker.setValue(searchFilters.grip);
     Array.prototype.forEach.call(spEl("searchPartsMode").children, function(b){
       b.classList.toggle("active", searchFilters.partsMode === b.getAttribute("data-mode"));
     });

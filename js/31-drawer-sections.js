@@ -104,34 +104,27 @@
     return n;
   }
 
-  // Edit mode: part diagram (left, regions are the only way to pick parts) + grip buttons stacked on
-  // the right. Toggles update the diagram / buttons in place (no whole-drawer re-render, no flicker).
+  // Edit mode: part diagram on top, the shared grip picker (js/36) below it, full width. Toggles update
+  // the diagram / picker in place (no whole-drawer re-render, no flicker).
   function buildDrawerGripParts(tr, expandContent){
     var row = document.createElement("div");
     row.className = "drawer-parts-edit";
-    var gripCol = document.createElement("div");
-    gripCol.className = "drawer-grip-col";
-    var btns = {};
-    GRIP_KEYS.forEach(function(k){
-      var b = makeChip(t("grip_" + k), tr.grip === k, function(){
-        toggleGrip(tr, k); saveDB(); refreshDrawerGripParts(tr); refreshDrawerTags();
-      });
-      btns[k] = b;
-      gripCol.appendChild(b);
-    });
+    var picker = buildGripPicker({ value: tr.grip, onChange: function(v){
+      tr.grip = v; saveDB(); refreshDrawerTags();
+    } });
     var diagram = createPartDiagram({ selected: tr.parts || [], interactive: true, onToggle: function(k){
       togglePart(tr, k); saveDB(); refreshDrawerGripParts(tr); refreshDrawerTags();
     } });
-    row.appendChild(diagram); row.appendChild(gripCol);
+    row.appendChild(diagram); row.appendChild(picker);
     expandContent.appendChild(row);
-    drawerUi.gpRef = { tr: tr, diagram: diagram, btns: btns };
+    drawerUi.gpRef = { tr: tr, diagram: diagram, picker: picker };
   }
-  // Re-sync the edit-mode diagram + grip buttons from tr (after a toggle or a class-tag overwrite).
+  // Re-sync the edit-mode diagram + grip picker from tr (after a toggle or a class-tag overwrite).
   function refreshDrawerGripParts(tr){
     var r = drawerUi.gpRef;
     if(!r || r.tr !== tr) return;
     r.diagram.update(tr.parts || []);
-    GRIP_KEYS.forEach(function(k){ r.btns[k].classList.toggle("active", tr.grip === k); });
+    r.picker.setValue(tr.grip);
   }
 
   // The single 備註 (tr.note). Edit mode: textarea (editable by everyone: it is the user's own

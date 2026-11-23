@@ -13,3 +13,7 @@ Read CLAUDE.md first and follow it strictly.
 - Write/update `tests/<category>/<feature>.test.js` per the local-test skill and run `node scripts/test.js`.
 - No git commit/push/merge, no firebase deploy.
 - Report: files changed (one line each), test result, open issues. Terse.
+
+## 語言
+
+最終回報一律用繁體中文（程式碼、指令、路徑、錯誤訊息照原文）。

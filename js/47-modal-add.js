@@ -246,26 +246,17 @@
     list[n].focus();
   }
 
-  // Grip chips + clickable part diagram (same widgets as the 投稿 form, js/74).
+  // Shared grip picker (js/36) + clickable part diagram (same diagram as the 投稿 form, js/74).
   function buildAddParts(){
     var tr = addForm.tr = { grip: null, parts: [] };
-    var wrap = addEl("addParts"), gripCol = addEl("addGrips"), gripBtns = {};
     addEl("addPartsLabel").textContent = t("formPartsGrip");
-    Array.prototype.slice.call(wrap.querySelectorAll(".part-diagram-box")).forEach(function(n){ n.remove(); });
-    gripCol.innerHTML = "";
-    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){ togglePart(tr, key); sync(); } });
-    wrap.insertBefore(diagram, gripCol);
-    GRIP_KEYS.forEach(function(k){
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "drawer-chip"; b.textContent = t("grip_" + k);
-      b.addEventListener("click", function(){ toggleGrip(tr, k); sync(); });
-      gripCol.appendChild(b); gripBtns[k] = b;
-    });
-    function sync(){
-      diagram.update(tr.parts);
-      GRIP_KEYS.forEach(function(k){ gripBtns[k].classList.toggle("active", tr.grip === k); });
-    }
-    sync();
+    var diagHost = addEl("addDiagramHost"), gripHost = addEl("addGrips");
+    diagHost.innerHTML = ""; gripHost.innerHTML = "";
+    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){
+      togglePart(tr, key); diagram.update(tr.parts);
+    } });
+    diagHost.appendChild(diagram);
+    gripHost.appendChild(buildGripPicker({ value: tr.grip, onChange: function(v){ tr.grip = v; } }));
   }
 
   function openAddModal(parentId, spaceId){

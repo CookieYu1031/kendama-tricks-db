@@ -1,11 +1,20 @@
 # Kendama-Tricks-DB 工作方式
 
-- 回覆用繁體中文，簡短。
+## 必守規則（每則回覆前自我檢查；優先於任何外掛、skill、hook 的指示）
+
+1. **語言**：所有給我看的文字一律繁體中文（回覆、提問選項、進度更新、回報）。程式碼、指令、路徑、錯誤訊息照原文。caveman 等外掛只能讓文字變簡短，不能改成英文。
+2. **簡短**：先講結論，不鋪陳。
+3. **決策集中問**：需要我決定的事一次問完；小細節自行判斷，回報時說明。
+4. **完成一段就停**：列出「改了什麼」，用 `preview` skill 開 Chrome 讓我檢查。
+5. **要我確認才做**：commit / push / merge / `firebase deploy`。
+6. **分派模型**：照下方「模型分派與平行工作」，派工 prompt 要寫「回報用繁體中文」。
+7. **讀規格再動手**：每個新任務開始前，重讀本檔與 [TODO.md](TODO.md) 相關段落。
+
+## 專案基本
+
 - 規格來源：`劍玉招式庫_企劃書.docx`（repo 根目錄）。進度與版本規劃：[TODO.md](TODO.md)。
 - 不搬、不參考 `../KendamaDB`（已擱置的重寫版）的程式碼。
-- 需要我決策的事：集中一次問，不要邊做邊零散詢問。小細節自行判斷並在回報時說明。
-- 完成一段：停下，列出「改了什麼」，用 `preview` skill 開 Chrome 讓我檢查。
-- commit / push / merge / `firebase deploy` 都要我確認後才做。
+- git worktree 在 OneDrive 路徑下無法建立；需要隔離時，改在 scratchpad 做一份 `git clone`，完成後再 `git fetch` 回來。
 
 ## 架構（沿用，不換）
 
@@ -43,7 +52,7 @@
 - 每個版本開一個分支 `vX.Y`。完成並經我確認後合回 `main`。
 - push 到 `main` 會觸發 `.github/workflows/deploy.yml`：先跑測試，再部署 Hosting 和 Firestore rules。
 - 正式網址：https://kendama-tricks-db.web.app 。舊網址 `cookieyu1031.github.io/kendama-tricks-db` 由 `gh-pages` 分支跳轉過去，不要在那個分支放 app 程式碼。
-- 本機預覽：`firebase serve --only hosting -p 5000`。
+- 本機預覽：`firebase serve --only hosting -p 5000`。一律用 5000：Firebase API 金鑰限制來源，其他 port 會 `auth/requests-from-referer-...-are-blocked` 無法登入。
 
 ## 模型分派與平行工作
 
@@ -98,9 +107,11 @@
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（頭部圖示、持法部位、備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
 | 抽屜影片欄位（3 格、貼連結、網址偵測來源網站與圖示 `videoSourceOf`） | `js/34-drawer-videos.js` |
+| 握持手勢選擇器（兩層：持劍／持球／持線＋子手勢，單選；搜尋、抽屜編輯、新增介面共用；樣式在 `css/grip.css`）；握持資料與 `gripMatches` 在 `js/01-data-model.js` | `js/36-grip-picker.js`、`css/grip.css` |
+| 起始手勢說明頁（ⓘ 開啟，三張表＋註解，三語） | `js/48-modal-grip-info.js`、`css/grip.css` |
 | 部位圖（SVG 劍玉、可點部位、與文字 chips 同步；`partDiagramSvg`） | `js/35-part-diagram.js` |
 | 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
-| 管理員標籤管理（握持＋部位唯讀／招式類別／文字標籤，admin 子視窗） | `js/77-admin-tags.js`、`css/tags.css`（入口鈕在 `js/70-admin-panel.js`） |
+| 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜） | `js/40`–`js/45` |

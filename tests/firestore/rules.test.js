@@ -47,7 +47,7 @@ test("admins: owner read, no write", function () {
 test("hasOnly field lists exact", function () {
   var l = hasOnlyLists();
   [
-    "spaces,tags,schema,clientUpdatedAt,updatedAt",
+    "spaces,tags,labels,schema,clientUpdatedAt,updatedAt",
     "viewingVersion,updatedAt",
     "schema,baseVersion,chunks,hash,updatedAt",
     "data",
@@ -134,4 +134,8 @@ test("shares: public read, owner-only write (re-share overwrites), size caps, be
   assert.match(b, /payload\.size\(\) <= 204800/);
   assert.match(b, /title\.size\(\) <= 120/);
   assert.match(b, /allow delete: if isOwner\(resource\.data\.ownerUid\);/);
+});
+
+test("meta/spaces accepts labels only as a map", function () {
+  assert.match(src, /labels' in request\.resource\.data\) \|\| request\.resource\.data\.labels is map/);
 });

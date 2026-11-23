@@ -65,3 +65,11 @@ test("trickLocCodes: code for table-placed trick, none for favorites-only", () =
   assert.deepStrictEqual(Array.from(c.trickLocCodes(c.getTrick("favonly"))), []);
 });
 
+test("toggleGrip accepts sub-grips and categories, tap again clears", () => {
+  const c = setup(), t = { grip: null, parts: [] };
+  assert.strictEqual(c.toggleGrip(t, "ken_sara"), "ken_sara");
+  assert.strictEqual(c.toggleGrip(t, "ken"), "ken");
+  assert.strictEqual(c.toggleGrip(t, "ken"), null);
+  assert.strictEqual(c.toggleGrip(t, "bogus"), null);
+  assert.strictEqual(c.toggleGrip(t, "ito_tornado"), "ito_tornado");
+});

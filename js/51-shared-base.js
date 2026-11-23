@@ -56,19 +56,30 @@
       categories: Array.isArray(d.categories) ? d.categories : [],
       tricks: Array.isArray(d.tricks) ? d.tricks : [],
       infos: Array.isArray(d.infos) ? d.infos : [],
-      tags: Array.isArray(d.tags) ? d.tags : []
+      tags: Array.isArray(d.tags) ? d.tags : [],
+      labels: normalizeLabels(d.labels)
     };
+  }
+  // Labels of the shared-base version fetched last (js/01 normalizeDB falls back to it when the
+  // raw data being normalized carries no `labels`, e.g. cloud-merged data).
+  var _sharedBaseLabels = {};
+  // -> labels object for a raw db that has none of its own: the admin keeps the local (unpublished)
+  // edits, everyone else gets the published ones.
+  function labelsFallback(){
+    if(typeof isAdminAccount === "function" && isAdminAccount() && typeof db !== "undefined" && db && db.labels) return db.labels;
+    return _sharedBaseLabels;
   }
   function sharedVersionPath(version){ return "sharedBase/" + SHARED_BASE_DOC_ID + "/versions/" + version; }
 
   function fetchSharedBaseVersion(version){
     var cacheKey = SHARED_BASE_TABLE_ID + "@" + version;
-    if(baseDataCache[cacheKey]) return Promise.resolve(baseDataCache[cacheKey]);
+    if(baseDataCache[cacheKey]){ _sharedBaseLabels = baseDataCache[cacheKey].labels || {}; return Promise.resolve(baseDataCache[cacheKey]); }
     if(!version){
       // Nothing published yet (version 0) — base is just empty, same as any
       // other space that's never had base content.
       var empty = emptyBase(0);
       baseDataCache[cacheKey] = empty;
+      _sharedBaseLabels = {};
       return Promise.resolve(empty);
     }
     return fbStore.doc(sharedVersionPath(version)).get()
@@ -84,6 +95,7 @@
       })
       .then(function(normalized){
         baseDataCache[cacheKey] = normalized;
+        _sharedBaseLabels = normalized.labels || {};
         return normalized;
       })
       .catch(function(err){
@@ -157,9 +169,9 @@
         db.categories = otherCats.concat(base.categories);
         db.tricks = otherTricks.concat(base.tricks);
         db.infos = otherInfos.concat(base.infos);
-        var tagMap = {};
-        (db.tags || []).concat(base.tags).forEach(function(g){ tagMap[g.id] = g; });
-        db.tags = objVals(tagMap);
+        // Guest: published base wins for values and order; own-only tags are kept after.
+        db.tags = mergeTagLists(db.tags, base.tags, true);
+        db.labels = base.labels || {};
         db = normalizeDB(db);
       });
     }).catch(function(err){ console.error("Guest shared-base load failed:", err); });
@@ -178,7 +190,7 @@
       (data.infos || []).forEach(function(n){ if(n.spaceId === sid) infos.push(n); });
       data.tricks.forEach(function(tr){ if((tr.categoryIds || []).some(function(cid){ return cont[cid]; })) tricks[tr.id] = tr; });
     });
-    return { tables: SHARED_BASE_TABLE_IDS.slice(), categories: cats, tricks: objVals(tricks), infos: infos, tags: data.tags || [] };
+    return { tables: SHARED_BASE_TABLE_IDS.slice(), categories: cats, tricks: objVals(tricks), infos: infos, tags: data.tags || [], labels: normalizeLabels(data.labels) };
   }
   // Pure: -> null when ok, else the i18n key of the problem.
   function validatePublishInput(note, label){

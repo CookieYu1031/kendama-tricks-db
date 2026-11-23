@@ -14,7 +14,32 @@
   // Data-model key lists. Defined here (not in 02) because normalizeDB() runs at
   // load time of this file, before 02 is loaded. Labels / colors live in 02.
   var MAX_VIDEOS = 3;                       // B9: videos per trick
-  var GRIP_KEYS = ["ken", "tama", "ito"];  // 持劍 / 持球 / 持線 (single choice)
+  // 握持手勢: two levels, still ONE value per trick. A category key ("ken" / "tama" / "ito", the old
+  // flat values) means "category, sub-grip unspecified"; a sub key (ken_sara...) is a specific grip.
+  var GRIP_GROUPS = [
+    { key:"ken",  grips:["ken_ken","ken_sara","ken_candle","ken_gun","ken_space","ken_stall","ken_swivel","ken_down"] },
+    { key:"tama", grips:["tama_tama","tama_stunt"] },
+    { key:"ito",  grips:["ito_hang","ito_lighthouse","ito_spike","ito_tornado"] }
+  ];
+  // Every valid grip value (3 categories + all subs); normalization / share / forms validate against it.
+  var GRIP_KEYS = GRIP_GROUPS.reduce(function(a, g){ return a.concat([g.key], g.grips); }, []);
+  // "ken" | "tama" | "ito" for any grip value (a category maps to itself); null for unknown.
+  function gripCategoryOf(k){
+    for(var i = 0; i < GRIP_GROUPS.length; i++){
+      if(GRIP_GROUPS[i].key === k || GRIP_GROUPS[i].grips.indexOf(k) !== -1) return GRIP_GROUPS[i].key;
+    }
+    return null;
+  }
+  function isGripCategory(k){
+    return GRIP_GROUPS.some(function(g){ return g.key === k; });
+  }
+  // Does a trick with `trickGrip` match a filter on `wanted`? Equal, or wanted is a category the trick's grip is in.
+  function gripMatches(trickGrip, wanted){
+    if(!wanted) return true;
+    if(!trickGrip) return false;
+    if(trickGrip === wanted) return true;
+    return isGripCategory(wanted) && gripCategoryOf(trickGrip) === wanted;
+  }
   // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球面; "junction" (交界) is a pseudo-part.
   var PART_GROUPS = [
     { key:"ken",  parts:["kenchou","kensaki","sara","saraEdge","junction","kenBody","suberidome","chuzara","chuzaraEdge"] },

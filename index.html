@@ -38,6 +38,7 @@
 <link rel="stylesheet" href="css/search-panel.css">
 <link rel="stylesheet" href="css/browse-columns.css">
 <link rel="stylesheet" href="css/detail-drawer.css">
+<link rel="stylesheet" href="css/grip.css">
 <link rel="stylesheet" href="css/buttons-and-modals.css">
 <link rel="stylesheet" href="css/admin-panel.css">
 <link rel="stylesheet" href="css/admin-stats.css">
@@ -80,19 +81,16 @@
       </div>
       <div class="search-tag-suggest drawer-chip-row" id="searchTagSuggest"></div>
       <div class="search-section">
-        <div class="search-label-row">
-          <div class="search-grip-group">
-            <span class="search-label" id="searchGripLabel"></span>
-            <div class="lang-switch search-seg-sm" id="searchGripRow"></div>
-          </div>
-          <div class="lang-switch search-seg-sm" id="searchPartsMode"></div>
-        </div>
-        <div class="search-cond-row">
+        <div class="search-grip-group" id="searchGripHost"></div>
+        <div class="search-parts-block">
           <div class="drawer-chip-row" id="searchPartsRow"></div>
-          <div class="search-class-box">
-            <span class="search-label" id="searchClassLabel"></span>
-            <div class="drawer-chip-row search-class-row" id="searchClassRow"></div>
+          <div class="search-label-row">
+            <div class="lang-switch search-seg-sm" id="searchPartsMode"></div>
           </div>
+        </div>
+        <div class="search-class-box">
+          <span class="search-label" id="searchClassLabel"></span>
+          <div class="drawer-chip-row search-class-row" id="searchClassRow"></div>
         </div>
       </div>
       <div class="search-results-bar">
@@ -521,7 +519,7 @@
       </div>
       <div class="field" id="addPartsSection" hidden>
         <label id="addPartsLabel"></label>
-        <div class="sf-parts add-parts" id="addParts"><div class="drawer-grip-col" id="addGrips"></div></div>
+        <div class="add-parts" id="addParts"><div id="addDiagramHost"></div><div id="addGrips"></div></div>
       </div>
       <div id="addInfoSection" hidden>
         <div class="field"><label id="addContentLabel"></label><textarea id="addContent" rows="3"></textarea></div>
@@ -624,6 +622,7 @@
 <script src="js/33-drawer-tags.js"></script>
 <script src="js/34-drawer-videos.js"></script>
 <script src="js/35-part-diagram.js"></script>
+<script src="js/36-grip-picker.js"></script>
 <script src="js/40-modal-confirm-toast.js"></script>
 <script src="js/41-modal-video.js"></script>
 <script src="js/42-modal-media.js"></script>
@@ -632,6 +631,7 @@
 <script src="js/45-modal-trick.js"></script>
 <script src="js/46-modal-info.js"></script>
 <script src="js/47-modal-add.js"></script>
+<script src="js/48-modal-grip-info.js"></script>
 <script src="js/50-sync-core.js"></script>
 <script src="js/51-shared-base.js"></script>
 <script src="js/52-auth.js"></script>

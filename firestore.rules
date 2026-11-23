@@ -37,7 +37,8 @@ service cloud.firestore {
         allow read, delete: if isOwner(uid);
         allow create, update: if isOwner(uid) && (
           (metaId == 'spaces' &&
-            request.resource.data.keys().hasOnly(['spaces', 'tags', 'schema', 'clientUpdatedAt', 'updatedAt']) &&
+            request.resource.data.keys().hasOnly(['spaces', 'tags', 'labels', 'schema', 'clientUpdatedAt', 'updatedAt']) &&
+            (!('labels' in request.resource.data) || request.resource.data.labels is map) &&
             (!('spaces' in request.resource.data) ||
               (request.resource.data.spaces is list && request.resource.data.spaces.size() <= 40)) &&
             (!('tags' in request.resource.data) ||

@@ -183,13 +183,14 @@
               var baseMap = {};
               spaceIds.forEach(function(id){ baseMap[id] = baseForSpace(indexBase, id); });
               var merged = mergeAllSpaces(spaceIds, baseMap, diffMap);
-              var tagMap = {};
-              (indexBase.tags || []).forEach(function(g){ tagMap[g.id] = g; });
-              ((meta && meta.tags) || []).forEach(function(g){ tagMap[g.id] = g; });
+              var raw = { categories: merged.categories, tricks: merged.tricks, infos: merged.infos,
+                tags: mergeTagLists(indexBase.tags, meta && meta.tags, isAdminAccount()), spaces: spacesList };
+              // Labels: admin's unpublished edits come from meta.labels; everyone else gets the published base.
+              if(isAdminAccount() && meta && meta.labels && typeof meta.labels === "object") raw.labels = meta.labels;
+              else if(!isAdminAccount()) raw.labels = indexBase.labels || {};
               return {
                 exists: mi.exists, cloudTs: mi.cloudTs, hashes: hashes,
-                db: normalizeDB({ categories: merged.categories, tricks: merged.tricks, infos: merged.infos,
-                  tags: objVals(tagMap), spaces: spacesList })
+                db: normalizeDB(raw)
               };
             });
           });
@@ -237,8 +238,11 @@
           ops.push({ kind: "delete", path: "users/" + uid + "/spaceData/" + sid, bytes: 100 });
         });
         var clientUpdatedAt = Math.max(Date.now(), ((metaInfo && metaInfo.cloudTs) || 0) + 1);
-        ops.push({ kind: "set", path: "users/" + uid + "/meta/spaces", ts: true, bytes: JSON.stringify(snapshot.spaces).length + JSON.stringify(snapshot.tags).length + 200,
-          data: { spaces: snapshot.spaces, tags: snapshot.tags, schema: CLOUD_SCHEMA, clientUpdatedAt: clientUpdatedAt } });
+        var metaData = { spaces: snapshot.spaces, tags: snapshot.tags, schema: CLOUD_SCHEMA, clientUpdatedAt: clientUpdatedAt };
+        var labelBytes = 0;
+        if(isAdminAccount()){ metaData.labels = snapshot.labels || {}; labelBytes = JSON.stringify(metaData.labels).length; }
+        ops.push({ kind: "set", path: "users/" + uid + "/meta/spaces", ts: true, bytes: JSON.stringify(snapshot.spaces).length + JSON.stringify(snapshot.tags).length + labelBytes + 200,
+          data: metaData });
         return commitOps(ops).then(function(){
           return { clientUpdatedAt: clientUpdatedAt, hashes: newHashes, snapshot: snapshot, seq: seq };
         });

@@ -60,7 +60,7 @@
   /* ------------------------------------------------------------
      Base data loading (cached per space id for the page's lifetime)
   ------------------------------------------------------------ */
-  function emptyBase(version){ return { version: version || 0, tables: [], categories: [], tricks: [], infos: [], tags: [] }; }
+  function emptyBase(version){ return { version: version || 0, tables: [], categories: [], tricks: [], infos: [], tags: [], labels: {} }; }
   // One table's slice of the shared snapshot (same container rule as tricksForSpace).
   // Tables the snapshot doesn't cover (old versions) and all non-shared tables: empty.
   function baseForSpace(indexBase, spaceId){
