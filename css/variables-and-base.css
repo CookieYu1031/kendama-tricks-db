@@ -64,12 +64,16 @@
     --rate-sometimes:#0369A1; --rate-sometimes-ink:#F0F9FF;
     --rate-most:#0EA5E9; --rate-most-ink:#082F49;
     --rate-mastered:#7DD3FC; --rate-mastered-ink:#082F49;
+    --star:#E0B040;
+    --color-default:#B5B3AE; --color-contrast:#FFFFFF; --color-contrast-tick:#111111; /* theme-adaptive item colours */
     color-scheme: dark;
     --glass-blur: blur(30px) saturate(190%);
     --glass-blur-soft: blur(18px) saturate(165%);
   }
   :root[data-theme="light"]{
     color-scheme: light;
+    --star:#D69A1E;
+    --color-default:#5F5E5B; --color-contrast:#1F1F1F; --color-contrast-tick:#FFFFFF;
     --edge-bg:#D6DEE6; --ink:#D9DCE1; --ink-2:#D1D5DB; --ink-3:#C8CCD3; --ink-4:#BDC2CA;
     --paper:#1A1D22; --paper-dim: rgba(26,29,34,0.84); --paper-faint: rgba(26,29,34,0.66);
     --line: rgba(26,29,34,0.12); --line-strong: rgba(26,29,34,0.20);

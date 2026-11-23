@@ -1,6 +1,5 @@
   /* ---------- Detail Drawer ---------- */
-  :root{ --drawer-custom-tint: var(--wood-tint-strong); --star:#E0B040; } /* custom:true tricks: warm (--wood) tint on the head */
-  :root[data-theme="light"]{ --star:#D69A1E; }
+  :root{ --drawer-custom-tint: var(--wood-tint-strong); } /* custom:true tricks: warm (--wood) tint on the head */
   /* Card look = .m-col (browse-columns.css): same radius, glass fill/border, shadow.
      margin 14px 14px 16px 0 mirrors .miller-wrap's padding (14 top, 16 bottom) so the
      card's top/bottom edges line up with the columns'. Closed: zero size, no margin. */
@@ -27,7 +26,6 @@
   .drawer-head{ flex:0 0 auto;
     padding: 14px 16px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
-  .drawer-eyebrow{ font-family: var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color: var(--string); margin-bottom:6px; }
   .drawer-head-left{ flex:1 1 auto; min-width:0; }
   .drawer-title{ font-family: var(--font-display); font-size:20px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
   .drawer-head-icon{ width:40px; height:40px; border-radius:var(--radius-xs); font-size:20px; border:0; padding:0; flex:0 0 auto; font-family:inherit; }
@@ -130,7 +128,6 @@
   .proficiency-btn[data-rate="sometimes"]{ --pf-c: var(--rate-sometimes); --pf-ink: var(--rate-sometimes-ink); }
   .proficiency-btn[data-rate="most"]{ --pf-c: var(--rate-most); --pf-ink: var(--rate-most-ink); }
   .proficiency-btn[data-rate="mastered"]{ --pf-c: var(--rate-mastered); --pf-ink: var(--rate-mastered-ink); }
-  .rate-swatch{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:baseline; border:1px solid var(--glass-border-strong); }
 
   /* ---------- v0.2 drawer additions ---------- */
   /* custom:true tricks get a warm tint on the head */
@@ -146,13 +143,6 @@
   .drawer-inline-input:focus{ border-color: var(--lacquer); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.15); }
 
   /* ID + location codes (edit mode) */
-  .drawer-meta{ display:flex; flex-wrap:wrap; gap:6px; margin: -8px 0 18px; }
-  .drawer-meta-code{
-    font-family: var(--font-mono); font-size:12px; letter-spacing:.04em; padding: 3px 9px; border-radius:999px;
-    background: transparent; color: var(--paper-faint); border:1px solid var(--line); cursor:pointer;
-    transition: all .15s var(--ease);
-  }
-  .drawer-meta-code:hover{ border-color: var(--lacquer); color: var(--paper); }
 
   /* Chips (tags / grip / parts) — same pill as .chip */
   .drawer-chip-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:16px; }
@@ -168,7 +158,6 @@
     /* Uniform chip width: labels up to 8 half-width chars (CJK = 2, i.e. 4 CJK) share this width; longer ones grow. */
     box-sizing:border-box; min-width: calc(4em + 20px); text-align:center;
   }
-  .drawer-chip-danger{ min-width:0; }
   .drawer-chip:hover{ border-color: var(--wood); color: var(--wood); }
   .drawer-chip.static{ cursor:default; }
   .drawer-chip.static:hover{ border-color: var(--glass-border); color: var(--paper-dim); }
@@ -176,13 +165,8 @@
     background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.32), rgba(var(--lacquer-rgb),0.14));
     border-color: var(--lacquer-bright); color: var(--paper);
   }
-  .drawer-chip-danger{ display:inline-flex; align-items:center; padding:3px 6px; margin-left:-4px; }
-  .drawer-chip-danger svg{ width:11px; height:11px; display:block; }
-  .drawer-chip-danger:hover{ border-color: var(--danger); color: var(--danger-bright); }
   .drawer-tag-picker{ margin: -6px 0 16px; }
   .drawer-tag-picker .drawer-chip-row{ margin-bottom:10px; }
-  .drawer-tag-new{ display:flex; gap:8px; align-items:center; }
-  .drawer-tag-new .col-add-btn{ flex:0 0 auto; padding: 7px 12px; }
 
   /* Video slots (js/34): MAX_VIDEOS compact button slots in one row */
   .vid-slots{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:6px; margin-bottom:16px; }
@@ -204,20 +188,16 @@
     .drawer-viz.has-diagram .drawer-flow{ flex:1 1 0; min-width:0; margin:0; }
   }
 
-  /* Rate label row + "i" hint button/popover */
-  .drawer-rate-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-  .drawer-rate-head .drawer-cats-label{ margin-bottom:0; }
-  .drawer-info-btn{
-    background:none; border:0; padding:0 2px; color: var(--paper-faint); font-family: var(--font-mono); font-size:12px;
-    line-height:1; cursor:pointer; text-decoration: underline; text-underline-offset:2px; transition: color .15s var(--ease);
-  }
-  .drawer-info-btn:hover, .drawer-info-btn.active{ color: var(--paper); }
-  .drawer-rate-hint{
-    font-size:12px; line-height:1.7; color: var(--paper-dim); margin-bottom:8px; padding: 8px 12px;
-    border:1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--glass-2);
-    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
-  }
-  .drawer-rate-hint[hidden]{ display:none; }
+  /* 「成功率 ⓘ」 label button (opens the rate info page, js/48-modal-rate-info.js) */
+  .drawer-rate-head{ display:inline-block; background:none; border:0; padding:0; cursor:pointer; transition: color .15s var(--ease); }
+  .drawer-rate-head:hover{ color: var(--paper); }
+  /* Rate info page */
+  #rateInfoOverlay{ z-index: 75; }
+  .rate-info-intro{ font-size:13px; line-height:1.6; color: var(--paper-dim); margin-bottom:14px; }
+  .rate-info-list{ display:flex; flex-direction:column; gap:8px; }
+  .rate-info-row{ display:flex; align-items:center; gap:12px; }
+  .rate-info-chip{ flex:0 0 96px; border-radius: var(--radius-xs); cursor:default; }
+  .rate-info-hint{ font-size:13px; color: var(--paper-dim); }
 
   /* Mobile: full-width panel under the top bar, slides in from the right
      (spec 3.4). Body scrolls; the proficiency / guest foot stays pinned. */

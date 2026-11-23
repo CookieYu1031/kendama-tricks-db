@@ -4,7 +4,6 @@
   }
   .drawer-chip.tag-class:hover{ border-color: var(--lacquer-bright); color: var(--accent-text); }
   .drawer-chip.tag-suggest{ border-style: dashed; background: transparent; }
-  .drawer-chip.tag-apply{ border-style: dashed; color: var(--paper); }
 
   .tagmgr-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
   .tagmgr-body{ padding:4px 2px 12px; }
@@ -13,7 +12,7 @@
   .tagmgr-chip{ position:relative; user-select:none; -webkit-user-select:none; cursor:grab; touch-action:manipulation; }
   .tagmgr-chip.dragging{ opacity:0.4; cursor:grabbing; }
   .tagmgr-chip.drop-before::before, .tagmgr-chip.drop-after::after{
-    content:''; position:absolute; top:-3px; bottom:-3px; width:2.5px; border-radius:2px;
+    content:''; position:absolute; top:-3px; bottom:-3px; width:2.5px; border-radius:var(--radius-xs);
     background: var(--lacquer-bright); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.24); z-index:2;
   }
   .tagmgr-chip.drop-before::before{ left:-5px; }
@@ -25,8 +24,7 @@
   .tagmgr-form .field{ margin-bottom:8px; }
   .tagmgr-form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
   .tagmgr-diagram{ margin:8px 0 10px; }
-  .tagmgr-diagram .part-diagram{ height:240px; }
-  .tagmgr-chips{ margin-bottom:10px; }
+  .tagmgr-diagram .part-diagram{ height:150px; }
 
   /* Manager modal: fixed size so switching tabs never resizes it; the body scrolls inside. */
   .modal.tagmgr-modal{ width:520px; max-width:100%; height:640px; max-height:calc(86vh / var(--ui-zoom)); }

@@ -1,4 +1,4 @@
-// Search panel defaults (js/62-search-panel.js): grip 持劍, mode any (≈) / all (≅).
+// Search panel defaults (js/62-search-panel.js): grip null, parts mode any; single toggle flips any <-> all.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert");
@@ -28,10 +28,15 @@ test("no default grip: empty filters are not a criterion", () => {
   assert.ok(!c.searchHasCriteria(c.parseSearchQuery(""), noGrip));
 });
 
-test("source: mode buttons carry title + aria-label; reset returns to default grip", () => {
+test("nextPartsMode flips any <-> all", () => {
+  const c = setup();
+  assert.strictEqual(c.nextPartsMode("any"), "all");
+  assert.strictEqual(c.nextPartsMode("all"), "any");
+  assert.strictEqual(c.nextPartsMode(undefined), "all");
+});
+
+test("source: reset returns to default grip", () => {
   const src = fs.readFileSync(path.join(__dirname, "..", "..", "js/62-search-panel.js"), "utf8");
-  assert.match(src, /b\.title = full/);
-  assert.match(src, /aria-label/);
   assert.match(src, /searchFilters\.grip = SEARCH_DEFAULT_GRIP; searchFilters\.parts = \[\]/);
   assert.match(src, /searchInteracted = false;\s+var input/);
 });

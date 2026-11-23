@@ -14,9 +14,7 @@
   }
   // --- Compat wrappers for the old GOAL bucket API (UI still calls these; maps to favorite).
   // The spaceId arguments are ignored.
-  var GOAL_BUCKET_CAT_ID = FAV_STARRED_ID;
   function spaceBucketFor(spaceId){ return spaceId === FAV_TABLE_ID ? { bucketId: FAV_STARRED_ID } : null; }
-  function trickInSpaceBucket(trickId){ return isFavorite(trickId); }
   function toggleTrickInSpaceBucket(trickId){ toggleFavorite(trickId); }
   // Closes the drawer when the open trick was just un-starred while browsing the favorites table.
   // Returns true when it closed the drawer.

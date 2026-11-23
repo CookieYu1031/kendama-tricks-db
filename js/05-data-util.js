@@ -1,15 +1,6 @@
 "use strict";
 
   /* ---------------- Video platforms ---------------- */
-  var PLATFORM_ICONS = {
-    youtube: '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.7"/><path d="M10 9l6 3-6 3V9z" fill="currentColor"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>',
-    facebook: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="sans-serif">f</text></svg>',
-    tiktok: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M13 7v7.2a2.3 2.3 0 11-2-2.28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 7c.3 1.6 1.5 2.8 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    vimeo: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16.2" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">V</text></svg>',
-    twitter: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="sans-serif">X</text></svg>',
-    other: '<svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 015.7 5.7l-1.4 1.4M14 18l-1 1A4 4 0 016 13.3l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'
-  };
   function detectPlatform(url){
     if(!url) return "other";
     var host;
@@ -116,29 +107,4 @@
   var MAX_CATEGORY_DEPTH = MAX_FOLDER_LEVEL;
   function categoryDepth(catId){ return pathToContainer(catId).length; }
 
-  // Combined categories + tricks tree, flattened with depth, for the trick modal's
-  // "belongs to" picker — lets a trick be nested directly under another trick.
-  function flattenContainersForPicker(excludeIds){
-    var out = [];
-    function walk(parentId, depth, visited){
-      if(depth > 60) return;
-      getChildren(parentId).slice().sort(function(a,b){ return (a.order-b.order) || localize(a.name).localeCompare(localize(b.name)); }).forEach(function(c){
-        if(excludeIds && excludeIds.indexOf(c.id) !== -1) return;
-        if(visited[c.id]) return;
-        visited[c.id] = true;
-        out.push({ id:c.id, depth:depth, name: localize(c.name), type:"category", ref:c });
-        walk(c.id, depth+1, visited);
-      });
-      var trs = getTricksInCategory(parentId===null ? "__none__" : parentId).slice().sort(function(a,b){ return localize(a.name).localeCompare(localize(b.name)); });
-      trs.forEach(function(tr){
-        if(excludeIds && excludeIds.indexOf(tr.id) !== -1) return;
-        if(visited[tr.id]) return;
-        visited[tr.id] = true;
-        out.push({ id:tr.id, depth:depth, name: localize(tr.name), type:"trick", ref:tr });
-        walk(tr.id, depth+1, visited);
-      });
-    }
-    walk(null, 0, {});
-    return out;
-  }
 

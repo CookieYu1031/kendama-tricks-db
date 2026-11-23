@@ -112,9 +112,6 @@
     if(spaceId === FAV_TABLE_ID && (tr.favorite || tr.custom)) return true;
     return (tr.categoryIds || []).some(function(cid){ return containerSpaceId(cid) === spaceId; });
   }
-  function getAllTricksInSpace(spaceId){
-    return db.tricks.filter(function(tr){ return trickBelongsToSpace(tr, spaceId); });
-  }
 
   // Direct-membership version used by the flat "columns" (Grid List) view:
   // a trick counts only when one of its categoryIds is the table itself or a folder

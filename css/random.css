@@ -22,8 +22,8 @@
   .rnd-chips .drawer-chip.rnd-rate:not(.active){ opacity:.55; }
   .rnd-actions{ margin-top:12px; }
   .rnd-actions .btn{ padding:10px 8px; white-space:normal; line-height:1.25; }
-  .rnd-results{ display:grid; grid-template-columns: 1fr; gap:10px; margin-top:16px; }
-  @media (min-width: 601px){ .rnd-results{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .rnd-results{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:10px; margin-top:16px; }
+  @media (max-width: 600px){ .rnd-results{ grid-template-columns: 1fr; } }
   .rnd-card{
     position:relative; display:flex; align-items:flex-start; gap:10px; padding:12px 40px 12px 12px; min-width:0;
     border-radius:var(--radius-sm); border:1px solid var(--glass-border); cursor:pointer;

@@ -197,9 +197,6 @@
     });
     return out;
   }
-  function trickTableId(tr){
-    return containerSpaceId((tr.categoryIds || [])[0]);
-  }
 
   // Which body sections the drawer renders (v0.9.3 C8). View mode: only sections with data.
   // Edit mode: video slots / grip+parts / tags follow `canEdit` (the trick itself may be

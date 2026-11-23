@@ -224,7 +224,7 @@
     var f1 = tutEl("div", "field");
     f1.appendChild(tutEl("label", "", t("tutTrickLabel")));
     var inp = document.createElement("input");
-    inp.type = "text"; inp.className = "tut-id-input"; inp.value = page.trickId; inp.maxLength = 12;
+    inp.type = "text"; inp.className = "tut-id-input drawer-inline-input"; inp.value = page.trickId; inp.maxLength = 12;
     f1.appendChild(inp);
     var msg = tutEl("div", "tut-id-msg");
     f1.appendChild(msg);
@@ -238,7 +238,7 @@
     var fv = tutEl("div", "field");
     fv.appendChild(tutEl("label", "", t("tutVideoLabel")));
     var vinp = document.createElement("input");
-    vinp.type = "url"; vinp.className = "tut-video-input"; vinp.value = page.videoUrl || ""; vinp.maxLength = TUTORIAL_VIDEO_MAX;
+    vinp.type = "url"; vinp.className = "tut-video-input drawer-inline-input"; vinp.value = page.videoUrl || ""; vinp.maxLength = TUTORIAL_VIDEO_MAX;
     vinp.placeholder = "https://";
     fv.appendChild(vinp);
     var vmsg = tutEl("div", "tut-id-msg", t("tutVideoHint"));

@@ -5,8 +5,8 @@
      (head icon, grip/parts, note, rate footer, edit footer; tags in js/33, video slots in js/34).
      renderDrawer() in js/32-trick-drawer.js assembles them.
   ============================================================ */
-  // Tag-picker / rate-hint open state for the drawer (reset when another trick opens).
-  var drawerUi = { tagPicker: false, rateHint: false, classPickerFor: null, videoEdit: null, tagsRef: null, gpRef: null }; // buildDrawerTags lives in js/33
+  // Tag-picker open state for the drawer (reset when another trick opens).
+  var drawerUi = { tagPicker: false, classPickerFor: null, videoEdit: null, tagsRef: null, gpRef: null }; // buildDrawerTags lives in js/33
 
   function copyDrawerText(text){
     try{
@@ -159,24 +159,13 @@
     var profFoot = document.createElement("div");
     profFoot.className = "drawer-proficiency-foot";
 
-    var rateHead = document.createElement("div");
-    rateHead.className = "drawer-rate-head";
-    var infoBtn = document.createElement("button");
-    infoBtn.type = "button"; infoBtn.className = "drawer-info-btn" + (drawerUi.rateHint ? " active" : "");
-    infoBtn.textContent = "i"; infoBtn.title = t("rateLabel");
-    var hint = document.createElement("div");
-    hint.className = "drawer-rate-hint"; hint.hidden = !drawerUi.rateHint;
-    hint.innerHTML = ['<span>' + escapeHtml(t("rate_none")) + '</span> ' + escapeHtml(t("rateHint_none"))].concat(RATE_LEVELS.map(function(l){
-      return '<span class="rate-swatch" style="background:' + RATE_COLORS[l] + '"></span><span>' + escapeHtml(t("rate_" + l)) + '</span> ' + escapeHtml(t("rateHint_" + l));
-    })).join("<br>");
-    infoBtn.addEventListener("click", function(){
-      drawerUi.rateHint = !drawerUi.rateHint;
-      hint.hidden = !drawerUi.rateHint;
-      infoBtn.classList.toggle("active", drawerUi.rateHint);
-    });
-    rateHead.appendChild(makeLabel(t("rateLabel"))); rateHead.appendChild(infoBtn);
+    // 「成功率 ⓘ」: the whole label is a button that opens the rate info page (js/48-modal-rate-info.js).
+    var rateHead = document.createElement("button");
+    rateHead.type = "button";
+    rateHead.className = "drawer-cats-label drawer-rate-head";
+    rateHead.textContent = t("rateLabel") + " ⓘ";
+    rateHead.addEventListener("click", function(){ if(typeof openRateInfo === "function") openRateInfo(); });
     profFoot.appendChild(rateHead);
-    profFoot.appendChild(hint);
 
     var profWrap = document.createElement("div");
     profWrap.className = "proficiency-group";
@@ -223,7 +212,7 @@
       addVarB.addEventListener("click", function(){ openAddModal(tr.id, state.activeSpace); });
       var delB = document.createElement("button");
       delB.className = "col-add-btn col-add-btn-danger col-add-btn-del";
-      delB.innerHTML = ICON_TRASH + "<span>" + escapeHtml(t("delete")) + "</span>";
+      delB.innerHTML = removeBtnHtml();
       delB.addEventListener("click", function(){ requestDeleteTrick(tr.id, "*"); });
       foot.appendChild(addVarB);
       foot.appendChild(delB);
@@ -231,38 +220,4 @@
     return foot;
   }
 
-  /* ============================================================
-     MEDIA ROW (video items shown below the trick name)
-  ============================================================ */
-  function renderVideoRow(trickId, item){
-    var row = document.createElement("div");
-    row.className = "item"; row.style.margin = "0";
-    var icon = document.createElement("div");
-    icon.className = "item-icon trick";
-    var pf = item.platform || detectPlatform(item.url);
-    icon.innerHTML = PLATFORM_ICONS[pf] || PLATFORM_ICONS.other;
-    var text = document.createElement("div");
-    text.className = "item-text";
-    text.innerHTML = '<div class="item-name">' + escapeHtml(item.title || t("mediaTypeVideo")) + '</div>';
-    row.appendChild(icon); row.appendChild(text);
-
-    var vTr = getTrick(trickId);
-    if(state.editMode && vTr && canModifyItem({ type:"trick", ref:vTr }, null, typeof isAdminAccount === "function" && isAdminAccount())){
-      var actions = document.createElement("div");
-      actions.className = "item-edit-actions";
-      var editBtn = document.createElement("button");
-      editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
-      editBtn.addEventListener("click", function(ev){ ev.stopPropagation(); openMediaModal(trickId, item.id); });
-      var delBtn = document.createElement("button");
-      delBtn.className = "mini-btn danger"; delBtn.innerHTML = ICON_TRASH;
-      delBtn.addEventListener("click", function(ev){ ev.stopPropagation(); requestDeleteMedia(trickId, item.id); });
-      actions.appendChild(editBtn); actions.appendChild(delBtn);
-      row.appendChild(actions);
-    }
-
-    row.addEventListener("click", function(){
-      if(isSafeHttpUrl(item.url)){ window.open(item.url, "_blank", "noopener,noreferrer"); }
-    });
-    return row;
-  }
 

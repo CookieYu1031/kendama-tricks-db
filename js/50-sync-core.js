@@ -76,11 +76,6 @@
       infos: (indexBase.infos || []).filter(function(n){ return n.spaceId === spaceId; })
     };
   }
-  function fetchBaseSpaceData(spaceId){
-    // No static base files: every table except the shared 總表 (served by
-    // fetchSharedBaseVersion) has an empty base.
-    return Promise.resolve(emptyBase(0));
-  }
 
   /* ------------------------------------------------------------
      Diff computation (current db -> per-space diff vs its base)

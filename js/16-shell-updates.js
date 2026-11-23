@@ -7,11 +7,11 @@
   ============================================================ */
   addStrings({
     zh:{ updatesTitle:"通知與近期更新", updatesEmpty:"還沒有發布過的更新", updatesError:"讀取更新失敗，請檢查網路連線", updatesLoading:"讀取中…", updatesNoNote:"（沒有備註）",
-         inboxTitle:"通知", inboxEmpty:"沒有通知", inboxDelete:"刪除", inboxFromAdmin:"管理員", inboxRelated:"相關招式：", versionsTitle:"近期更新" },
+         inboxTitle:"通知", inboxEmpty:"沒有通知",inboxFromAdmin:"管理員", inboxRelated:"相關招式：", versionsTitle:"近期更新" },
     jp:{ updatesTitle:"お知らせと最近の更新", updatesEmpty:"発行された更新はまだありません", updatesError:"更新の読み込みに失敗しました。ネット接続をご確認ください", updatesLoading:"読み込み中…", updatesNoNote:"（メモなし）",
-         inboxTitle:"お知らせ", inboxEmpty:"お知らせはありません", inboxDelete:"削除", inboxFromAdmin:"管理者", inboxRelated:"関連する技：", versionsTitle:"最近の更新" },
+         inboxTitle:"お知らせ", inboxEmpty:"お知らせはありません",inboxFromAdmin:"管理者", inboxRelated:"関連する技：", versionsTitle:"最近の更新" },
     en:{ updatesTitle:"Notices & recent updates", updatesEmpty:"No updates published yet", updatesError:"Failed to load updates — check your connection", updatesLoading:"Loading…", updatesNoNote:"(no note)",
-         inboxTitle:"Notifications", inboxEmpty:"No notifications", inboxDelete:"Delete", inboxFromAdmin:"Admin", inboxRelated:"Related trick: ", versionsTitle:"Recent updates" }
+         inboxTitle:"Notifications", inboxEmpty:"No notifications",inboxFromAdmin:"Admin", inboxRelated:"Related trick: ", versionsTitle:"Recent updates" }
   });
 
   var UPDATES_SEEN_KEY = "kendama-updates-seen-v1";
@@ -87,7 +87,7 @@
         (date ? '<span class="updates-item-date">' + escapeHtml(date) + '</span>' : '') + '</div>' +
         (m.trickName ? '<div class="inbox-trick">' + escapeHtml(t("inboxRelated") + m.trickName) + '</div>' : '') +
         '<div class="updates-item-note">' + escapeHtml(m.text || "") + '</div>' +
-        '<button type="button" class="btn btn-ghost btn-sm inbox-del" data-id="' + escapeHtml(m.id) + '">' + escapeHtml(t("inboxDelete")) + '</button></div>';
+        '<button type="button" class="col-add-btn col-add-btn-danger col-add-btn-del inbox-del" data-id="' + escapeHtml(m.id) + '">' + removeBtnHtml() + '</button></div>';
     }).join("");
   }
   // Marks unread messages read in Firestore (fire and forget); the page keeps showing them highlighted until closed.

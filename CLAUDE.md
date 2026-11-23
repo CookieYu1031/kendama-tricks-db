@@ -81,7 +81,7 @@
 | 資料索引與查詢 helpers（getChildren、getTrick…） | `js/05-data-helpers.js` |
 | 收藏、標籤、刪除、層級規則（canAddChild）、雜項 | `js/05-data-ops.js` |
 | 影片平台、escapeHtml、isSafeHttpUrl、icon 字寬、容器路徑 | `js/05-data-util.js` |
-| SVG icons | `js/06-icons-svg.js` |
+| SVG icons、統一刪除鈕內容 `removeBtnHtml()`（垃圾桶＋「移除」） | `js/06-icons-svg.js` |
 | 更新頁（通知與近期更新、未讀紅點） | `js/16-shell-updates.js` |
 | 管理員面板（發布、待發布摘要、版本號）| `js/70-admin-panel.js`、`css/admin-panel.css` |
 | 協助者（Gmail 名單、顏色、管理面板區塊、isContributorAccount）| `js/71-contributors.js`、`css/contrib.css` |
@@ -100,7 +100,7 @@
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
 | 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、資料夾深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
 | 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
-| 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseGoUp`、`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
+| 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
 | 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
@@ -111,13 +111,14 @@
 | 抽屜影片欄位（3 格、貼連結、網址偵測來源網站與圖示 `videoSourceOf`） | `js/34-drawer-videos.js` |
 | 握持手勢選擇器（兩層：持劍／持球／持線＋子手勢，單選；搜尋、抽屜編輯、新增介面共用；樣式在 `css/grip.css`）；握持資料與 `gripMatches` 在 `js/01-data-model.js` | `js/36-grip-picker.js`、`css/grip.css` |
 | 起始手勢說明頁（ⓘ 開啟，三張表＋註解，三語） | `js/48-modal-grip-info.js`、`css/grip.css` |
+| 成功率說明頁（抽屜「成功率 ⓘ」整個標籤可點開啟，五個等級＋約略比例，三語） | `js/48-modal-rate-info.js`、`css/detail-drawer.css` |
 | 部位圖（SVG 劍玉、可點部位、與文字 chips 同步；`partDiagramSvg`） | `js/35-part-diagram.js` |
 | 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
-| 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |
+| 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`（握持排版同 grip picker，`js/77-admin-labels.js`）／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`js/77-admin-labels.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
-| 影片關鍵段落（YouTube；`media[].loop`；檢視模式有 loop 只播關鍵段落並鎖在 A↔B、編輯模式底部時間軸拖 A／B；編輯模式標題直接改；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`（播放器包裝、開關）、`js/41-video-timeline.js`（時間軸）、`js/41-modal-video.js`、`css/buttons-and-modals.css` |
+| 影片關鍵段落（YouTube；`media[].loop`；檢視模式有 loop 只播關鍵段落並鎖在 A↔B、編輯模式手動輸入起始／結束 mm:ss（只打數字自動補「:」、結束可空＝到結尾、◇ 填入目前時間、清除設定）；編輯模式標題直接改；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`（播放器包裝、開關）、`js/41-video-range.js`（起始／結束輸入列、`maskLoopDigits`／`parseLoopTime`／`formatMmSs`）、`js/41-modal-video.js`、`css/buttons-and-modals.css` |
 | 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |

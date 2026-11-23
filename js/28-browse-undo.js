@@ -20,7 +20,6 @@
     undoStack.push({ ref: db, json: JSON.stringify(db) });
     while(undoStack.length > UNDO_CAP) undoStack.shift();
   }
-  function undoClear(){ undoStack = []; }
 
   // Pops the newest entry that really differs from the current db. Returns true if restored.
   function undoApply(){
