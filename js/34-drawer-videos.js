@@ -143,7 +143,7 @@
   function setDrawerVideoUrl(tr, mediaId, raw){ return saveDrawerVideo(tr, mediaId, raw, undefined); }
 
   // Compact BUTTON slot: empty = "+ 影片"; filled = source icon + title (or 「影片 N」).
-  // View mode: filled slot plays. Edit mode: any slot opens the add/edit modal (delete lives there).
+  // Filled slot opens the player (edit mode: title / timeline / change link / delete live there); empty slot adds a link.
   function buildVideoSlot(tr, item, canEditTrick, idx){
     var slot = document.createElement("div");
     slot.className = "vid-slot" + (item ? " filled" : " empty");
@@ -159,8 +159,8 @@
     main.title = item.url;
     main.innerHTML = videoSourceIcon(item.url) + "<span>" + escapeHtml(videoSlotLabel(item, idx)) + "</span>";
     main.addEventListener("click", function(){
-      if(canEditTrick) openMediaModal(tr.id, item.id);
-      else if(isSafeHttpUrl(item.url)) openVideoModalForItem(tr, item);
+      if(isSafeHttpUrl(item.url)) openVideoModalForItem(tr, item, !!canEditTrick);
+      else if(canEditTrick) openMediaModal(tr.id, item.id); // unsafe link: only the link dialog can fix it
     });
     return slot;
   }

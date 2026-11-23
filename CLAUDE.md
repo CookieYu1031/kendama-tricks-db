@@ -117,7 +117,7 @@
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
-| 影片 A–B 重播（YouTube；管理員設 A／B 存在 `media[].loop`，所有人可重播；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`、`css/buttons-and-modals.css` |
+| 影片關鍵段落（YouTube；`media[].loop`；檢視模式有 loop 只播關鍵段落並鎖在 A↔B、編輯模式底部時間軸拖 A／B；編輯模式標題直接改；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`（播放器包裝、開關）、`js/41-video-timeline.js`（時間軸）、`js/41-modal-video.js`、`css/buttons-and-modals.css` |
 | 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
