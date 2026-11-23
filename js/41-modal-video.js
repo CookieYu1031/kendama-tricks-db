@@ -4,9 +4,9 @@
      VIDEO MODAL — header: title, mirror toggle, speed (YouTube only), close
   ============================================================ */
   addStrings({
-    zh:{ videoMirror:"鏡像", videoSpeed:"播放速度" },
-    jp:{ videoMirror:"左右反転", videoSpeed:"再生速度" },
-    en:{ videoMirror:"Mirror", videoSpeed:"Playback speed" }
+    zh:{ videoMirror:"鏡像", videoSpeed:"播放速度", openInInstagram:"在 Instagram 開啟" },
+    jp:{ videoMirror:"左右反転", videoSpeed:"再生速度", openInInstagram:"Instagram で開く" },
+    en:{ videoMirror:"Mirror", videoSpeed:"Playback speed", openInInstagram:"Open in Instagram" }
   });
 
   var VIDEO_RATES = [1, 0.75, 0.5, 0.25];
@@ -37,15 +37,18 @@
       if(host==="youtu.be") vid = u.pathname.slice(1);
       else vid = u.searchParams.get("v") || u.pathname.split("/").filter(Boolean).pop();
       if(!vid) return { type:"other", embedUrl:null, originalUrl:url };
-      return { type:"youtube", embedUrl: "https://www.youtube.com/embed/" + encodeURIComponent(vid) + "?enablejsapi=1&playsinline=1" };
+      return { type:"youtube", embedUrl: "https://www.youtube.com/embed/" + encodeURIComponent(vid) + "?enablejsapi=1&playsinline=1&cc_load_policy=0" };
     }
     if(host==="vimeo.com" || host==="player.vimeo.com"){
       var parts = u.pathname.split("/").filter(Boolean);
       var vvid = parts[parts.length-1];
       if(!vvid) return { type:"other", embedUrl:null, originalUrl:url };
-      return { type:"vimeo", embedUrl: "https://player.vimeo.com/video/" + vvid };
+      return { type:"vimeo", embedUrl: "https://player.vimeo.com/video/" + vvid + "?texttrack=false" };
     }
-    if(host==="instagram.com") return { type:"instagram", embedUrl:null, originalUrl:url };
+    if(host==="instagram.com" || host==="instagr.am"){
+      var igEmbed = typeof instagramEmbedUrl === "function" ? instagramEmbedUrl(url) : "";
+      return { type:"instagram", embedUrl: igEmbed || null, originalUrl:url };
+    }
     if(host==="facebook.com" || host==="fb.watch") return { type:"facebook", embedUrl:null, originalUrl:url };
     if(host==="tiktok.com") return { type:"tiktok", embedUrl:null, originalUrl:url };
     if(host==="twitter.com" || host==="x.com") return { type:"twitter", embedUrl:null, originalUrl:url };
@@ -56,6 +59,7 @@
     var overlay = document.getElementById("videoModalOverlay");
     var modal = document.getElementById("videoModal");
     var info = getEmbedInfo(item.url);
+    if(typeof videoLoopStop === "function") videoLoopStop();
     modal.innerHTML = "";
 
     var titleBar = document.createElement("div");
@@ -118,6 +122,18 @@
       iframe.setAttribute("allowfullscreen", "true");
       frameWrap.appendChild(iframe);
       modal.appendChild(frameWrap);
+      if(info.type === "instagram" && isSafeHttpUrl(item.url)){
+        var igRow = document.createElement("div");
+        igRow.className = "video-loop-row";
+        var igLink = document.createElement("a");
+        igLink.href = item.url; igLink.target = "_blank"; igLink.rel = "noopener noreferrer";
+        igLink.className = "btn"; igLink.textContent = t("openInInstagram");
+        igRow.appendChild(igLink); modal.appendChild(igRow);
+      }
+      if(info.type === "youtube" && typeof buildVideoLoopRow === "function"){
+        var loopRow = buildVideoLoopRow(tr, item, iframe);
+        if(loopRow) modal.appendChild(loopRow);
+      }
     } else {
       var fb = document.createElement("div");
       fb.className = "video-fallback";
@@ -137,6 +153,7 @@
     overlay.classList.add("show");
   }
   function closeVideoModal(){
+    if(typeof videoLoopStop === "function") videoLoopStop();
     document.getElementById("videoModalOverlay").classList.remove("show");
     setTimeout(function(){ document.getElementById("videoModal").innerHTML = ""; }, 200);
   }

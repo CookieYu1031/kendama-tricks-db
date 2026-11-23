@@ -52,6 +52,18 @@
     padding: max(20px, var(--safe-t)) max(20px, var(--safe-r)) max(20px, var(--safe-b)) max(20px, var(--safe-l));
   }
 
+  /* v0.14.11: modals never exceed the area between the safe insets (iOS 86vh/100vh ran under the status bar). */
+  :root{ --modal-avail-h: calc((100dvh / var(--ui-zoom)) - max(20px, var(--safe-t)) - max(20px, var(--safe-b))); }
+  .modal-overlay .modal.modal-lg, .modal-overlay .modal.tagmgr-modal, .modal-overlay .modal.admin-modal,
+  .modal-overlay .form-modal.sf-wide{ max-height: var(--modal-avail-h); }
+  .modal-overlay .modal.tagmgr-modal{ height: min(640px, var(--modal-avail-h)); }
+  .modal-overlay .modal.admin-modal{ height: auto; }
+  @media (min-width: 861px){ .modal-overlay .modal.admin-modal{ height: min(720px, var(--modal-avail-h)); } }
+  /* Nickname edit on phones: park the dialog at the top while the keyboard is up. */
+  @media (max-width: 860px){
+    .modal-overlay.kb-top{ align-items:flex-start; padding-top: max(12px, var(--safe-t)); }
+  }
+
   /* Credit line under the settings modal (moved off the browse view in v0.8.1). */
   #settingsOverlay{ flex-direction:column; gap:10px; }
   .settings-credit{ font-size:12px; color: var(--paper-faint); text-align:center; }

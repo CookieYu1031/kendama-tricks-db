@@ -178,6 +178,14 @@
     if(isCustomColor(key)) return key.toLowerCase();
     return isValidColorKey(key) ? key : (fallback === undefined ? "default" : fallback);
   }
+  // Video A-B loop {a,b} (seconds, 0.1s precision, 0 <= a < b <= 6h) -> clean copy, or null when invalid.
+  var LOOP_MAX_SECONDS = 21600;
+  function normalizeLoop(l){
+    if(!l || typeof l !== "object" || typeof l.a !== "number" || typeof l.b !== "number") return null;
+    var a = Math.round(l.a * 10) / 10, b = Math.round(l.b * 10) / 10;
+    if(!isFinite(a) || !isFinite(b) || a < 0 || b <= a || b > LOOP_MAX_SECONDS) return null;
+    return { a: a, b: b };
+  }
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -215,6 +223,8 @@
         if(m.type && m.type !== "video") return;
         media.push({ id: m.id || newItemId(), type:"video", title: typeof m.title === "string" ? m.title : "", url: m.url || "",
           platform: m.platform || (typeof detectPlatform === "function" ? detectPlatform(m.url || "") : "") });
+        var lp = normalizeLoop(m.loop);
+        if(lp) media[media.length - 1].loop = lp;
       });
       media = media.slice(0, MAX_VIDEOS);
       // landed is derived from rate (drawer has no separate toggle).

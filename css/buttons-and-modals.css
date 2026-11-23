@@ -159,6 +159,10 @@
   .video-tool-btn svg{ width:18px; height:18px; display:block; }
   .video-tool-btn.active{ color: var(--accent-text); border-color: var(--lacquer-bright); }
   .video-speed-btn{ width:auto; min-width:44px; padding:0 8px; font: 600 13px var(--font-body); font-variant-numeric: tabular-nums; }
+  .video-loop-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px 12px; }
+  .video-loop-row .btn{ flex:0 0 auto; min-height:34px; padding:0 12px; font-size:13px; }
+  .video-loop-row .btn.active{ color: var(--accent-text); border-color: var(--lacquer-bright); }
+  .video-loop-range{ flex:1 1 auto; min-width:0; color: var(--paper-dim); font:600 13px var(--font-body); font-variant-numeric: tabular-nums; }
   .video-frame-wrap.mirrored iframe{ transform: scaleX(-1); }
   .video-fallback{ padding: 40px 30px; text-align:center; }
   .video-fallback svg{ width:30px; height:30px; color: var(--paper-faint); margin-bottom:14px; }

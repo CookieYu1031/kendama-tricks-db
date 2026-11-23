@@ -10,7 +10,7 @@
   ============================================================ */
   addStrings({
     zh:{ bulkTitle:"協助者：批量投稿", bulkTplBtn:"下載批量投稿格式", bulkUploadBtn:"上傳 .xlsx 批量投稿",
-         bulkTplNote:"※ 說明列（上傳時會略過）：中／日／英名稱至少填一個；影片至少一個，限 YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive；握持手勢填 持劍／持球／持線，或子手勢名稱（如 持皿、蠟燭、提燈台，可用中／日／英名稱）；部位、招式類別、標籤以「、」分隔。",
+         bulkTplNote:"※ 說明列（上傳時會略過）：中／日／英名稱至少填一個；影片至少一個，限 YouTube 或 Instagram Reels；握持手勢填 持劍／持球／持線，或子手勢名稱（如 持皿、蠟燭、提燈台，可用中／日／英名稱）；部位、招式類別、標籤以「、」分隔。",
          bulkReading:"讀取中…", bulkUnsupported:"此瀏覽器不支援讀取 .xlsx，請改用較新的瀏覽器", bulkBadFile:"無法讀取這個檔案，請使用下載的格式 (.xlsx)",
          bulkTooBig:"檔案太大（上限 2 MB）", bulkNoHeader:"找不到標題列，請使用下載的格式", bulkNoRows:"沒有可投稿的資料列",
          bulkTooMany:"最多 {n} 列，超出的列已略過", bulkPayloadBig:"內容太大，請分批上傳",
@@ -18,7 +18,7 @@
          bulkErrGrip:"握持手勢不認得（可填 持劍／持球／持線，或子手勢名稱）", bulkErrPart:"部位不認得：{v}", bulkErrLong:"欄位內容太長",
          bulkSent:"已送出 {n} 個招式投稿，謝謝你！", bulkNeedOk:"沒有可送出的資料列" },
     jp:{ bulkTitle:"協力者：一括投稿", bulkTplBtn:"一括投稿のフォーマットをダウンロード", bulkUploadBtn:".xlsx をアップロードして一括投稿",
-         bulkTplNote:"※ 説明行（アップロード時は無視されます）：中・日・英の名前のいずれか1つ以上。動画は1つ以上（YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive のみ）。握持手勢は「持劍」「持球」「持線」、またはサブの持ち方の名前（皿持ち、キャンドル、ライトハウス等。中・日・英いずれも可）。部位・招式類別・標籤は「、」で区切ってください。",
+         bulkTplNote:"※ 説明行（アップロード時は無視されます）：中・日・英の名前のいずれか1つ以上。動画は1つ以上（YouTube または Instagram Reels のみ）。握持手勢は「持劍」「持球」「持線」、またはサブの持ち方の名前（皿持ち、キャンドル、ライトハウス等。中・日・英いずれも可）。部位・招式類別・標籤は「、」で区切ってください。",
          bulkReading:"読み込み中…", bulkUnsupported:"このブラウザでは .xlsx を読み込めません。新しいブラウザをお試しください", bulkBadFile:"ファイルを読み込めません。ダウンロードしたフォーマット (.xlsx) をご使用ください",
          bulkTooBig:"ファイルが大きすぎます（上限 2 MB）", bulkNoHeader:"見出し行が見つかりません。ダウンロードしたフォーマットをご使用ください", bulkNoRows:"投稿できる行がありません",
          bulkTooMany:"最大 {n} 行です。超えた行は無視しました", bulkPayloadBig:"内容が大きすぎます。分けてアップロードしてください",
@@ -26,7 +26,7 @@
          bulkErrGrip:"握持手勢が不明です（持劍／持球／持線、またはサブの持ち方の名前）", bulkErrPart:"部位が不明です：{v}", bulkErrLong:"内容が長すぎます",
          bulkSent:"{n} 件の技を投稿しました。ありがとうございます！", bulkNeedOk:"送信できる行がありません" },
     en:{ bulkTitle:"Helper: bulk submission", bulkTplBtn:"Download bulk submission template", bulkUploadBtn:"Upload .xlsx for bulk submission",
-         bulkTplNote:"* Notes row (skipped on upload): at least one of the zh/jp/en names; at least one video (YouTube, Instagram, Facebook, TikTok, X, Threads or Google Drive only); grip = 持劍 / 持球 / 持線, or a sub-grip name (e.g. sara, candle, lighthouse; zh/jp/en names accepted); parts, classes and tags separated by 「、」.",
+         bulkTplNote:"* Notes row (skipped on upload): at least one of the zh/jp/en names; at least one video (YouTube or Instagram Reels only); grip = 持劍 / 持球 / 持線, or a sub-grip name (e.g. sara, candle, lighthouse; zh/jp/en names accepted); parts, classes and tags separated by 「、」.",
          bulkReading:"Reading…", bulkUnsupported:"This browser can't read .xlsx — please use a newer browser", bulkBadFile:"Can't read this file — use the downloaded template (.xlsx)",
          bulkTooBig:"File too large (max 2 MB)", bulkNoHeader:"Header row not found — use the downloaded template", bulkNoRows:"No rows to submit",
          bulkTooMany:"At most {n} rows; the rest were skipped", bulkPayloadBig:"Too much data — upload in smaller batches",

@@ -15,6 +15,13 @@
          videoDefaultTitle:"Video {n}", videoTitleLabel:"Title (optional, max 12 characters)", videoTitlePlaceholder:"e.g. Front angle", videoTitleTooLong:"Title too long: 12 characters max" }
   });
 
+  // New links are limited to YouTube and Instagram (older stored links of other sites keep rendering).
+  addStrings({
+    zh:{ mediaUrlInvalid:"僅接受 YouTube 或 Instagram Reels 連結" },
+    jp:{ mediaUrlInvalid:"YouTube または Instagram Reels のリンクのみ使えます" },
+    en:{ mediaUrlInvalid:"Only YouTube or Instagram Reels links are accepted" }
+  });
+
   function vidSvg(inner){
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
   }
@@ -46,6 +53,40 @@
     if(is("vimeo.com")) return "vimeo";
     return "other";
   }
+  // Accepted link classifier: "youtube" | "instagram" | "" (not accepted). Pure.
+  //  YouTube: youtube.com/watch?v=, /shorts/<id>, /embed/<id>, /live/<id>, youtu.be/<id> (www., m. ok)
+  //  Instagram: instagram.com/reel/<id>, /reels/<id>, /p/<id>, instagr.am/(same)
+  function videoLinkKind(url){
+    var u;
+    try{ u = new URL(String(url || "").trim()); }catch(e){ return ""; }
+    if(u.protocol !== "http:" && u.protocol !== "https:") return "";
+    var host = u.hostname.toLowerCase().replace(/^(www|m)\./, "");
+    var seg = u.pathname.split("/").filter(Boolean);
+    if(host === "youtu.be") return seg.length >= 1 ? "youtube" : "";
+    if(host === "youtube.com"){
+      if(seg[0] === "watch") return u.searchParams.get("v") ? "youtube" : "";
+      return (seg[0] === "shorts" || seg[0] === "embed" || seg[0] === "live") && seg[1] ? "youtube" : "";
+    }
+    if(host === "instagram.com" || host === "instagr.am"){
+      return (seg[0] === "reel" || seg[0] === "reels" || seg[0] === "p") && seg[1] ? "instagram" : "";
+    }
+    return "";
+  }
+  function isAcceptedVideoUrl(url){ return videoLinkKind(url) !== ""; }
+  // Instagram embed URL for a reel / post link ("" if not an Instagram reel/post).
+  function instagramEmbedUrl(url){
+    if(videoLinkKind(url) !== "instagram") return "";
+    var seg = new URL(String(url).trim()).pathname.split("/").filter(Boolean);
+    var kind = seg[0] === "p" ? "p" : "reel";
+    return "https://www.instagram.com/" + kind + "/" + encodeURIComponent(seg[1]) + "/embed";
+  }
+  // Stable reorder: YouTube videos first, everything else after (loops live on the items, so they move with them).
+  function orderVideosYoutubeFirst(media){
+    var yt = [], rest = [];
+    (media || []).forEach(function(m){ (m && m.type === "video" && videoSourceOf(m.url) === "youtube" ? yt : rest).push(m); });
+    return yt.concat(rest);
+  }
+
   var VIDEO_SOURCE_NAMES = { youtube:"YouTube", instagram:"Instagram", facebook:"Facebook", tiktok:"TikTok", twitter:"X", threads:"Threads", drive:"Drive", vimeo:"Vimeo" };
   // Short site name for a slot button ("other" -> localized generic 「連結」).
   function videoSourceName(url){
@@ -80,18 +121,23 @@
     var url = String(raw || "").trim();
     if(!url) return "empty";
     if(!isSafeHttpUrl(url)) return "invalid";
+    var existing = mediaId ? (tr.media || []).filter(function(m){ return m.id === mediaId; })[0] : null;
+    if(!isAcceptedVideoUrl(url) && !(existing && existing.url === url)) return "invalid"; // legacy links may stay as they are
     var ti = title === undefined ? undefined : String(title == null ? "" : title).trim();
     if(ti !== undefined && !videoTitleFits(ti)) return "titleTooLong";
     tr.media = tr.media || [];
     if(mediaId){
       var ex = tr.media.filter(function(m){ return m.id === mediaId; })[0];
       if(!ex) return "invalid";
+      if(ex.url !== url) delete ex.loop; // loop belongs to the old video
       ex.url = url; ex.platform = videoSourceOf(url);
       if(ti !== undefined) ex.title = ti;
+      tr.media = orderVideosYoutubeFirst(tr.media);
       return "ok";
     }
     if(drawerVideoItems(tr).length >= MAX_VIDEOS) return "full";
     tr.media.push({ id: newItemId(), type: "video", title: ti || "", url: url, platform: videoSourceOf(url) });
+    tr.media = orderVideosYoutubeFirst(tr.media);
     return "ok";
   }
   function setDrawerVideoUrl(tr, mediaId, raw){ return saveDrawerVideo(tr, mediaId, raw, undefined); }

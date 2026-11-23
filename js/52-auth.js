@@ -76,7 +76,8 @@
     input.select();
   }
   function closeNicknameEdit(){
-    document.getElementById("nicknameOverlay").classList.remove("show");
+    document.getElementById("nicknameOverlay").classList.remove("show", "kb-top");
+    document.getElementById("nicknameOverlay").style.height = "";
     showNicknameError("");
   }
 
@@ -138,6 +139,21 @@
   document.getElementById("nicknameSaveBtn").addEventListener("click", function(){
     authUpdateNickname(document.getElementById("nicknameInput").value);
   });
+  // Phones: keep the dialog at the top while the input is focused so the keyboard can't cover it.
+  document.getElementById("nicknameInput").addEventListener("focus", function(){
+    if(window.innerWidth <= 860) document.getElementById("nicknameOverlay").classList.add("kb-top");
+  });
+  document.getElementById("nicknameInput").addEventListener("blur", function(){
+    document.getElementById("nicknameOverlay").classList.remove("kb-top");
+  });
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", function(){
+      var ov = document.getElementById("nicknameOverlay");
+      if(!ov.classList.contains("show")) return;
+      ov.style.height = window.visualViewport.height + "px"; // overlay follows the visible area above the keyboard
+      if(document.activeElement !== document.getElementById("nicknameInput")) ov.style.height = "";
+    });
+  }
   document.getElementById("nicknameInput").addEventListener("keydown", function(ev){
     if(ev.key === "Enter"){ ev.preventDefault(); authUpdateNickname(ev.target.value); }
   });

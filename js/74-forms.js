@@ -17,7 +17,7 @@
          formSubName:"招式名稱（至少填一種語言）", formPhZh:"中文", formPhJp:"日文", formPhEn:"英文", formPartsGrip:"握持手勢與部位", formTags:"標籤", formNoTags:"尚無標籤", formAddVideo:"新增影片",
          formSend:"送出", formCancel:"取消", formWait:"請稍候 {n} 秒", formSending:"送出中…", formThanks:"已送出，謝謝你！",
          formErrText:"請填寫內容（最多 1000 字）", formErrNames:"請至少填寫一個招式名稱（中／日／英擇一，各最多 60 字）",
-         formErrUrl:"影片網址必須是 http(s) 連結", formErrUrlReq:"請填寫影片網址", formErrUrlHost:"僅接受 YouTube、Instagram、Facebook、TikTok、X、Threads 或 Google Drive 連結", formErrApplyName:"請填寫姓名或暱稱", formErrGmail:"請填寫有效的 Gmail 帳號（@gmail.com）", formErrReason:"請填寫申請原因／可協助的項目（最多 1000 字）", formErrTrickId:"招式 ID 格式不正確", formErrFail:"送出失敗，請稍後再試",
+         formErrUrl:"影片網址必須是 http(s) 連結", formErrUrlReq:"請填寫影片網址", formErrUrlHost:"僅接受 YouTube 或 Instagram Reels 連結", formErrApplyName:"請填寫姓名或暱稱", formErrGmail:"請填寫有效的 Gmail 帳號（@gmail.com）", formErrReason:"請填寫申請原因／可協助的項目（最多 1000 字）", formErrTrickId:"招式 ID 格式不正確", formErrFail:"送出失敗，請稍後再試",
          formErrWait:"送出太頻繁，請稍候再試" },
     jp:{ formNeedLogin:"ご利用にはログインが必要です", formReportTitle:"問題を報告", formSubmitTitle:"技の投稿", formApplyTitle:"協力者に申請",
          formCategory:"カテゴリ", formKind_bug:"不具合報告", formKind_erratum:"訂正", formKind_suggestion:"提案", formKind_other:"その他",
@@ -28,7 +28,7 @@
          formSubName:"技の名前（いずれかの言語）", formPhZh:"中国語", formPhJp:"日本語", formPhEn:"英語", formPartsGrip:"持ち方と部位", formTags:"タグ", formNoTags:"タグはまだありません", formAddVideo:"動画を追加",
          formSend:"送信", formCancel:"キャンセル", formWait:"あと {n} 秒お待ちください", formSending:"送信中…", formThanks:"送信しました。ありがとうございます！",
          formErrText:"内容を入力してください（1000字まで）", formErrNames:"技の名前（中・日・英のいずれか）を1つ以上入力してください（各60字まで）",
-         formErrUrl:"動画URLは http(s) のリンクにしてください", formErrUrlReq:"動画URLを入力してください", formErrUrlHost:"YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive のリンクのみ使えます", formErrApplyName:"お名前またはニックネームを入力してください", formErrGmail:"有効なGmailアカウント（@gmail.com）を入力してください", formErrReason:"申請の理由／協力できる内容を入力してください（1000字まで）", formErrTrickId:"技IDの形式が正しくありません", formErrFail:"送信に失敗しました。しばらくしてからお試しください",
+         formErrUrl:"動画URLは http(s) のリンクにしてください", formErrUrlReq:"動画URLを入力してください", formErrUrlHost:"YouTube または Instagram Reels のリンクのみ使えます", formErrApplyName:"お名前またはニックネームを入力してください", formErrGmail:"有効なGmailアカウント（@gmail.com）を入力してください", formErrReason:"申請の理由／協力できる内容を入力してください（1000字まで）", formErrTrickId:"技IDの形式が正しくありません", formErrFail:"送信に失敗しました。しばらくしてからお試しください",
          formErrWait:"送信が頻繁すぎます。しばらくお待ちください" },
     en:{ formNeedLogin:"Please sign in first", formReportTitle:"Report a problem", formSubmitTitle:"Submit a trick", formApplyTitle:"Apply to be a helper",
          formCategory:"Category", formKind_bug:"Bug report", formKind_erratum:"Erratum", formKind_suggestion:"Suggestion", formKind_other:"Other",
@@ -39,7 +39,7 @@
          formSubName:"Trick name (at least one language)", formPhZh:"Chinese", formPhJp:"Japanese", formPhEn:"English", formPartsGrip:"Grip & parts", formTags:"Tags", formNoTags:"No tags yet", formAddVideo:"Add video",
          formSend:"Send", formCancel:"Cancel", formWait:"Wait {n}s", formSending:"Sending…", formThanks:"Sent — thank you!",
          formErrText:"Please enter some text (up to 1000 characters)", formErrNames:"Enter at least one trick name (Chinese, Japanese or English; max 60 characters each)",
-         formErrUrl:"Video URL must be an http(s) link", formErrUrlReq:"Please enter a video URL", formErrUrlHost:"Only YouTube, Instagram, Facebook, TikTok, X, Threads or Google Drive links are accepted", formErrApplyName:"Please enter your name or nickname", formErrGmail:"Please enter a valid Gmail address (@gmail.com)", formErrReason:"Please enter your reason / what you can help with (up to 1000 characters)", formErrTrickId:"Trick ID format is invalid", formErrFail:"Failed to send — try again later",
+         formErrUrl:"Video URL must be an http(s) link", formErrUrlReq:"Please enter a video URL", formErrUrlHost:"Only YouTube or Instagram Reels links are accepted", formErrApplyName:"Please enter your name or nickname", formErrGmail:"Please enter a valid Gmail address (@gmail.com)", formErrReason:"Please enter your reason / what you can help with (up to 1000 characters)", formErrTrickId:"Trick ID format is invalid", formErrFail:"Failed to send — try again later",
          formErrWait:"Sending too often — please wait a moment" }
   });
 
@@ -58,20 +58,13 @@
     if(!/^[0-9A-Za-z_-]{1,40}$/.test(v)) return { ok:false, id:"" };
     return { ok:true, id:v };
   }
-  // Video hosts accepted for submissions (exact host or any subdomain, e.g. www., m.).
-  var SUBMIT_VIDEO_HOSTS = ["youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
-    "tiktok.com", "x.com", "twitter.com", "threads.net", "drive.google.com"];
+  // Accepted links: YouTube and Instagram Reels/posts only (videoLinkKind, js/34).
   // Returns "" when ok, else an i18n error key. Shared with js/72-submissions.js (contributor 投稿).
   function validateSubmissionVideoUrl(url){
     var u = String(url == null ? "" : url).trim();
     if(!u) return "formErrUrlReq";
     if(u.length > FORM_URL_MAX || !isSafeHttpUrl(u)) return "formErrUrl";
-    var host = "";
-    try{ host = new URL(u).hostname.toLowerCase(); }catch(e){ return "formErrUrl"; }
-    for(var i = 0; i < SUBMIT_VIDEO_HOSTS.length; i++){
-      var h = SUBMIT_VIDEO_HOSTS[i];
-      if(host === h || host.slice(-(h.length + 1)) === "." + h) return "";
-    }
+    if(typeof videoLinkKind === "function" && videoLinkKind(u)) return "";
     return "formErrUrlHost";
   }
   // names: {zh, jp, en}. True when at least one is non-blank.
