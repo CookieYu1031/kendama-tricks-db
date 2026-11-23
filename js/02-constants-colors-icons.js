@@ -22,7 +22,6 @@
     { key:"red",      hex:"#D44C47" }
   ];
   var COLOR_LEGACY = [ { key:"gray", hex:"#8B8A86" } ];
-  var CUSTOM_COLOR_PRESETS = ["#E5484D", "#F5A524", "#17C964", "#0E8AAA", "#7C5CFF", "#FF6BA9", "#6B7280", "#111827"];
   function colorHex(key){
     if(isCustomColor(key)) return key.toLowerCase();
     var found = COLOR_PALETTE.concat(COLOR_LEGACY).find(function(c){ return c.key===key; });

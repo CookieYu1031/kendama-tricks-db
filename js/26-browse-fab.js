@@ -37,18 +37,6 @@
     return { kind:"space", id: sp.id };
   }
 
-  function renderColShareBtn(col){
-    var target = colShareTarget(col.parentId, state.activeSpace);
-    if(!target) return null;
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "col-share-btn";
-    b.innerHTML = ICON_SHARE;
-    b.title = t("shareBtn");
-    b.setAttribute("aria-label", t("shareBtn"));
-    b.addEventListener("click", function(){ if(typeof shareRun === "function") shareRun(target.kind, target.id); });
-    return b;
-  }
 
   // Elements to append to a column in edit mode: [ + button ] (or none).
   function renderColFab(col){

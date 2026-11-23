@@ -178,12 +178,17 @@
     if(isCustomColor(key)) return key.toLowerCase();
     return isValidColorKey(key) ? key : (fallback === undefined ? "default" : fallback);
   }
-  // Video A-B loop {a,b} (seconds, 0.1s precision, 0 <= a < b <= 6h) -> clean copy, or null when invalid.
+  // Video key section {a,b?} (seconds, 0.1s precision, 0 <= a < b <= 6h). b omitted = play to the end.
+  // {a:0} (no b) is "no loop" -> null. Returns a clean copy, or null when invalid.
   var LOOP_MAX_SECONDS = 21600;
   function normalizeLoop(l){
-    if(!l || typeof l !== "object" || typeof l.a !== "number" || typeof l.b !== "number") return null;
-    var a = Math.round(l.a * 10) / 10, b = Math.round(l.b * 10) / 10;
-    if(!isFinite(a) || !isFinite(b) || a < 0 || b <= a || b > LOOP_MAX_SECONDS) return null;
+    if(!l || typeof l !== "object" || typeof l.a !== "number") return null;
+    var a = Math.round(l.a * 10) / 10;
+    if(!isFinite(a) || a < 0 || a > LOOP_MAX_SECONDS) return null;
+    if(l.b === undefined || l.b === null) return a > 0 ? { a: a } : null;
+    if(typeof l.b !== "number") return null;
+    var b = Math.round(l.b * 10) / 10;
+    if(!isFinite(b) || b <= a || b > LOOP_MAX_SECONDS) return null;
     return { a: a, b: b };
   }
   function normalizeDB(raw){

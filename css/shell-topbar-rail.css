@@ -36,7 +36,7 @@
      .miller-wrap. */
   .space-btn.dragging{ opacity:0.4; }
   .space-btn.drop-before::before, .space-btn.drop-after::after{
-    content:''; position:absolute; left:2px; right:2px; height:2.5px; border-radius:2px;
+    content:''; position:absolute; left:2px; right:2px; height:2.5px; border-radius:var(--radius-xs);
     background: var(--lacquer-bright); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.24); z-index:2;
   }
   .space-btn.drop-before::before{ top:-5px; }
@@ -250,14 +250,7 @@
 
   #nicknameOverlay{ z-index: 70; }
 
-  .auth-menu-divider{ height:1px; background: var(--glass-border); margin:0; }
 
-  .auth-menu-logout{
-    border:1px solid var(--glass-border); background: var(--glass-2); color: var(--paper);
-    font-size:12.5px; font-weight:600; padding:7px 10px; border-radius: var(--radius-sm); cursor:pointer;
-    transition: background .16s var(--ease), border-color .16s var(--ease);
-  }
-  .auth-menu-logout:hover{ background: var(--glass-3); border-color: var(--lacquer); }
   /* Dimmed while syncing; logout stays reachable regardless of how long the
      background sync takes. */
   .auth-widget.syncing #authLoginBtn{ opacity:0.55; pointer-events:none; }
@@ -294,18 +287,6 @@
     cursor:pointer; user-select:none; transition: border-color .2s var(--ease), background .2s var(--ease);
   }
   .edit-toggle.on{ border-color: var(--lacquer); background: rgba(var(--lacquer-rgb),0.16); }
-  .toggle-pill{
-    width:32px; height:18px; border-radius:999px; background: var(--ink-4); position:relative; flex:0 0 auto;
-    transition: background .2s var(--ease);
-  }
-  .toggle-pill::after{
-    content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
-    background: var(--paper-dim); transition: transform .2s var(--ease), background .2s var(--ease);
-  }
-  .edit-toggle.on .toggle-pill{ background: var(--lacquer); }
-  .edit-toggle.on .toggle-pill::after{ transform: translateX(14px); background:#fff; }
-  .edit-toggle-label{ font-size:12.5px; font-weight:600; color: var(--paper-dim); white-space:nowrap; }
-  .edit-toggle.on .edit-toggle-label{ color: var(--paper); }
 
   @media (max-width: 860px){
     .brand-sub{ display:none; }
@@ -313,7 +294,6 @@
     .brand-text{ min-width:0; }
     .brand-title{ font-size:17px; overflow:hidden; text-overflow:ellipsis; }
     .topbar{ padding: 0 12px; gap:10px; }
-    .edit-toggle-label{ display:none; }
     .edit-toggle{ padding:5px; }
   }
 
@@ -375,8 +355,6 @@
   }
   .settings-item[disabled]{ opacity:0.55; cursor:not-allowed; }
   .settings-item-label{ font-size:13.5px; font-weight:600; }
-  .settings-item-note:empty{ display:none; }
-  .settings-item-note{ font-size:12px; color: var(--paper-faint); line-height:1.5; white-space:normal; overflow-wrap:anywhere; }
   .settings-item.active{ border-color: var(--glass-border-strong); }
   .settings-privacy{ padding:12px 14px; border-radius: var(--radius-sm); background: var(--glass-1); border:1px solid var(--line); font-size:12.5px; line-height:1.65; color: var(--paper-dim); white-space: pre-wrap; }
   .settings-soon{ font-size:12px; color: var(--accent-text); font-family: var(--font-mono); }

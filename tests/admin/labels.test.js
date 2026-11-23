@@ -9,7 +9,7 @@ const dummyEl = { addEventListener(){}, classList:{ add(){}, remove(){}, toggle(
 const doc = { getElementById: () => dummyEl, querySelector: () => null, querySelectorAll: () => [], addEventListener(){}, createElement: () => ({ style:{}, classList:{ add(){}, remove(){}, toggle(){} }, appendChild(){}, setAttribute(){}, addEventListener(){} }) };
 function ctx(){
   return load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js",
-    "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/50-sync-core.js", "js/51-shared-base.js", "js/56-pending.js", "js/77-admin-tags.js"],
+    "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/50-sync-core.js", "js/51-shared-base.js", "js/56-pending.js", "js/77-admin-tags.js", "js/77-admin-labels.js"],
     { URL, document: doc, TextEncoder, TextDecoder });
 }
 

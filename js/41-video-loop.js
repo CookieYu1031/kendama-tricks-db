@@ -1,26 +1,18 @@
 "use strict";
 
   /* ============================================================
-     VIDEO 關鍵段落 (key section, YouTube only). A media item may carry .loop = {a,b} (seconds).
-     View mode: a video with a loop plays only A<->B (no toggle). Edit mode: the timeline (js/41-video-timeline.js) sets A/B.
+     VIDEO 關鍵段落 (key section, YouTube only). A media item may carry .loop = {a,b?} (seconds).
+     View mode: a video with a loop plays only A<->B (no B = A to the end). Edit mode: js/41-video-range.js has start/end inputs.
      createYtPlayer wraps the IFrame API "listening" handshake (infoDelivery ~4/s, extrapolated between messages).
-     Pure helpers (formatLoopTime, shouldLoopBack, setItemLoop) are tested in tests/modals/video-loop.test.js;
+     Pure helpers (shouldLoopBack, setItemLoop) are tested in tests/modals/video-loop.test.js;
      normalizeLoop lives in js/01-data-storage.js.
   ============================================================ */
   addStrings({
-    zh:{ loopClear:"清除" },
-    jp:{ loopClear:"クリア" },
-    en:{ loopClear:"Clear" }
+    zh:{ loopToEnd:"到結尾" },
+    jp:{ loopToEnd:"最後まで" },
+    en:{ loopToEnd:"End" }
   });
 
-  // Seconds -> "m:ss.s" (or "h:mm:ss.s" from one hour).
-  function formatLoopTime(s){
-    s = Math.max(0, Math.round((Number(s) || 0) * 10) / 10);
-    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s - h * 3600 - m * 60;
-    var secTxt = (sec < 10 ? "0" : "") + sec.toFixed(1);
-    return h ? (h + ":" + (m < 10 ? "0" : "") + m + ":" + secTxt) : (m + ":" + secTxt);
-  }
-  function formatLoopRange(l){ return l ? formatLoopTime(l.a) + " – " + formatLoopTime(l.b) : ""; }
   // True when playback has reached B and should jump back to A.
   function shouldLoopBack(t, a, b){ return typeof t === "number" && t >= b; }
   // View mode plays only [A,B]: where to seek now (A), or null when t is inside the section.
@@ -28,7 +20,7 @@
   function loopSnapTarget(t, a, b, tol){
     if(typeof t !== "number") return null;
     tol = tol == null ? 0.5 : tol;
-    return (t >= b || t < a - tol) ? a : null;
+    return ((typeof b === "number" && t >= b) || t < a - tol) ? a : null;
   }
   // Stores (or clears with null) the loop of a media item; returns the normalized value stored.
   function setItemLoop(item, loop){
@@ -40,7 +32,7 @@
   var _videoLoopCleanup = null;
   function videoLoopStop(){ if(_videoLoopCleanup){ var f = _videoLoopCleanup; _videoLoopCleanup = null; f(); } }
 
-  // YouTube player wrapper. p.nowT(), p.duration(), p.seekTo(s), p.post(fn,args), p.setLoop({a,b}|null) (view mode: enforced always, snaps back into [A,B]),
+  // YouTube player wrapper. p.nowT(), p.duration(), p.seekTo(s), p.post(fn,args), p.setLoop({a,b?}|null) (view mode: enforced always, snaps back into [A,B]),
   // p.subscribe(fn) (called on every message and every 50ms tick), p.stop().
   function createYtPlayer(iframe){
     videoLoopStop();

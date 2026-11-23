@@ -45,11 +45,6 @@
     return !!(contribState.isContributor && typeof isLoggedIn === "function" && isLoggedIn());
   }
   // email -> color for the loaded helpers (lowercase keys).
-  function contributorColorFor(email){
-    var e = normalizeEmail(email), hit = null;
-    contribState.list.forEach(function(c){ if(c.email === e) hit = c.color; });
-    return hit || CONTRIB_COLORS[0];
-  }
 
   // Reads contributors/{my email}. Called by the auth listener below, and callable by 59.
   function refreshContributorFlag(user){

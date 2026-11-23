@@ -10,6 +10,7 @@
     width:100%; background: var(--glass-2); border:1px solid var(--lacquer); color: var(--paper); border-radius:var(--radius-xs);
     padding:7px 10px; font-family: var(--font-display); font-size:17px; font-weight:700; outline:none;
   }
+  .prac-name-input:focus{ border-color: var(--lacquer); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.15); }
   .prac-new{ width:100%; margin-bottom:10px; }
   .prac-new:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
   .prac-lists{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
@@ -53,7 +54,7 @@
     width:56px; padding:6px 4px; text-align:center; font-family: var(--font-mono); font-size:14px;
     background: var(--glass-2); border:1px solid var(--glass-border); color: var(--paper); border-radius:var(--radius-xs); outline:none;
   }
-  .prac-target input:focus{ border-color: var(--lacquer); }
+  .prac-target input:focus{ border-color: var(--lacquer); box-shadow: 0 0 0 3px rgba(var(--lacquer-rgb),0.15); }
   .prac-add-btn{ margin-right:auto; }
   .prac-add-btn.active{ border-color: var(--lacquer); }
   .prac-add{ margin:0 0 12px; }

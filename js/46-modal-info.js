@@ -5,13 +5,13 @@
   ============================================================ */
   addStrings({
     zh:{ addInfoShort:"資訊", newInfo:"新增資訊", editInfo:"編輯資訊", infoContentLabel:"內容",
-         infoTitleRequired:"請至少輸入一個標題", savedInfo:"資訊已儲存", deletedInfo:"資訊已刪除", deleteInfo:"刪除資訊", closeBtn:"關閉",
+         infoTitleRequired:"請至少輸入一個標題", savedInfo:"資訊已儲存", deletedInfo:"資訊已刪除",closeBtn:"關閉",
          confirmDeleteInfoTitle:"確認刪除此資訊？", confirmDeleteInfoBody:"此資訊將被永久刪除。", noInfoContent:"（沒有內容）" },
     jp:{ addInfoShort:"情報", newInfo:"情報を追加", editInfo:"情報を編集", infoContentLabel:"内容",
-         infoTitleRequired:"タイトルを1つ以上入力してください", savedInfo:"情報を保存しました", deletedInfo:"情報を削除しました", deleteInfo:"情報を削除", closeBtn:"閉じる",
+         infoTitleRequired:"タイトルを1つ以上入力してください", savedInfo:"情報を保存しました", deletedInfo:"情報を削除しました",closeBtn:"閉じる",
          confirmDeleteInfoTitle:"この情報を削除しますか？", confirmDeleteInfoBody:"この情報は完全に削除されます。", noInfoContent:"（内容なし）" },
     en:{ addInfoShort:"Info", newInfo:"New info", editInfo:"Edit info", infoContentLabel:"Content",
-         infoTitleRequired:"Enter at least one title", savedInfo:"Info saved", deletedInfo:"Info deleted", deleteInfo:"Delete info", closeBtn:"Close",
+         infoTitleRequired:"Enter at least one title", savedInfo:"Info saved", deletedInfo:"Info deleted",closeBtn:"Close",
          confirmDeleteInfoTitle:"Delete this info?", confirmDeleteInfoBody:"This info item will be permanently deleted.", noInfoContent:"(No content)" }
   });
 
@@ -36,7 +36,7 @@
     document.getElementById("infoFormError").classList.remove("show");
     document.getElementById("infoEditBtn").textContent = t("editInfo");
     document.getElementById("infoSaveBtn").textContent = t("save");
-    document.getElementById("infoDeleteBtn").textContent = t("deleteInfo");
+    document.getElementById("infoDeleteBtn").innerHTML = removeBtnHtml();
     document.getElementById("infoNameZhLabel").textContent = t("categoryNameZh");
     document.getElementById("infoNameJpLabel").textContent = t("categoryNameJp");
     document.getElementById("infoNameEnLabel").textContent = t("categoryNameEn");

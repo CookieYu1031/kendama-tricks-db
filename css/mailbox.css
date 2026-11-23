@@ -56,7 +56,6 @@
     .form-modal.sf-wide .settings-head{ padding-left:14px; }
     .sf-parts .part-diagram{ height:170px; }
   }
-  .form-note{ margin:0 0 14px; font-size:12.5px; line-height:1.5; }
   .form-modal .modal-footer .modal-actions .btn[disabled]{ opacity:0.55; cursor:not-allowed; transform:none; }
   .inbox-title{ font-family: var(--font-display); font-size:14px; font-weight:700; margin:2px 0 4px; }
   #updatesVersions .inbox-title{ margin-top:16px; }

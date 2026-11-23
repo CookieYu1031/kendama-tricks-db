@@ -7,11 +7,11 @@
      tests/drawer-videos.test.js). Edit mode only: remove (x) and change-link buttons.
   ============================================================ */
   addStrings({
-    zh:{ videoSrcOther:"連結", videoPasteLink:"貼上影片連結", videoEditLink:"更換連結", videoRemove:"移除影片",
+    zh:{ videoSrcOther:"連結", videoPasteLink:"貼上影片連結", videoEditLink:"更換連結",
          videoDefaultTitle:"影片 {n}", videoTitleLabel:"標題（選填，最多 12 字）", videoTitlePlaceholder:"例如：正面示範", videoTitleTooLong:"標題過長：最多 12 個字" },
-    jp:{ videoSrcOther:"リンク", videoPasteLink:"動画リンクを貼り付け", videoEditLink:"リンクを変更", videoRemove:"動画を削除",
+    jp:{ videoSrcOther:"リンク", videoPasteLink:"動画リンクを貼り付け", videoEditLink:"リンクを変更",
          videoDefaultTitle:"動画 {n}", videoTitleLabel:"タイトル（任意・12文字まで）", videoTitlePlaceholder:"例：正面デモ", videoTitleTooLong:"タイトルが長すぎます：12文字まで" },
-    en:{ videoSrcOther:"Link", videoPasteLink:"Paste a video link", videoEditLink:"Change link", videoRemove:"Remove video",
+    en:{ videoSrcOther:"Link", videoPasteLink:"Paste a video link", videoEditLink:"Change link",
          videoDefaultTitle:"Video {n}", videoTitleLabel:"Title (optional, max 12 characters)", videoTitlePlaceholder:"e.g. Front angle", videoTitleTooLong:"Title too long: 12 characters max" }
   });
 

@@ -31,7 +31,7 @@
     setPlaceholder("catJp", eg + t("categoryEgJp"));
     setText("catCancelBtn", t("cancel"));
     setText("catSaveBtn", t("save"));
-    setText("catDeleteBtn", t("deleteCategory"));
+    setDel("catDeleteBtn");
 
 
     setText("confirmCancelBtn", t("cancel"));
@@ -42,7 +42,7 @@
     setText("mediaUrlLabel", t("mediaUrlLabel"));
     setText("mediaCancelBtn", t("cancel"));
     setText("mediaSaveBtn", t("save"));
-    setText("mediaDeleteBtn", t("delete"));
+    setDel("mediaDeleteBtn");
 
     setText("spaceIconFieldLabel", t("iconColorLabel"));
     setText("spaceNameZhLabel", t("categoryNameZh"), true);
@@ -51,7 +51,7 @@
     setText("spaceCodeLabel", t("spaceCodeLabel"));
     setText("spaceCancelBtn", t("cancel"));
     setText("spaceSaveBtn", t("save"));
-    setText("spaceDeleteBtn", t("deleteSpace"));
+    setDel("spaceDeleteBtn");
     setText("baseUpdateBannerTitle", t("baseUpdateAvailable"));
     setText("baseUpdateNowBtn", t("baseUpdateNow"));
     setText("baseUpdateDismissBtn", t("baseUpdateDismiss"));
@@ -60,6 +60,10 @@
       var el = document.getElementById(id);
       if(!el) return;
       el.innerHTML = escapeHtml(val) + (hasReq ? ' <span class="req">*</span>' : "");
+    }
+    function setDel(id){
+      var el = document.getElementById(id);
+      if(el) el.innerHTML = removeBtnHtml();
     }
     function setPlaceholder(id, val){
       var el = document.getElementById(id);

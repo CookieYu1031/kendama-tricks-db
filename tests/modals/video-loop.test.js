@@ -23,6 +23,20 @@ test("normalizeLoop validates and rounds to 0.1s", () => {
   assert.ok(c.normalizeLoop({ a: 0, b: 21600 }));
 });
 
+test("normalizeLoop: b optional, {a:0} is no loop", () => {
+  const c = setup();
+  assert.deepStrictEqual({ ...c.normalizeLoop({ a: 12.34 }) }, { a: 12.3 });
+  assert.strictEqual(c.normalizeLoop({ a: 0 }), null);
+  assert.strictEqual(c.normalizeLoop({ a: 0, b: 5 }).b, 5);
+  assert.strictEqual(c.normalizeLoop({ a: 5, b: "9" }), null);
+  assert.strictEqual(c.normalizeLoop({ a: 21601 }), null);
+  const it = {};
+  c.setItemLoop(it, { a: 3 });
+  assert.deepStrictEqual({ ...it.loop }, { a: 3 });
+  c.setItemLoop(it, { a: 0 });
+  assert.strictEqual("loop" in it, false);
+});
+
 test("normalizeDB keeps valid loop on its video, drops invalid", () => {
   const c = setup();
   const db = c.normalizeDB({ categories: [], tricks: [{ id: "t1", name: { zh: "x" }, media: [
@@ -33,14 +47,6 @@ test("normalizeDB keeps valid loop on its video, drops invalid", () => {
   assert.deepStrictEqual({ ...m[0].loop }, { a: 1, b: 2 });
   assert.strictEqual("loop" in m[1], false);
   assert.strictEqual("loop" in m[2], false);
-});
-
-test("formatLoopTime / range", () => {
-  const c = setup();
-  assert.strictEqual(c.formatLoopTime(12.3), "0:12.3");
-  assert.strictEqual(c.formatLoopTime(75.04), "1:15.0");
-  assert.strictEqual(c.formatLoopTime(3725.5), "1:02:05.5");
-  assert.strictEqual(c.formatLoopRange({ a: 12.3, b: 15.8 }), "0:12.3 – 0:15.8");
 });
 
 test("shouldLoopBack at or after B", () => {
@@ -106,4 +112,6 @@ test("loopSnapTarget: snaps to A past B or before A, else null", () => {
   assert.strictEqual(c.loopSnapTarget(15.8, 12, 15.8), 12);
   assert.strictEqual(c.loopSnapTarget(40, 12, 15.8), 12);
   assert.strictEqual(c.loopSnapTarget(undefined, 12, 15.8), null);
+  assert.strictEqual(c.loopSnapTarget(999, 12, undefined), null);
+  assert.strictEqual(c.loopSnapTarget(11, 12, undefined), 12);
 });

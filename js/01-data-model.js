@@ -221,7 +221,3 @@
     return id;
   }
 
-  // Starts fully empty — a clean slate the person builds up themselves via edit mode.
-  function seedData(){
-    return { categories: {}, tricks: {} };
-  }

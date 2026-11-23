@@ -11,7 +11,7 @@
   addStrings({
     zh:{ mbTitle:"郵件箱", mbTabAll:"全部", mbTabReport:"回報", mbTabTrick:"投稿", mbTabApply:"申請",
          mbEmpty:"沒有信件", mbLoading:"讀取中…", mbError:"讀取失敗，請檢查網路連線或權限", mbMore:"載入更多",
-         mbDone:"標記已處理", mbDoneBadge:"已處理", mbDelete:"刪除", mbReply:"回覆", mbAddHelper:"加入協助者",
+         mbDone:"標記已處理", mbDoneBadge:"已處理",mbReply:"回覆", mbAddHelper:"加入協助者",
          mbDeleteConfirm:"刪除這封信？", mbDeleteSub:"刪除後無法復原。", mbReplyPlaceholder:"回覆內容（最多 1000 字）",
          mbSend:"送出回覆", mbCancel:"取消", mbSent:"已送出回覆", mbMarked:"已標記為已處理", mbDeleted:"已刪除",
          mbHelperAdded:"已加入協助者", mbHelperNA:"加入協助者功能尚未提供", mbActionFail:"操作失敗，請稍後再試",
@@ -24,7 +24,7 @@
          mbBulkCount:"批量投稿（{n} 個招式）", mbGrip:"握持手勢", mbParts:"部位", mbClasses:"招式類別", mbTags:"標籤", mbNote:"備註", mbLocation:"建議位置" },
     jp:{ mbTitle:"受信箱", mbTabAll:"すべて", mbTabReport:"報告", mbTabTrick:"投稿", mbTabApply:"申請",
          mbEmpty:"メッセージはありません", mbLoading:"読み込み中…", mbError:"読み込みに失敗しました。接続や権限をご確認ください", mbMore:"もっと読み込む",
-         mbDone:"対応済みにする", mbDoneBadge:"対応済み", mbDelete:"削除", mbReply:"返信", mbAddHelper:"協力者に追加",
+         mbDone:"対応済みにする", mbDoneBadge:"対応済み",mbReply:"返信", mbAddHelper:"協力者に追加",
          mbDeleteConfirm:"このメッセージを削除しますか？", mbDeleteSub:"削除すると元に戻せません。", mbReplyPlaceholder:"返信内容（1000字まで）",
          mbSend:"返信を送信", mbCancel:"キャンセル", mbSent:"返信を送信しました", mbMarked:"対応済みにしました", mbDeleted:"削除しました",
          mbHelperAdded:"協力者に追加しました", mbHelperNA:"協力者の追加機能はまだ使えません", mbActionFail:"操作に失敗しました。しばらくしてからお試しください",
@@ -37,7 +37,7 @@
          mbBulkCount:"一括投稿（{n} 件）", mbGrip:"持ち方", mbParts:"部位", mbClasses:"招式類別", mbTags:"標籤", mbNote:"メモ", mbLocation:"希望の場所" },
     en:{ mbTitle:"Mailbox", mbTabAll:"All", mbTabReport:"Reports", mbTabTrick:"Tricks", mbTabApply:"Applications",
          mbEmpty:"No messages", mbLoading:"Loading…", mbError:"Failed to load — check your connection or permissions", mbMore:"Load more",
-         mbDone:"Mark done", mbDoneBadge:"Done", mbDelete:"Delete", mbReply:"Reply", mbAddHelper:"Add as helper",
+         mbDone:"Mark done", mbDoneBadge:"Done",mbReply:"Reply", mbAddHelper:"Add as helper",
          mbDeleteConfirm:"Delete this message?", mbDeleteSub:"This cannot be undone.", mbReplyPlaceholder:"Reply (up to 1000 characters)",
          mbSend:"Send reply", mbCancel:"Cancel", mbSent:"Reply sent", mbMarked:"Marked as done", mbDeleted:"Deleted",
          mbHelperAdded:"Added as helper", mbHelperNA:"Adding helpers is not available yet", mbActionFail:"Action failed — try again later",
@@ -176,7 +176,7 @@
     if(!done) html += '<button type="button" class="btn btn-ghost btn-sm" data-act="done">' + escapeHtml(t("mbDone")) + '</button>';
     if(r.kind === "trick" && !done) html += '<button type="button" class="btn btn-ghost btn-sm" data-act="reject">' + escapeHtml(t("mbReject")) + '</button>';
     html += '<button type="button" class="btn btn-ghost btn-sm" data-act="reply">' + escapeHtml(t("mbReply")) + '</button>' +
-      '<button type="button" class="btn btn-danger btn-sm" data-act="delete">' + escapeHtml(t("mbDelete")) + '</button></div>';
+      '<button type="button" class="col-add-btn col-add-btn-danger col-add-btn-del" data-act="delete">' + removeBtnHtml() + '</button></div>';
     if(mbReplyOpen === r.id){
       html += '<div class="mb-reply field"><textarea maxlength="' + MB_INBOX_MAX + '" placeholder="' + escapeHtml(t("mbReplyPlaceholder")) + '"></textarea>' +
         '<div class="mb-actions"><button type="button" class="btn btn-primary btn-sm" data-act="send">' + escapeHtml(t("mbSend")) + '</button>' +

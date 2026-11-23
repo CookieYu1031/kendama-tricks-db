@@ -55,10 +55,15 @@
     return { type:"other", embedUrl:null, originalUrl:url };
   }
 
-  // Edit-mode title: inline input in the header (same 12-char rule as the old dialog); saved on blur / Enter.
+  // Edit-mode title: "<trick name> · [video name input]" (same look as view mode); saved on blur / Enter, 12-char rule.
   function buildVideoTitleInput(tr, item){
+    var wrap = document.createElement("span");
+    wrap.className = "video-modal-title-edit";
+    var nm = document.createElement("span");
+    nm.className = "video-modal-title-name";
+    nm.textContent = localize(tr.name) + " · ";
     var inp = document.createElement("input");
-    inp.type = "text"; inp.className = "video-modal-title-input";
+    inp.type = "text"; inp.className = "drawer-inline-input";
     inp.value = item.title || "";
     inp.placeholder = t("videoTitlePlaceholder");
     inp.setAttribute("aria-label", t("videoTitleLabel"));
@@ -71,19 +76,26 @@
       saveDB();
       if(typeof renderDrawer === "function") renderDrawer();
     });
-    return inp;
+    wrap.appendChild(nm); wrap.appendChild(inp);
+    return wrap;
   }
-  // Edit-mode bottom bar: change link / delete (the old link dialog and confirm are reused).
-  function buildVideoEditBar(tr, item){
+  // Edit-mode bottom bar (one row): key-section row on the left (YouTube only), change link / delete on the right.
+  function buildVideoEditBar(tr, item, rangeEl){
     var row = document.createElement("div");
-    row.className = "video-loop-row";
+    row.className = "video-edit-bar";
+    if(rangeEl) row.appendChild(rangeEl);
+    var acts = document.createElement("div");
+    acts.className = "video-edit-actions";
     var ch = document.createElement("button");
-    ch.type = "button"; ch.className = "btn"; ch.textContent = t("videoEditLink");
+    ch.type = "button"; ch.className = "col-add-btn";
+    ch.innerHTML = "<span>" + escapeHtml(t("videoEditLink")) + "</span>";
     ch.addEventListener("click", function(){ closeVideoModal(); openMediaModal(tr.id, item.id); });
     var del = document.createElement("button");
-    del.type = "button"; del.className = "btn btn-danger"; del.textContent = t("videoRemove");
+    del.type = "button"; del.className = "col-add-btn col-add-btn-danger col-add-btn-del";
+    del.innerHTML = removeBtnHtml();
     del.addEventListener("click", function(){ closeVideoModal(); requestDeleteMedia(tr.id, item.id); });
-    row.appendChild(ch); row.appendChild(del);
+    acts.appendChild(ch); acts.appendChild(del);
+    row.appendChild(acts);
     return row;
   }
 
@@ -114,7 +126,7 @@
     modal.appendChild(head);
 
     var tools = videoToolsFor(info);
-    var frameWrap = null, iframe = null, player = null;
+    var frameWrap = null, iframe = null, player = null, rangeEl = null;
     if(tools.mirror){
       var mirrorBtn = document.createElement("button");
       mirrorBtn.type = "button";
@@ -171,7 +183,7 @@
           player.setLoop(kl);
           iframe.addEventListener("load", function(){ setTimeout(function(){ player.seekTo(kl.a); player.post("playVideo"); }, 500); });
         }
-        if(canEdit && typeof buildVideoTimeline === "function") modal.appendChild(buildVideoTimeline(tr, item, player));
+        if(canEdit && typeof buildVideoRange === "function") rangeEl = buildVideoRange(tr, item, player);
       }
     } else {
       var fb = document.createElement("div");
@@ -187,7 +199,7 @@
       }
       modal.appendChild(fb);
     }
-    if(canEdit) modal.appendChild(buildVideoEditBar(tr, item));
+    if(canEdit) modal.appendChild(buildVideoEditBar(tr, item, rangeEl));
 
     overlay.classList.add("show");
   }

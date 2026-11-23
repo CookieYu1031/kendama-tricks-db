@@ -197,12 +197,12 @@
       openConfirm(t("pracResetTitle"), t("pracResetBody"), function(){ resetPracticeCounts(list); practiceChanged(); pracRenderDetail(); });
     }));
     acts.lastChild.textContent = t("pracReset");
-    var del = pracBtn("btn btn-sm btn-danger", t("pracDelete"), null, function(){
+    var del = pracBtn("col-add-btn col-add-btn-danger col-add-btn-del", t("pracDelete"), removeBtnHtml(), function(){
       openConfirm(t("pracDeleteTitle"), t("pracDeleteBody"), function(){
         deletePracticeList(practiceGet(), list.id); practiceChanged(); prac.view = "list"; prac.listId = null; practiceRender();
       });
     });
-    del.textContent = t("pracDelete"); acts.appendChild(del);
+    acts.appendChild(del);
     // Add-trick button sits first in the action row so it stays reachable on long lists.
     var add = pracMk("button", "btn btn-sm btn-primary prac-add-btn" + (prac.adding ? " active" : ""), t("pracAddTrick")); add.type = "button";
     add.addEventListener("click", function(){ prac.adding = !prac.adding; if(!prac.adding) prac.query = ""; pracRenderDetail(); });

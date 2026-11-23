@@ -38,7 +38,7 @@
     if(drawerCloseTimer){ clearTimeout(drawerCloseTimer); drawerCloseTimer = null; }
     el.classList.remove("closing");
     state.detailTrickId = trickId;
-    drawerUi.tagPicker = false; drawerUi.rateHint = false; drawerUi.videoEdit = null;
+    drawerUi.tagPicker = false; drawerUi.videoEdit = null;
     renderColumns();
     renderDrawer();
     el.classList.add("show");
