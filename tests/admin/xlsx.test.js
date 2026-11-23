@@ -68,7 +68,7 @@ test("errors: not a zip, too big, no sheet, no DecompressionStream", async () =>
 
 test("template round trip via bulk helpers (js/72)", async () => {
   const c = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
-    "js/72-submissions.js", "js/74-forms.js", "js/79-xlsx.js"].map((f) => f), { TextEncoder, TextDecoder, Uint8Array, URL,
+    "js/34-drawer-videos.js","js/34-drawer-videos.js", "js/72-submissions.js", "js/74-forms.js", "js/79-xlsx.js"].map((f) => f), { TextEncoder, TextDecoder, Uint8Array, URL,
     document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener(){}, createElement: () => ({}) } });
   const tpl = c.xlsxBuild(c.bulkTemplateRows(), "tricks");
   const back = await c.xlsxParse(tpl);

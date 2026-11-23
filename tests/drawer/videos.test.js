@@ -37,9 +37,10 @@ test("setDrawerVideoUrl: validates, appends, edits, caps at MAX_VIDEOS", () => {
   assert.strictEqual(c.setDrawerVideoUrl(tr, null, "https://youtu.be/1"), "ok");
   assert.strictEqual(tr.media[0].platform, "youtube");
   assert.strictEqual(tr.media[0].type, "video");
-  assert.strictEqual(c.setDrawerVideoUrl(tr, tr.media[0].id, "https://x.com/a/status/1"), "ok");
-  assert.strictEqual(tr.media[0].platform, "twitter");
-  assert.strictEqual(c.setDrawerVideoUrl(tr, "nope", "https://x.com/a"), "invalid");
+  assert.strictEqual(c.setDrawerVideoUrl(tr, tr.media[0].id, "https://www.instagram.com/reel/a/"), "ok");
+  assert.strictEqual(tr.media[0].platform, "instagram");
+  assert.strictEqual(c.setDrawerVideoUrl(tr, null, "https://x.com/a/status/1"), "invalid"); // other sites rejected
+  assert.strictEqual(c.setDrawerVideoUrl(tr, "nope", "https://youtu.be/a"), "invalid");
   c.setDrawerVideoUrl(tr, null, "https://youtu.be/2"); c.setDrawerVideoUrl(tr, null, "https://youtu.be/3");
   assert.strictEqual(c.MAX_VIDEOS, 3);
   assert.strictEqual(c.setDrawerVideoUrl(tr, null, "https://youtu.be/4"), "full");

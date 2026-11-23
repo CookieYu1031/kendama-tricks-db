@@ -8,7 +8,7 @@ const dummyEl = { addEventListener(){}, classList:{ add(){}, remove(){}, toggle(
 const doc = { getElementById: () => dummyEl, querySelector: () => null, querySelectorAll: () => [], addEventListener(){}, createElement: () => ({ style:{}, classList:{ add(){}, remove(){}, toggle(){} }, appendChild(){}, setAttribute(){}, addEventListener(){} }) };
 const ctx = load([
   "js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
-  "js/16-shell-updates.js", "js/72-submissions.js", "js/73-mailbox.js", "js/74-forms.js"
+  "js/16-shell-updates.js", "js/34-drawer-videos.js", "js/72-submissions.js", "js/73-mailbox.js", "js/74-forms.js"
 ], { URL, document: doc });
 const user = { uid: "u1", email: "a@gmail.com", displayName: "Ann" };
 
@@ -20,11 +20,9 @@ test("video url: required, whitelisted hosts only", () => {
   assert.strictEqual(v("not a url"), "formErrUrl");
   [
     "https://www.youtube.com/watch?v=x", "https://youtu.be/x", "https://m.youtube.com/watch?v=x",
-    "https://instagram.com/p/x", "https://www.facebook.com/x", "https://fb.watch/x", "https://www.tiktok.com/@a/video/1",
-    "https://x.com/a/status/1", "https://twitter.com/a/status/1", "https://www.threads.net/@a/post/x",
-    "https://drive.google.com/file/d/x/view"
+    "https://instagram.com/p/x", "https://www.instagram.com/reel/x/", "https://youtube.com/shorts/x"
   ].forEach((u) => assert.strictEqual(v(u), "", u));
-  ["https://evil.com/youtube.com", "https://notyoutube.com/x", "https://youtube.com.evil.io/x", "https://google.com/x", "https://docs.google.com/x"]
+  ["https://evil.com/youtube.com", "https://notyoutube.com/x", "https://youtube.com.evil.io/x", "https://google.com/x", "https://docs.google.com/x", "https://www.facebook.com/x", "https://www.tiktok.com/@a/video/1", "https://x.com/a/status/1"]
     .forEach((u) => assert.strictEqual(v(u), "formErrUrlHost", u));
 });
 
@@ -41,7 +39,7 @@ test("trick submission: name + video required", () => {
 
 test("trick submission payload: grip, parts, tags, up to 3 videos nested in payload.trick", () => {
   const r = ctx.buildReportDoc(user, "trick", {
-    nameZh: "大皿", urls: ["https://youtu.be/a", "", "https://x.com/b", "https://youtu.be/c", "https://youtu.be/d"],
+    nameZh: "大皿", urls: ["https://youtu.be/a", "", "https://www.instagram.com/reel/b/", "https://youtu.be/c", "https://youtu.be/d"],
     grip: "ken", parts: ["tamaTop", "bogus", "sara"], text: "memo",
     tagList: [{ id: "c1", kind: "class", label: "基礎" }, { id: "t1", kind: "text", label: "入門" }]
   });
