@@ -203,4 +203,11 @@ function pwaInit(){
   if(btn) btn.addEventListener("click", pwaInstallAction);
 }
 
+function pwaMarkStandalone(){
+  try{
+    if(pwaEnv().standalone && document.documentElement) document.documentElement.classList.add("is-standalone");
+  }catch(e){}
+}
+
 pwaInit();
+pwaMarkStandalone();

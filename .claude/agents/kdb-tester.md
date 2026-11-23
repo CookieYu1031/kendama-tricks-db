@@ -1,6 +1,6 @@
 ---
 name: kdb-tester
-description: Runs tests and visual checks for this repo — node tests, headless screenshots at mobile/desktop, compares against expected behavior. Reports pass/fail with evidence. Use after builder work, before handing back to the user.
+description: 「檢測員」— Runs tests and visual checks for this repo — node tests, headless screenshots at mobile/desktop, compares against expected behavior. Reports pass/fail with evidence. Use after builder work, before handing back to the user.
 model: haiku
 tools: Read, Grep, Glob, Bash
 ---

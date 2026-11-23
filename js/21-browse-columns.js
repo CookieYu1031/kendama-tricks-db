@@ -59,8 +59,8 @@
 
     var columns = buildColumnChain();
     var isMobile = isPhoneViewport();
-    var isTablet = isTabletViewport();
-    var focusIdx = findFocusColumnIndex(columns);
+    var isTablet = isTabletViewport(), focusIdx = findFocusColumnIndex(columns);
+    var motion = browseMotionPlan(wrap, columns.length, isMobile); // phone slide in / out (js/27)
 
     // Reuse existing column DOM nodes (matched by position + parentId) instead of
     // tearing everything down every render. This is what lets the collapse/expand
@@ -117,7 +117,8 @@
     });
 
     while(wrap.children.length > columns.length) wrap.removeChild(wrap.lastChild);
-    if(typeof syncSwipeBack === "function") syncSwipeBack(columns.length, true); // narrow-view swipe-back handle (js/27)
+    browseMotionRun(wrap, motion);
+    if(typeof syncSwipeBack === "function") syncSwipeBack(columns.length, true);
 
     if(columns.length === 1 && columns[0].items.length === 0 && !state.editMode){
       wrap.innerHTML = "";

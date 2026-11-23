@@ -1,6 +1,6 @@
 ---
 name: kdb-builder
-description: Implements one scoped task from TODO.md in this vanilla-JS repo (feature, refactor, fix), plus its local test. Use for implementation work with clear spec and file ownership. Not for architecture decisions.
+description: 「工程師」— Implements one scoped task from TODO.md in this vanilla-JS repo (feature, refactor, fix), plus its local test. Use for implementation work with clear spec and file ownership. Not for architecture decisions.
 model: sonnet
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---

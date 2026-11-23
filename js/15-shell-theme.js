@@ -30,8 +30,8 @@
     }catch(e){}
     return true; // no matchMedia: the app's existing look is dark
   }
-  // Page background per concrete theme (= --ink in css/variables-and-base.css); used for <meta theme-color>.
-  function themeColorFor(theme){ return theme === "light" ? "#D9DCE1" : "#121212"; }
+  // Page background per concrete theme (= --edge-bg in css/variables-and-base.css); used for <meta theme-color>.
+  function themeColorFor(theme){ return theme === "light" ? "#D6DEE6" : "#1B2A37"; }
   function applyTheme(){
     var theme = resolveTheme(getThemePref(), systemPrefersDark());
     if(typeof document !== "undefined" && document.documentElement){

@@ -14,8 +14,8 @@ test("swipeBackClamp", () => {
 });
 
 test("swipeBackDecision", () => {
-  assert.strictEqual(c.swipeBackDecision(150, 300, 0), "commit");   // > 35%
-  assert.strictEqual(c.swipeBackDecision(100, 300, 0), "cancel");   // < 35%
+  assert.strictEqual(c.swipeBackDecision(100, 300, 0), "commit");   // > 30%
+  assert.strictEqual(c.swipeBackDecision(80, 300, 0), "cancel");    // < 30%
   assert.strictEqual(c.swipeBackDecision(40, 300, 0.8), "commit");  // flick
   assert.strictEqual(c.swipeBackDecision(40, 300, 0.3), "cancel");
   assert.strictEqual(c.swipeBackDecision(0, 300, 2), "cancel");     // nothing dragged
@@ -29,3 +29,14 @@ test("swipeBackAvailable", () => {
   assert.strictEqual(c.swipeBackAvailable({ narrow:true, treeView:false, columnCount:2 }), false);
 });
 
+
+test("swipeBackIntent", () => {
+  assert.strictEqual(c.swipeBackIntent(5, 0), "pending");
+  assert.strictEqual(c.swipeBackIntent(12, 2), "lock");
+  assert.strictEqual(c.swipeBackIntent(12, 10), "pending");   // not horizontal enough
+  assert.strictEqual(c.swipeBackIntent(14, 10), "pending");   // 14 < 1.5*10
+  assert.strictEqual(c.swipeBackIntent(3, 14), "abort");      // vertical scroll
+  assert.strictEqual(c.swipeBackIntent(-14, 0), "abort");     // leftward
+  assert.strictEqual(c.swipeBackIntent(40, 20), "lock");
+  assert.strictEqual(c.swipeBackIntent(30, 30), "abort");
+});
