@@ -63,7 +63,7 @@ test("custom table codes", () => {
   assert.strictEqual(ctx.customTableCode(26), null);
   const t = mk([["tr", "t"]]);
   assert.strictEqual(ctx.computeLocCodes("0c", t.roots, t.kids)[0].code, "0c-tr-00");
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.TABLE_CODES_LOCKED)), ["00", "01", "02"]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.TABLE_CODES_LOCKED)), ["00", "01", "02", "03"]);
 });
 
 test("null table code -> empty", () => {

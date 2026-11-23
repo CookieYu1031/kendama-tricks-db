@@ -11,7 +11,7 @@
        sharedBase/space-index/versions/{n} -> { version, note, versionLabel, publishedAt, chunks }
        sharedBase/space-index/versions/{n}/chunks/{i} -> { data }  // JSON of
                                   { tables, categories, tricks, infos, tags } split into pieces
-                                  (tables = ids covered: t00/t01/t02; absent in old versions = ["t00"])
+                                  (tables = ids covered: t00/t01/t02/t03; absent in old versions = ["t00"])
                                   (older versions stored categories/tricks inline: still read)
        users/{uid}/meta/spaceIndexSync -> { viewingVersion, updatedAt }
 

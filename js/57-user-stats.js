@@ -5,10 +5,10 @@
      userStats/{uid}. Feeds the admin stats card (js/75-admin-stats.js). Written after a
      successful cloud sync (hook in 54), only when it changed or once per day, so
      lastActiveAt stays fresh for the 7/30-day active counts.
-     Holds only favorite trick ids from t00/t01/t02 (no landed/rates since v0.10); no names, no personal notes.
+     Holds only favorite trick ids from t00/t01/t02/t03 (no landed/rates since v0.10); no names, no personal notes.
   ============================================================ */
   var USER_STATS_MAX = 2000;
-  var USER_STATS_TABLES = ["t00", "t01", "t02"];
+  var USER_STATS_TABLES = ["t00", "t01", "t02", "t03"];
   var USER_STATS_KEY_PREFIX = "kdb-userstats-";
   var USER_STATS_DAY_MS = 24 * 60 * 60 * 1000;
 

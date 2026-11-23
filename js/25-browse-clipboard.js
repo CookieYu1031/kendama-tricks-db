@@ -12,18 +12,21 @@
          clipNoPerm:"沒有權限貼到這裡", clipNoFit:"不能貼到這裡（超過層數上限，或貼進自己／子層）",
          clipGone:"原項目已不存在", clipCannotCopy:"此項目無法複製", clipSame:"已經在這個位置",
          rowEdit:"編輯",
+         clipCopiedN:"已複製 {n} 個項目", clipCutN:"已剪下 {n} 個項目", clipPastedN:"已貼上 {n} 個", clipSkippedN:"，略過 {m} 個",
          favNoCreate:"收藏區不能直接新增內容。要建立自己的招式清單，請先新增自訂義區域" },
     jp:{ clipCopied:"コピーしました：", clipCut:"切り取りました：", clipPasted:"貼り付けました", clipMoved:"移動しました",
          clipEmpty:"クリップボードは空です", clipNoSelection:"先に項目をクリックしてください", clipAlready:"この場所には既にこの技があります",
          clipNoPerm:"ここに貼り付ける権限がありません", clipNoFit:"ここには貼り付けられません（階層の上限、または自分／下位への貼り付け）",
          clipGone:"元の項目が存在しません", clipCannotCopy:"この項目はコピーできません", clipSame:"既にこの場所にあります",
          rowEdit:"編集",
+         clipCopiedN:"{n} 件をコピーしました", clipCutN:"{n} 件を切り取りました", clipPastedN:"{n} 件を貼り付けました", clipSkippedN:"（{m} 件はスキップ）",
          favNoCreate:"お気に入りには直接追加できません。自分の技のリストを作るには、先にカスタム区画を追加してください" },
     en:{ clipCopied:"Copied: ", clipCut:"Cut: ", clipPasted:"Pasted", clipMoved:"Moved",
          clipEmpty:"Clipboard is empty", clipNoSelection:"Click an item first", clipAlready:"This trick is already here",
          clipNoPerm:"No permission to paste here", clipNoFit:"Can't paste here (level limit, or into itself / its sub-lists)",
          clipGone:"The original item no longer exists", clipCannotCopy:"This item can't be copied", clipSame:"Already in this place",
          rowEdit:"Edit",
+         clipCopiedN:"Copied {n} items", clipCutN:"Cut {n} items", clipPastedN:"Pasted {n}", clipSkippedN:", skipped {m}",
          favNoCreate:"You can't add content directly in Favorites. To make your own trick lists, add a custom area first" }
   });
 
@@ -230,29 +233,69 @@
   function clipName(it){ return typeof localize === "function" ? localize(it.name) : ""; }
   function clipToast(key, extra){ if(typeof showToast === "function") showToast(t(key) + (extra || "")); }
 
+  // Selection token: bumped by any click / multi-select change. Ctrl+C stores the current value;
+  // Ctrl+V with the same value (nothing changed since) duplicates in place (js/25-browse-clip-dup.js).
+  var clipSelToken = 0;
+  function clipInvalidate(){ clipSelToken++; }
+
+  // Pure: per-item clip objects (clipPlanPaste shape) from a clipboardItem.
+  function clipClipsOf(cb){
+    if(!cb) return [];
+    if(cb.type === "extTrick" || !cb.items) return [cb];
+    return cb.items.map(function(x){ return { mode: cb.mode, type: x.type, id: x.id, srcParent: cb.srcParent, srcSpace: cb.srcSpace }; });
+  }
+  // Pure: counts for the batch toast. plans = clipPlanPaste results.
+  function clipBatchCounts(plans){
+    var ok = plans.filter(function(p){ return p.ok; }).length;
+    return { ok: ok, skipped: plans.length - ok };
+  }
+  function clipNToast(key, n, skipped){
+    if(typeof showToast !== "function") return;
+    var s = t(key).replace("{n}", n);
+    if(skipped) s += t("clipSkippedN").replace("{m}", skipped);
+    showToast(s);
+  }
+
   function clipCopyOrCut(mode){
-    var sel = clipSelection();
+    var multi = typeof multiSelItems === "function" ? multiSelItems() : [];
+    var sel = multi.length ? { type: multi[0].type, id: multi[0].id, parentId: multiSel.parentId } : clipSelection();
     if(!sel || !sel.type) return clipToast("clipNoSelection");
-    var it = clipItemOf(sel.type, sel.id);
-    if(!it) return clipToast("clipNoSelection");
+    var list = multi.length ? multi : [{ type: sel.type, id: sel.id }];
     var admin = isAdminNow();
-    if(it.ref.virtual || sel.parentId === FAV_STARRED_ID) return clipToast("clipCannotCopy");
-    if(mode === "cut" && it.type === "category" && isFixedFavFolder(it.id)) return clipToast("clipNoPerm");
-    if(mode === "cut" && !(canDragItem(it, sel.parentId, admin))) return clipToast("clipNoPerm");
-    clipboardItem = { mode: mode, type: sel.type, id: sel.id, srcParent: sel.parentId, srcSpace: state.activeSpace };
-    clipToast(mode === "cut" ? "clipCut" : "clipCopied", clipName(it));
+    for(var i = 0; i < list.length; i++){
+      var it = clipItemOf(list[i].type, list[i].id);
+      if(!it) return clipToast("clipNoSelection");
+      if(it.ref.virtual || sel.parentId === FAV_STARRED_ID) return clipToast("clipCannotCopy");
+      if(mode === "cut" && it.type === "category" && isFixedFavFolder(it.id)) return clipToast("clipNoPerm");
+      if(mode === "cut" && !(canDragItem(it, sel.parentId, admin))) return clipToast("clipNoPerm");
+    }
+    clipboardItem = { mode: mode, items: list, srcParent: sel.parentId, srcSpace: state.activeSpace, token: clipSelToken };
+    if(list.length > 1) return clipNToast(mode === "cut" ? "clipCutN" : "clipCopiedN", list.length, 0);
+    clipToast(mode === "cut" ? "clipCut" : "clipCopied", clipName(clipItemOf(list[0].type, list[0].id)));
   }
 
   function clipPaste(){
     if(!clipboardItem) return clipToast("clipEmpty");
-    var target = clipTargetParent(clipSelection());
     var env = { admin: isAdminNow(), activeSpace: state.activeSpace };
-    var plan = clipPlanPaste(clipboardItem, target, env);
-    if(!plan.ok) return clipToast(plan.err);
+    if(typeof clipDupValid === "function" && clipDupValid(clipboardItem, clipSelToken, env)) return clipPasteDup(clipboardItem, env);
+    var target = clipTargetParent(clipSelection());
+    var clips = clipClipsOf(clipboardItem);
+    var plans = clips.map(function(c){ return clipPlanPaste(c, target, env); });
+    var cnt = clipBatchCounts(plans);
+    if(!cnt.ok) return clipToast(plans[0] ? plans[0].err : "clipEmpty");
     if(typeof undoPush === "function") undoPush();
-    clipApplyPaste(clipboardItem, target, plan, env);
-    if(plan.op === "move" || plan.op === "newTrick") clipboardItem = null; // a new trick is pasted once
-    clipToast(plan.op === "move" ? "clipMoved" : "clipPasted");
+    var moved = false;
+    clips.forEach(function(c, i){
+      if(!plans[i].ok) return;
+      clipApplyPaste(c, target, plans[i], env);
+      if(plans[i].op === "move") moved = true;
+    });
+    if(moved || clips[0].type === "extTrick"){ // a new trick is pasted once; a cut is consumed
+      clipboardItem = null;
+      if(typeof multiSelClear === "function") multiSelClear();
+    }
+    if(clips.length > 1) clipNToast("clipPastedN", cnt.ok, cnt.skipped);
+    else clipToast(moved ? "clipMoved" : "clipPasted");
     render();
   }
 
@@ -267,6 +310,9 @@
     wrap.addEventListener("click", function(ev){
       var tg = ev.target;
       var row = tg && tg.closest ? tg.closest(".item") : null;
+      if(ev.shiftKey && typeof multiSelHandleClick === "function" && multiSelHandleClick(ev, row)) return;
+      clipInvalidate();
+      if(typeof multiSelClear === "function") multiSelClear();
       var rows = wrap.querySelectorAll(".item");
       for(var i = 0; i < rows.length; i++) if(rows[i]._kbd && typeof kbdClear === "function") kbdClear([rows[i]]);
       if(row && row.dataset.itemType) { clipLastClick = clipRowInfo(row); return; }

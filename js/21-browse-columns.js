@@ -27,22 +27,6 @@
   // Tree navigation (path change only): rail, chrome and drawer don't depend on it.
   var RENDER_COLUMNS_ONLY = { columns: true };
 
-  // Finds which column currently displays the trick whose drawer is open — the
-  // "focus" column that the collapse rule below measures distance from. Merely
-  // drilling into categories or a trick-folder's own extension list doesn't move
-  // this (those actions never touch state.detailTrickId), only actually opening
-  // a trick's detail does.
-  function findFocusColumnIndex(columns){
-    if(!state.detailTrickId) return -1;
-    for(var i=0;i<columns.length;i++){
-      var items = columns[i].items;
-      for(var j=0;j<items.length;j++){
-        if(items[j].type==="trick" && items[j].id===state.detailTrickId) return i;
-      }
-    }
-    return -1;
-  }
-
   function renderColumns(){
     var wrap = document.getElementById("millerWrap");
     if(typeof beginPendingRender === "function") beginPendingRender(); // admin red dots / ghost rows (56)
@@ -61,6 +45,7 @@
     var isMobile = isPhoneViewport();
     var isTablet = isTabletViewport(), focusIdx = findFocusColumnIndex(columns);
     var motion = browseMotionPlan(wrap, columns.length, isMobile); // phone slide in / out (js/27)
+    pruneColSort(columns.map(function(c){ return c.parentId===null ? "__root__" : c.parentId; })); // per-level sort (js/29)
 
     // Reuse existing column DOM nodes (matched by position + parentId) instead of
     // tearing everything down every render. This is what lets the collapse/expand
@@ -85,12 +70,14 @@
 
       // Removed-but-unpublished items stay in place as ghost rows (56); drag/reorder only sees real rows.
       var ghosts = typeof pendingGhostItems === "function" ? pendingGhostItems(col.parentId) : [];
-      var items = sortColumnItems(col.items.concat(ghosts), col.parentId);
+      var sortMode = colSortMode(key);
+      var items = applyColSort(col.items.concat(ghosts), sortMode, col.parentId);
       var realItems = ghosts.length ? items.filter(function(x){ return !x.ghost; }) : items;
 
       var itemsWrap = document.createElement("div");
       itemsWrap.className = "col-items";
 
+      if(items.length > 1 && !collapsed) colEl.appendChild(buildColSortBar(key));
       if(items.length === 0){
         var empty = document.createElement("div");
         empty.className = "col-empty";
@@ -100,7 +87,7 @@
         var realIdx = 0;
         items.forEach(function(it){
           if(it.ghost){ itemsWrap.appendChild(buildPendingGhostRow(it)); return; }
-          itemsWrap.appendChild(renderItemRow(it, col.parentId, colIndex, realIdx++, realItems));
+          itemsWrap.appendChild(renderItemRow(it, col.parentId, colIndex, realIdx++, realItems, sortMode !== "default"));
         });
       }
       colEl.appendChild(itemsWrap);
@@ -318,7 +305,7 @@
     return { icon: icon, textWrap: textWrap, hasChildren: hasChildren };
   }
 
-  function renderItemRow(it, parentId, colIndex, itemIdx, sortedItems){
+  function renderItemRow(it, parentId, colIndex, itemIdx, sortedItems, noDrag){
     var visual = buildItemVisual(it);
     var hasChildren = visual.hasChildren;
     var isDrillable = it.type==="category" || hasChildren;
@@ -332,6 +319,7 @@
 
     row.appendChild(visual.icon);
     row.appendChild(visual.textWrap);
+    if(typeof isMultiSelected === "function" && isMultiSelected(it, parentId)) row.classList.add("multi-sel");
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
@@ -353,7 +341,7 @@
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the
       // item onto that column's container instead of just resorting siblings.
-      if(canDragItem(it, parentId, admin) && !(it.type === "category" && isFixedFavFolder(it.id))) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
+      if(!noDrag && canDragItem(it, parentId, admin) && !(it.type === "category" && isFixedFavFolder(it.id))) attachLongPressDrag(row, it, parentId, itemIdx, sortedItems);
     }
 
     if(typeof applyPendingMark === "function") applyPendingMark(row, it);

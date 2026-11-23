@@ -14,6 +14,8 @@
     })(),
     editMode: false,
     path: [],            // array of category ids (drill-down chain)
+    colSort: {},         // per-column display sort { colKey: "asc"|"desc" }, memory only (js/29)
+    colSortSpace: null,
     searchQuery: "",
     detailTrickId: null,
     editingCategoryId: null,   // set when category modal is in "edit" mode

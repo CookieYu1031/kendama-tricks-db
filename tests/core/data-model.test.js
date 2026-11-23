@@ -31,7 +31,7 @@ test("normalizeDB fills trick defaults", () => {
   assert.ok(!("proficiency" in t));
   assert.strictEqual(d.infos.length, 0);
   assert.strictEqual(d.tags.length, 0);
-  assert.deepStrictEqual(Array.from(d.spaces.map((s) => s.id)), ["t00", "t01", "t02", "fav"]);
+  assert.deepStrictEqual(Array.from(d.spaces.map((s) => s.id)), ["t00", "t01", "t02", "t03", "fav"]);
 });
 
 test("normalizeDB validates grip/parts/rate and keeps first 3 videos, drops non-video media", () => {
@@ -104,7 +104,7 @@ test("custom table codes: 0a.., reuse, cap 26", () => {
   assert.strictEqual(a.locked, false);
   ctx.db.spaces = ctx.db.spaces.filter((s) => s.id !== a.id);
   assert.strictEqual(ctx.createSpace({}).code, "0a"); // reused
-  while(ctx.db.spaces.length - 4 < 26) assert.ok(ctx.createSpace({}));
+  while(ctx.db.spaces.length - 5 < 26) assert.ok(ctx.createSpace({}));
   assert.strictEqual(ctx.createSpace({}), null);
   assert.strictEqual(ctx.canAddCustomSpace(), false);
   const codes = ctx.db.spaces.filter((s) => s.code && /^0[a-z]$/.test(s.code)).map((s) => s.code);
@@ -122,7 +122,7 @@ test("table permissions and undeletable", () => {
   assert.strictEqual(ctx.canEditTable("t01"), true);
   assert.strictEqual(ctx.canAddCustomTrick("t02"), true);
   assert.strictEqual(ctx.canAddCustomTrick("fav"), false);
-  ["t00", "t01", "t02", "fav"].forEach((id) => assert.ok(ctx.isUndeletableSpace(id)));
+  ["t00", "t01", "t02", "t03", "fav"].forEach((id) => assert.ok(ctx.isUndeletableSpace(id)));
 });
 
 test("removeTrickPlacement keeps entity until last placement", () => {
@@ -182,4 +182,13 @@ test("normalizeDB keeps sub-grips and old category values, drops unknown", () =>
   assert.strictEqual(g("ken_stall"), "ken_stall");
   assert.strictEqual(g("ito"), "ito");
   assert.strictEqual(g("ken_bogus"), null);
+});
+
+test("t03 (各式資料): public, locked, undeletable, code 03", () => {
+  const ctx = setup();
+  const s = ctx.db.spaces.find((x) => x.id === "t03");
+  assert.ok(s && s.locked && s.code === "03");
+  assert.ok(ctx.isUndeletableSpace("t03"));
+  assert.ok(ctx.GUEST_SPACE_IDS.indexOf("t03") >= 0);
+  assert.ok(ctx.SHARED_BASE_TABLE_IDS === undefined || ctx.SHARED_BASE_TABLE_IDS.indexOf("t03") >= 0);
 });

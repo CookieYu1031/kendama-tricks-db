@@ -12,19 +12,19 @@
       stRegistered:"註冊數", stCollected:"總表收錄數", stLang:"使用者語言占比", stActive7:"7 天活躍", stActive30:"30 天活躍",
       stTopFav:"最多收藏 Top 5", stSubs:"投稿數",
       stNoAccess:"無權限",
-      stT00:"總表", stT01:"檢定", stT02:"賽事", stPeople:"{n} 人",
+      stT00:"總表", stT01:"檢定", stT02:"賽事", stT03:"各式資料", stPeople:"{n} 人",
       bkTitle:"備份：下載已發布版本", bkDownload:"下載", bkNone:"尚無已發布版本", bkFail:"下載失敗" },
     jp:{ stRefresh:"更新", stLoading:"読み込み中…", stError:"読み込みに失敗しました", stEmpty:"データなし",
       stRegistered:"登録数", stCollected:"総表の収録数", stLang:"ユーザーの言語割合", stActive7:"7日間アクティブ", stActive30:"30日間アクティブ",
       stTopFav:"お気に入り Top 5", stSubs:"投稿数",
       stNoAccess:"権限なし",
-      stT00:"総表", stT01:"検定", stT02:"大会", stPeople:"{n} 人",
+      stT00:"総表", stT01:"検定", stT02:"大会", stT03:"各種資料", stPeople:"{n} 人",
       bkTitle:"バックアップ：公開済みバージョン", bkDownload:"ダウンロード", bkNone:"公開済みバージョンなし", bkFail:"ダウンロードに失敗しました" },
     en:{ stRefresh:"Refresh", stLoading:"Loading…", stError:"Failed to load", stEmpty:"No data yet",
       stRegistered:"Registered users", stCollected:"Tricks in the base", stLang:"User language share", stActive7:"Active (7 days)", stActive30:"Active (30 days)",
       stTopFav:"Most favorited, top 5", stSubs:"Submissions",
       stNoAccess:"No access",
-      stT00:"Master", stT01:"Certification", stT02:"Competition", stPeople:"{n}",
+      stT00:"Master", stT01:"Certification", stT02:"Competition", stT03:"Resources", stPeople:"{n}",
       bkTitle:"Backup: published versions", bkDownload:"Download", bkNone:"No published versions yet", bkFail:"Download failed" }
   });
 
@@ -56,7 +56,7 @@
   function countBaseTricksBySpace(base){
     var catSpace = {};
     (base.categories || []).forEach(function(c){ catSpace[c.id] = c.spaceId; });
-    var out = { t00: 0, t01: 0, t02: 0 };
+    var out = { t00: 0, t01: 0, t02: 0, t03: 0 };
     (base.tricks || []).forEach(function(tr){
       var seen = {};
       (tr.categoryIds || []).forEach(function(cid){
@@ -182,7 +182,7 @@
     el.appendChild(statsKV(t("stActive7"), a.active7));
     el.appendChild(statsKV(t("stActive30"), a.active30));
     el.appendChild(statsKV(t("stSubs"), data.subs === null ? t("stNoAccess") : data.subs));
-    el.appendChild(statsKV(t("stCollected"), t("stT00") + " " + c.t00 + " / " + t("stT01") + " " + c.t01 + " / " + t("stT02") + " " + c.t02));
+    el.appendChild(statsKV(t("stCollected"), t("stT00") + " " + c.t00 + " / " + t("stT01") + " " + c.t01 + " / " + t("stT02") + " " + c.t02 + " / " + t("stT03") + " " + c.t03));
 
     var langTotal = a.lang.zh + a.lang.jp + a.lang.en;
     var langParts = [

@@ -4,7 +4,7 @@
      PENDING CHANGES (待更新區) — admin only. 企劃書 §四.1: until published, an
      added/modified item shows a red dot at its icon's top-right, a removed one stays as a
      faded ghost row with a red ✕. Compared against the shared base this account is
-     currently pinned to (all of t00/t01/t02). The diff itself lives in the admin's
+     currently pinned to (all of t00/t01/t02/t03). The diff itself lives in the admin's
      user data as always (50/53); this file only reads it for display + restore.
      Pure logic first (unit tested), DOM helpers last.
   ============================================================ */

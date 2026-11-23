@@ -4,7 +4,7 @@
 // Spec: 企劃書 §五.2 (decision B2).
 
 var LAYER_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-var TABLE_CODES_LOCKED = ["00", "01", "02"];
+var TABLE_CODES_LOCKED = ["00", "01", "02", "03"];
 var LOC_MAX_LEVEL = 4;
 var LOC_MAX_SERIAL = 1296; // 36*36
 

@@ -83,7 +83,7 @@
     var byId = {};
     spaces.forEach(function(s){ byId[s.id] = s; });
     var top = [], middle = [];
-    ["t00", "t01", "t02"].forEach(function(id){ if(byId[id]) top.push(byId[id]); });
+    ["t00", "t01", "t02", "t03"].forEach(function(id){ if(byId[id]) top.push(byId[id]); });
     if(isGuest()) return { top: top, middle: middle, showMiddle: false, showBottom: false };
     if(byId[FAV_TABLE_ID]) middle.push(byId[FAV_TABLE_ID]);
     spaces.filter(function(s){ return !isDefaultSpaceId(s.id); })
