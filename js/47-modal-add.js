@@ -6,7 +6,7 @@
      tests/add-modal.test.js), UI below.
   ============================================================ */
   addStrings({
-    zh:{ addTypeTrick:"招式", addTypeFolder:"資料夾", addTypeInfo:"資訊", addTitleBtn:"新增",
+    zh:{ addTypeTrick:"招式", addTypeFolder:"清單", addTypeInfo:"資訊", addTitleBtn:"新增",
          addNameLabel:"名稱", addLinkNote:"將連結既有招式：",
          addVideoLabel:"影片連結（選填）", addTagsLabel:"標籤", addNoTags:"（尚無標籤）",
          addContentLabel:"內容",
@@ -15,7 +15,7 @@
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
          addLinkedToast:"已連結招式",
          addHintEmpty:"名稱，或 @ID 連結" },
-    jp:{ addTypeTrick:"技", addTypeFolder:"フォルダ", addTypeInfo:"情報", addTitleBtn:"追加",
+    jp:{ addTypeTrick:"技", addTypeFolder:"リスト", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
          addContentLabel:"内容",
@@ -24,7 +24,7 @@
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
          addLinkedToast:"技をリンクしました",
          addHintEmpty:"名前、または @ID でリンク" },
-    en:{ addTypeTrick:"Trick", addTypeFolder:"Folder", addTypeInfo:"Info", addTitleBtn:"Add",
+    en:{ addTypeTrick:"Trick", addTypeFolder:"List", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
          addContentLabel:"Content",
@@ -180,7 +180,7 @@
     sw.style.background = hexToRgba(hex, 0.22);
     sw.style.color = hex;
     sw.classList.toggle("img-icon", isImageIcon(state.addDraftIcon));
-    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_FOLDER);
+    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_LIST);
   }
 
   // Link target id (trick type only), else null.

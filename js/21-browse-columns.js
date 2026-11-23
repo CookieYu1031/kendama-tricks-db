@@ -250,7 +250,7 @@
         icon.style.fontSize = "15px";
         icon.textContent = it.ref.icon;
       } else {
-        icon.innerHTML = ICON_FOLDER;
+        icon.innerHTML = ICON_LIST;
       }
     } else {
       var tHex = it.ref.color ? colorHex(it.ref.color) : TRICK_DEFAULT_HEX;

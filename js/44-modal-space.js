@@ -4,9 +4,9 @@
      SPACE MODAL (Add / Edit / Delete a leftmost-rail shelf)
   ============================================================ */
   addStrings({
-    zh:{ spaceLimitReached:"自訂表格已達 26 個上限", spaceCodeLabel:"表格代碼", confirmDeleteSpaceBody:"此表格內的所有分類、資訊與僅存在於此的招式都會被刪除，此動作無法復原。" },
+    zh:{ spaceLimitReached:"自訂表格已達 26 個上限", spaceCodeLabel:"表格代碼", confirmDeleteSpaceBody:"此表格內的所有清單、資訊與僅存在於此的招式都會被刪除，此動作無法復原。" },
     jp:{ spaceLimitReached:"カスタム表は26個までです", spaceCodeLabel:"表コード", confirmDeleteSpaceBody:"この表内のカテゴリ・情報・ここにだけある技はすべて削除されます。元に戻せません。" },
-    en:{ spaceLimitReached:"Custom tables are limited to 26", spaceCodeLabel:"Table code", confirmDeleteSpaceBody:"Every folder, info item and trick that exists only in this table will be deleted. This cannot be undone." }
+    en:{ spaceLimitReached:"Custom tables are limited to 26", spaceCodeLabel:"Table code", confirmDeleteSpaceBody:"Every list, info item and trick that exists only in this table will be deleted. This cannot be undone." }
   });
 
   function openSpaceModal(spaceId){
