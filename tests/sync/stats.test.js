@@ -72,6 +72,6 @@ test("top 5 cap", () => {
 test("base counts per table and backup filename", () => {
   const base = { categories: [{ id: "c1", spaceId: "t01" }], tricks: [
     { id: "a", categoryIds: ["t00"] }, { id: "b", categoryIds: ["c1"] }, { id: "c", categoryIds: ["t02", "t02"] }, { id: "d", categoryIds: ["zz"] }] };
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.countBaseTricksBySpace(base))), { t00: 1, t01: 1, t02: 1 });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.countBaseTricksBySpace(base))), { t00: 1, t01: 1, t02: 1, t03: 0 });
   assert.strictEqual(ctx.backupFilename(7), "kendama-base-v7.json");
 });

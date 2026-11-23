@@ -11,26 +11,42 @@
   var TOOL_ICON_LIST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5l1.5 1.5 2.5-3M4.5 12.5l1.5 1.5 2.5-3M4.5 18.5l1.5 1.5 2.5-3"/><path d="M12 7h8M12 13h8M12 19h8"/></svg>';
   var TOOL_ICON_TIMER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9.5 3h5"/></svg>';
 
+  var TOOL_ICON_COMBO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="9" height="9" rx="2"/><circle cx="6.5" cy="7.5" r="0.9" fill="currentColor"/><circle cx="8.5" cy="9.5" r="0.9" fill="currentColor"/><rect x="12" y="11" width="9" height="9" rx="2"/><circle cx="15.5" cy="14.5" r="0.9" fill="currentColor"/><circle cx="17.5" cy="16.5" r="0.9" fill="currentColor"/><circle cx="15.5" cy="16.5" r="0.9" fill="currentColor"/><circle cx="17.5" cy="14.5" r="0.9" fill="currentColor"/></svg>';
+  var TOOL_ICON_GAME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="7" r="2.5"/><path d="M3 19v-1.5a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4V19M13 19v-1.5a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4V19"/></svg>';
+  var TOOL_ICON_MATCH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-2.5 6a2.8 2.8 0 0 0 5 0L5 7zM19 7l-2.5 6a2.8 2.8 0 0 0 5 0L19 7z"/></svg>';
+
   // Registry: add a tool by adding an entry; set `open` to a function to enable it.
   var TOOLS = [
     { id:"random",   icon:TOOL_ICON_DICE,  nameKey:"toolRandomName",   descKey:"toolRandomDesc",   open:null },
     { id:"practice", icon:TOOL_ICON_LIST,  nameKey:"toolPracticeName", descKey:"toolPracticeDesc", open:null },
-    { id:"kwc",      icon:TOOL_ICON_TIMER, nameKey:"toolKwcName",      descKey:"toolKwcDesc",      open:null }
+    { id:"kwc",      icon:TOOL_ICON_TIMER, nameKey:"toolKwcName",      descKey:"toolKwcDesc",      open:null },
+    { id:"combo",    icon:TOOL_ICON_COMBO, nameKey:"toolComboName",    descKey:"toolComboDesc",    open:null },
+    { id:"kengame",  icon:TOOL_ICON_GAME,  nameKey:"toolKengameName",  descKey:"toolKengameDesc",  open:null },
+    { id:"match",    icon:TOOL_ICON_MATCH, nameKey:"toolMatchName",    descKey:"toolMatchDesc",    open:null }
   ];
 
   addStrings({
-    zh:{ toolsTitle:"小工具", toolsSub:"練習與比賽用的小幫手", toolsClose:"關閉", toolSoon:"即將推出",
-         toolRandomName:"隨機抽招", toolRandomDesc:"依條件隨機抽出招式（可設定抽取條件）",
-         toolPracticeName:"練習清單", toolPracticeDesc:"選招建立清單、設定次數、點按計數",
-         toolKwcName:"KWC 工具", toolKwcDesc:"快速配初賽／決賽招式，附計時器，可請人幫忙記錄" },
-    jp:{ toolsTitle:"ツール", toolsSub:"練習や大会に使える便利ツール", toolsClose:"閉じる", toolSoon:"近日公開",
-         toolRandomName:"ランダム出題", toolRandomDesc:"条件を指定して技をランダムに抽選",
-         toolPracticeName:"練習リスト", toolPracticeDesc:"技を選んでリスト化、回数を設定してタップでカウント",
-         toolKwcName:"KWC ツール", toolKwcDesc:"予選／決勝の技を素早く構成。タイマー付きで、記録を他の人に頼むことも可能" },
-    en:{ toolsTitle:"Tools", toolsSub:"Handy helpers for practice and contests", toolsClose:"Close", toolSoon:"Coming soon",
-         toolRandomName:"Random Trick", toolRandomDesc:"Draw random tricks by your own conditions",
-         toolPracticeName:"Practice List", toolPracticeDesc:"Pick tricks, set reps, and tap to count",
-         toolKwcName:"KWC Tools", toolKwcDesc:"Build prelim/final trick sets fast, with a timer and a helper to log for you" }
+    zh:{ toolsTitle:"小工具", toolsSub:"練習與比賽用的小幫手", toolsClose:"關閉", toolSoon:"即將推出",
+         toolRandomName:"隨機抽招", toolRandomDesc:"依條件隨機抽出招式（可設定抽取條件）",
+         toolPracticeName:"練習清單", toolPracticeDesc:"選招建立清單、設定次數、點按計數",
+         toolKwcName:"KWC 工具", toolKwcDesc:"快速配初賽／決賽招式，附計時器，可請人幫忙記錄",
+         toolComboName:"擲骰串招", toolComboDesc:"擲骰子隨機串出連續招式",
+         toolKengameName:"KenGame", toolKengameDesc:"和朋友輪流出招的對戰遊戲",
+         toolMatchName:"指定賽", toolMatchDesc:"比對兩人的招式庫，配出題目池再抽題" },
+    jp:{ toolsTitle:"ツール", toolsSub:"練習や大会に使える便利ツール", toolsClose:"閉じる", toolSoon:"近日公開",
+         toolRandomName:"ランダム出題", toolRandomDesc:"条件を指定して技をランダムに抽選",
+         toolPracticeName:"練習リスト", toolPracticeDesc:"技を選んでリスト化、回数を設定してタップでカウント",
+         toolKwcName:"KWC ツール", toolKwcDesc:"予選／決勝の技を素早く構成。タイマー付きで、記録を他の人に頼むことも可能",
+         toolComboName:"サイコロ連続技", toolComboDesc:"サイコロで技をランダムにつなげる",
+         toolKengameName:"KenGame", toolKengameDesc:"友達と交互に技を出し合う対戦ゲーム",
+         toolMatchName:"指定技バトル", toolMatchDesc:"二人の技リストから出題プールを作って抽選" },
+    en:{ toolsTitle:"Tools", toolsSub:"Handy helpers for practice and contests", toolsClose:"Close", toolSoon:"Coming soon",
+         toolRandomName:"Random Trick", toolRandomDesc:"Draw random tricks by your own conditions",
+         toolPracticeName:"Practice List", toolPracticeDesc:"Pick tricks, set reps, and tap to count",
+         toolKwcName:"KWC Tools", toolKwcDesc:"Build prelim/final trick sets fast, with a timer and a helper to log for you",
+         toolComboName:"Dice Combo", toolComboDesc:"Roll dice to chain random tricks into a combo",
+         toolKengameName:"KenGame", toolKengameDesc:"Take turns calling tricks with friends",
+         toolMatchName:"Set Trick Match", toolMatchDesc:"Match two players' trick lists into a pool, then draw" }
   });
 
   function getToolById(id){

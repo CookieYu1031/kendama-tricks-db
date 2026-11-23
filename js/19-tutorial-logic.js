@@ -9,7 +9,7 @@
   var TUTORIAL_TRACKS = ["kids", "beginner"];
   var TUTORIAL_PAGE_COUNT = 10;
   var TUTORIAL_TEXT_MAX = 1000;
-  var TUTORIAL_PUBLIC_SPACES = ["t00", "t01", "t02"];
+  var TUTORIAL_PUBLIC_SPACES = ["t00", "t01", "t02", "t03"];
   var TUTORIAL_VIDEO_MAX = 500;
 
   function isTutorialTrack(id){ return TUTORIAL_TRACKS.indexOf(id) !== -1; }
@@ -43,7 +43,7 @@
     var m = /^@?\s*([0-9A-Za-z]{7})$/.exec(s);
     return m ? m[1] : null;
   }
-  // Trick must exist and sit in a public table (t00/t01/t02).
+  // Trick must exist and sit in a public table (t00/t01/t02/t03).
   function tutorialTrickInPublic(id){
     var tr = typeof getTrick === "function" ? getTrick(id) : null;
     if(!tr) return false;

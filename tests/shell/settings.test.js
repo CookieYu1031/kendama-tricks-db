@@ -51,12 +51,12 @@ function railCtx(loggedIn){
 }
 const ids = (arr) => arr.map((s) => s.id).join(",");
 
-test("rail zones: signed-in = top 00/01/02, middle fav + customs, bottom shown", () => {
+test("rail zones: signed-in = top 00/01/02/03, middle fav + customs, bottom shown", () => {
   const ctx = railCtx(true);
   ctx.createSpace({ name: { zh: "A" } });
   ctx.createSpace({ name: { zh: "B" } });
   const z = ctx.railZones(ctx.db.spaces);
-  assert.strictEqual(ids(z.top), "t00,t01,t02");
+  assert.strictEqual(ids(z.top), "t00,t01,t02,t03");
   assert.strictEqual(z.middle[0].id, "fav");
   assert.strictEqual(z.middle.length, 3);
   assert.ok(z.showMiddle && z.showBottom);
@@ -65,10 +65,10 @@ test("rail zones: signed-in = top 00/01/02, middle fav + customs, bottom shown",
 test("rail zones: guest sees only the top zone", () => {
   const ctx = railCtx(false);
   const z = ctx.railZones(ctx.db.spaces);
-  assert.strictEqual(ids(z.top), "t00,t01,t02");
+  assert.strictEqual(ids(z.top), "t00,t01,t02,t03");
   assert.strictEqual(z.middle.length, 0);
   assert.ok(!z.showMiddle && !z.showBottom);
-  assert.strictEqual(ctx.railLayout(ctx.db.spaces).length, 3);
+  assert.strictEqual(ctx.railLayout(ctx.db.spaces).length, 4);
 });
 
 test("settingsBtnState: signed out -> icon; signed in -> avatar with photo / initial", () => {

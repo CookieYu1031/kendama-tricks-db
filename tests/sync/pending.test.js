@@ -198,7 +198,7 @@ test("publish snapshot: 00/01/02 + tags, seeded folders once", () => {
     infos: [], tags: [{ id: "g1", name: { zh: "g1" } }]
   });
   const snap = J(c.buildPublishSnapshot(c.db));
-  assert.deepStrictEqual(snap.tables, ["t00", "t01", "t02"]);
+  assert.deepStrictEqual(snap.tables, ["t00", "t01", "t02", "t03"]);
   assert.deepStrictEqual(snap.tricks.map((x) => x.id).sort(), ["k1", "k9"]);
   const ids = snap.categories.map((x) => x.id);
   assert.equal(ids.length, new Set(ids).size);
@@ -228,7 +228,7 @@ test("publishSpaceIndexUpdate: writes label to version doc + pointer, lists vers
   assert.equal(store["sharedBase/space-index/versions/1"].versionLabel, "1.0.0");
   assert.equal(store["sharedBase/space-index/versions/1"].note, "first");
   const payload = JSON.parse(store["sharedBase/space-index/versions/1/chunks/0"].data);
-  assert.deepStrictEqual(payload.tables, ["t00", "t01", "t02"]);
+  assert.deepStrictEqual(payload.tables, ["t00", "t01", "t02", "t03"]);
   const p = J(await c.getPublishedPointer());
   assert.deepStrictEqual(p, { latestVersion: 2, latestLabel: "", latestNote: "second", publishedAt: 1700000000000 });
   const list = J(await c.listPublishedVersions(10));

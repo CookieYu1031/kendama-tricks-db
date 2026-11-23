@@ -15,7 +15,7 @@
      Chunking, Firestore reads/writes: 53-sync-chunks.js. Local-first queue and
      triggers: 54-sync-queue.js. Conflicts: 55-sync-conflict.js.
 
-     BASE DATA: every table's base is empty except the shared tables (t00/t01/t02), a live
+     BASE DATA: every table's base is empty except the shared tables (t00/t01/t02/t03), a live
      versioned snapshot in Firestore published by admins (51-shared-base.js).
      A diff is always computed from scratch against that base, so there is no
      tombstone bookkeeping: an item in base but absent from `db` reads as removed.
@@ -34,7 +34,7 @@
   // Tables whose base comes from the published snapshot (D3): 總表, 檢定, 賽事. Snapshots
   // published before this expansion hold t00 only; they carry no `tables` list, which
   // reads as ["t00"], and tables a snapshot doesn't cover keep their local content.
-  var SHARED_BASE_TABLE_IDS = ["t00", "t01", "t02"];
+  var SHARED_BASE_TABLE_IDS = ["t00", "t01", "t02", "t03"];
   function isSharedBaseTable(id){ return SHARED_BASE_TABLE_IDS.indexOf(id) !== -1; }
 
   var authCurrentUser = null;

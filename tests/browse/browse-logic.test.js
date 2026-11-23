@@ -17,14 +17,14 @@ function mk(ctx, cats, tricks, infos){
 }
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
-test("rail order: t00 t01 t02 divider fav customs", () => {
+test("rail order: t00 t01 t02 t03 divider fav customs", () => {
   const ctx = setup();
   mk(ctx);
   ctx.createSpace({ name: { zh: "A" } });
   ctx.createSpace({ name: { zh: "B" } });
   const ids = ctx.railLayout(ctx.db.spaces).map((e) => (e === "divider" ? "|" : e.id));
-  assert.strictEqual(ids.slice(0, 5).join(","), "t00,t01,t02,|,fav");
-  assert.strictEqual(ids.length, 7);
+  assert.strictEqual(ids.slice(0, 6).join(","), "t00,t01,t02,t03,|,fav");
+  assert.strictEqual(ids.length, 8);
 });
 
 test("add buttons: level limits", () => {

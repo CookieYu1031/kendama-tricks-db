@@ -72,7 +72,7 @@
 
   // Tables ("spaces"), shown as an icon-only rail on the far left. Items live in
   // exactly one table. locked: only the admin account may edit (users can still add
-  // custom:true tricks). code: shown in location codes ("00","01","02", customs "0a".."0z").
+  // custom:true tricks). code: shown in location codes ("00","01","02","03", customs "0a".."0z").
   // Each table also carries a viewMode controlling how its contents are laid out:
   //   "tree"     — the miller-column folder browser (default)
   //   "columns"  — a flat multi-column grid of tricks only (no categories)
@@ -80,6 +80,7 @@
     { id:"t00", code:"00", locked:true,  icon:"🗂️", name:{ zh:"總表", jp:"総表", en:"Master list" },    viewMode:"tree" },
     { id:"t01", code:"01", locked:true,  icon:"📜", name:{ zh:"檢定", jp:"検定", en:"Certification" }, viewMode:"tree" },
     { id:"t02", code:"02", locked:true,  icon:"🏆", name:{ zh:"賽事", jp:"大会", en:"Competition" },    viewMode:"tree" },
+    { id:"t03", code:"03", locked:true,  icon:"🗄️", name:{ zh:"各式資料", jp:"各種資料", en:"Resources" }, viewMode:"tree" },
     { id:"fav", code:null, locked:false, icon:"⭐", name:{ zh:"收藏", jp:"お気に入り", en:"Favorites" }, viewMode:"tree" }
   ];
   // Initial level-1 folders (admin may rename / delete / reorder them like any folder). Fixed
@@ -142,7 +143,7 @@
     });
   }
   // Tables that can never be deleted.
-  var UNDELETABLE_SPACE_IDS = ["t00", "t01", "t02", "fav"];
+  var UNDELETABLE_SPACE_IDS = ["t00", "t01", "t02", "t03", "fav"];
   function getSpace(id){ return db.spaces.find(function(s){ return s.id===id; }); }
   function spaceLabel(id){
     var sp = getSpace(id);
@@ -152,7 +153,7 @@
 
   // Guests (D8): read-only, and only the public tables 00/01/02 are shown.
   // isLoggedIn lives in 50; missing (tests) = treated as signed in.
-  var GUEST_SPACE_IDS = ["t00", "t01", "t02"];
+  var GUEST_SPACE_IDS = ["t00", "t01", "t02", "t03"];
   function isGuest(){ return typeof isLoggedIn === "function" && !isLoggedIn(); }
   function isGuestVisibleSpace(id){ return GUEST_SPACE_IDS.indexOf(id) !== -1; }
 

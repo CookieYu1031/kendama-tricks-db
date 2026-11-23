@@ -25,17 +25,17 @@ function setup(loggedIn){
 }
 const ids = (ctx) => ctx.railLayout(ctx.db.spaces).map((e) => (e === "divider" ? "|" : e.id));
 
-test("guest rail: only t00 t01 t02, no divider/fav/custom", () => {
+test("guest rail: only t00 t01 t02 t03, no divider/fav/custom", () => {
   const ctx = setup(false);
   ctx.__loggedIn = true; ctx.createSpace({ name: { zh: "A" } }); ctx.__loggedIn = false;
-  assert.strictEqual(ids(ctx).join(","), "t00,t01,t02");
+  assert.strictEqual(ids(ctx).join(","), "t00,t01,t02,t03");
   assert.ok(ctx.isGuestVisibleSpace("t01"));
   assert.ok(!ctx.isGuestVisibleSpace("fav"));
 });
 
 test("signed-in rail unchanged", () => {
   const ctx = setup(true);
-  assert.strictEqual(ids(ctx).slice(0, 5).join(","), "t00,t01,t02,|,fav");
+  assert.strictEqual(ids(ctx).slice(0, 6).join(","), "t00,t01,t02,t03,|,fav");
 });
 
 test("guest: no table edit, no custom trick, no add buttons, no item modify/drag", () => {

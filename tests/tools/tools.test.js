@@ -9,7 +9,7 @@ function ctxLoad(){
 
 test("registry shape", () => {
   const c = ctxLoad();
-  assert.deepStrictEqual(Array.from(c.TOOLS, (x) => x.id), ["random", "practice", "kwc"]);
+  assert.deepStrictEqual(Array.from(c.TOOLS, (x) => x.id), ["random", "practice", "kwc", "combo", "kengame", "match"]);
   c.TOOLS.forEach((x) => {
     assert.ok(x.icon.indexOf("<svg") === 0);
     assert.ok(x.nameKey && x.descKey);
