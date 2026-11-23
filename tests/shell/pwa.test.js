@@ -71,8 +71,9 @@ test("manifest valid and icons exist", () => {
   assert.strictEqual(m.display, "standalone");
   assert.strictEqual(m.start_url, "./");
   assert.strictEqual(m.scope, "./");
-  assert.strictEqual(m.theme_color, "#121212");
-  assert.strictEqual(m.background_color, "#121212");
+  // splash / theme colour = the dark --edge-bg (what iOS 26 Safari tints its bars with)
+  assert.strictEqual(m.theme_color, "#1B2A37");
+  assert.strictEqual(m.background_color, "#1B2A37");
   assert.ok(m.name && m.short_name);
   const sizes = m.icons.map((i) => i.sizes);
   assert.ok(sizes.includes("192x192") && sizes.includes("512x512"));

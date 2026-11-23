@@ -1,15 +1,17 @@
 "use strict";
 
   /* ============================================================
-     BROWSE — narrow layout swipe-back handle (v0.8.1)
-     Narrow view shows one column level. A thin vertical line sits in the gap
-     between the left rail and that column; dragging it right slides the current
-     level off to the right while the parent level (already rendered underneath)
-     is revealed, like closing a drawer. Tap on the line only shows a hint arrow.
+     BROWSE — phone swipe-back (v0.14.8)
+     Phone view shows one column level. A right-swipe starting anywhere on the
+     column area drags the current level 1:1 to the right, revealing the parent
+     level (already rendered underneath, keeps its frosted-glass look). Release
+     past ~30% of the width or with a fast flick = go up one level, else spring back.
   ============================================================ */
-  var SWIPE_BACK_COMMIT_RATIO = 0.35;  // dragged farther than this share of the width = go back
+  var SWIPE_BACK_COMMIT_RATIO = 0.3;   // dragged farther than this share of the width = go back
   var SWIPE_BACK_FLICK_V = 0.5;        // px/ms
-  var SWIPE_BACK_TAP_PX = 6;           // movement under this = a tap
+  var SWIPE_BACK_LOCK_PX = 10;         // horizontal travel before the gesture may lock
+  var SWIPE_BACK_RATIO = 1.5;          // |dx| must exceed this * |dy| to lock as horizontal
+  var SWIPE_BACK_VERT_PX = 10;         // vertical travel (with no lock) that gives the gesture up
   var SWIPE_BACK_ANIM_MS = 250;
 
   // Pure: how far the top layer follows the finger (never left of rest, never past the width).
@@ -24,12 +26,22 @@
     if(velocity > SWIPE_BACK_FLICK_V) return "commit";
     return "cancel";
   }
-  // Pure: is the handle shown? ctx: { narrow, treeView, columnCount }
+  // Pure: is swipe-back possible? ctx: { narrow, treeView, columnCount }
   function swipeBackAvailable(ctx){
     return !!(ctx.narrow && ctx.treeView && ctx.columnCount > 1);
   }
+  // Pure: classify the movement so far. "lock" = rightward horizontal swipe,
+  // "abort" = vertical scroll or leftward (not ours), "pending" = keep watching.
+  function swipeBackIntent(dx, dy){
+    var ax = Math.abs(dx), ay = Math.abs(dy);
+    if(dx > SWIPE_BACK_LOCK_PX && ax > SWIPE_BACK_RATIO * ay) return "lock";
+    if(dx < -SWIPE_BACK_LOCK_PX) return "abort";
+    if(ay > SWIPE_BACK_VERT_PX && ay >= ax / SWIPE_BACK_RATIO) return "abort";
+    return "pending";
+  }
 
-  var swipeBackEl = null, swipeHintEl = null, swipeHintTimer = null, swipeBackBusy = false;
+  var swipeBackReady = false, swipeBackBound = false, swipeBackBusy = false;
+  var browseSkipLeaveAnim = false; // set while a swipe already animated the slide-out
 
   function swipeBackWrap(){ return document.getElementById("millerWrap"); }
   function swipeBackTopCol(){
@@ -44,58 +56,20 @@
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
-  // Called from renderColumns(): create / place / show or hide the handle.
+  // Called from renderColumns(): remember whether a swipe is possible; bind once.
   function syncSwipeBack(columnCount, treeView){
+    swipeBackReady = swipeBackAvailable({ narrow: isPhoneViewport(), treeView: treeView, columnCount: columnCount });
     var wrap = swipeBackWrap();
-    if(!wrap || !wrap.parentNode) return;
-    var show = swipeBackAvailable({ narrow: isPhoneViewport(), treeView: treeView, columnCount: columnCount });
-    if(!swipeBackEl){
-      if(!show) return;
-      swipeBackEl = document.createElement("div");
-      swipeBackEl.className = "swipe-back-handle";
-      swipeBackEl.setAttribute("role", "button");
-      swipeBackEl.innerHTML = '<span class="swipe-back-line"></span>';
-      bindSwipeBackHandle(swipeBackEl);
-      wrap.parentNode.appendChild(swipeBackEl);
-    }
-    swipeBackEl.setAttribute("aria-label", t("backToList"));
-    swipeBackEl.style.display = show ? "" : "none";
-    if(show){
-      swipeBackEl.style.top = wrap.offsetTop + "px";
-      swipeBackEl.style.height = wrap.offsetHeight + "px";
-    } else hideSwipeHint();
-  }
-
-  function showSwipeHint(){
-    if(!swipeBackEl) return;
-    if(!swipeHintEl){
-      swipeHintEl = document.createElement("div");
-      swipeHintEl.className = "swipe-back-hint";
-      swipeHintEl.innerHTML = ICON_CHEVRON;
-      swipeBackEl.parentNode.appendChild(swipeHintEl);
-    }
-    swipeHintEl.style.top = (swipeBackEl.offsetTop + swipeBackEl.offsetHeight / 2 - 18) + "px";
-    swipeHintEl.classList.remove("show");
-    void swipeHintEl.offsetWidth; // restart the nudge animation
-    swipeHintEl.classList.add("show");
-    clearTimeout(swipeHintTimer);
-    swipeHintTimer = setTimeout(hideSwipeHint, 1200);
-  }
-  function hideSwipeHint(){
-    clearTimeout(swipeHintTimer);
-    if(swipeHintEl) swipeHintEl.classList.remove("show");
+    if(!swipeBackBound && wrap){ swipeBackBound = true; bindSwipeBack(wrap); }
   }
 
   function swipeBackSetShift(top, px, animate){
-    var tr = animate ? "transform " + SWIPE_BACK_ANIM_MS + "ms var(--ease)" : "none";
-    var val = px ? "translate3d(" + px + "px,0,0)" : "";
-    top.style.transition = tr; top.style.transform = val;
-    if(swipeBackEl){ swipeBackEl.style.transition = tr; swipeBackEl.style.transform = val; }
+    top.style.transition = animate ? "transform " + SWIPE_BACK_ANIM_MS + "ms var(--ease)" : "none";
+    top.style.transform = px ? "translate3d(" + px + "px,0,0)" : "";
   }
   function swipeBackReset(wrap, top){
     if(wrap) wrap.classList.remove("swipe-live");
     if(top){ top.style.transition = ""; top.style.transform = ""; }
-    if(swipeBackEl){ swipeBackEl.style.transition = ""; swipeBackEl.style.transform = ""; swipeBackEl.classList.remove("pressed"); }
     swipeBackBusy = false;
   }
   // Pop one level; keep the revealed parent's scroll position (its rows are rebuilt).
@@ -105,60 +79,67 @@
     if(itemsEl) scroll = itemsEl.scrollTop;
     state.path = state.path.slice(0, state.path.length - 1);
     swipeBackReset(wrap, top);
+    browseSkipLeaveAnim = true;
     render(RENDER_COLUMNS_ONLY);
+    browseSkipLeaveAnim = false;
     var now = wrap.querySelector(".m-col.mobile-active .col-items");
     if(now) now.scrollTop = scroll;
   }
 
-  function bindSwipeBackHandle(h){
-    var startX = 0, lastX = 0, lastT = 0, vx = 0, base = 0, restLeft = 0, width = 0;
-    var active = false, moved = false, pid = null;
+  function bindSwipeBack(wrap){
+    var startX = 0, startY = 0, lastX = 0, lastT = 0, vx = 0, lockDx = 0, width = 0;
+    var tracking = false, locked = false, pid = null;
 
-    h.style.touchAction = "none";
-    h.addEventListener("pointerdown", function(ev){
-      if(swipeBackBusy || (ev.button != null && ev.button > 0)) return;
-      var wrap = swipeBackWrap(), top = swipeBackTopCol();
-      if(!wrap || !top) return;
-      var cs = window.getComputedStyle ? window.getComputedStyle(wrap) : null;
-      restLeft = wrap.getBoundingClientRect().left + (cs ? parseFloat(cs.paddingLeft) || 0 : 0);
+    function stop(){ tracking = false; locked = false; }
+
+    wrap.addEventListener("pointerdown", function(ev){
+      tracking = false; locked = false;
+      if(!swipeBackReady || swipeBackBusy || !isPhoneViewport()) return;
+      if(ev.pointerType === "mouse") return;
+      if(typeof browseModalOpen === "function" && browseModalOpen()) return;
+      if(state.detailTrickId || !state.path.length) return;
+      if(ev.target.closest && ev.target.closest("input,textarea,select")) return;
+      if(!swipeBackTopCol()) return;
       width = wrap.clientWidth;
-      base = Math.max(0, top.getBoundingClientRect().left - restLeft); // pick up a spring-back mid-flight
-      startX = lastX = ev.clientX; lastT = Date.now(); vx = 0;
-      active = true; moved = false; pid = ev.pointerId;
-      h.classList.add("pressed");
-      try { h.setPointerCapture(ev.pointerId); } catch(e){}
-      ev.preventDefault();
+      startX = lastX = ev.clientX; startY = ev.clientY; lastT = Date.now(); vx = 0; lockDx = 0;
+      pid = ev.pointerId; tracking = true;
     });
-    h.addEventListener("pointermove", function(ev){
-      if(!active || ev.pointerId !== pid) return;
-      var dx = ev.clientX - startX;
-      if(!moved && Math.abs(dx) < SWIPE_BACK_TAP_PX) return;
-      var wrap = swipeBackWrap(), top = swipeBackTopCol();
-      if(!wrap || !top) return;
-      if(!moved){ moved = true; hideSwipeHint(); wrap.classList.add("swipe-live"); }
+    wrap.addEventListener("pointermove", function(ev){
+      if(!tracking || ev.pointerId !== pid) return;
+      var top = swipeBackTopCol();
+      if(!top || document.querySelector(".item.dragging")){ // long-press drag took over
+        if(locked) swipeBackReset(wrap, top);
+        stop(); return;
+      }
+      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if(!locked){
+        var intent = swipeBackIntent(dx, dy);
+        if(intent === "abort"){ stop(); return; }
+        if(intent !== "lock") return;
+        locked = true; lockDx = dx;
+        wrap.classList.add("swipe-live");
+        try { wrap.setPointerCapture(ev.pointerId); } catch(e){}
+      }
       var now = Date.now();
       if(now > lastT) vx = (ev.clientX - lastX) / (now - lastT);
       lastX = ev.clientX; lastT = now;
-      swipeBackSetShift(top, swipeBackClamp(base + dx, width), false);
+      swipeBackSetShift(top, swipeBackClamp(dx - lockDx, width), false);
     });
     function finish(ev, cancelled){
-      if(!active || (ev && ev.pointerId !== pid)) return;
-      active = false;
-      var wrap = swipeBackWrap(), top = swipeBackTopCol();
-      try { h.releasePointerCapture(pid); } catch(e){}
-      if(!moved){ // tap: hint only, never navigates
-        h.classList.remove("pressed");
-        if(!cancelled) showSwipeHint();
-        return;
-      }
-      if(!wrap || !top){ swipeBackReset(wrap, top); return; }
-      var shift = swipeBackClamp(base + (lastX - startX), width);
+      if(!tracking || ev.pointerId !== pid) return;
+      var wasLocked = locked;
+      stop();
+      if(!wasLocked) return;
+      try { wrap.releasePointerCapture(pid); } catch(e){}
+      var top = swipeBackTopCol();
+      if(!top){ swipeBackReset(wrap, top); return; }
+      var shift = swipeBackClamp(lastX - startX - lockDx, width);
       var go = !cancelled && swipeBackDecision(shift, width, vx) === "commit";
       if(swipeBackReduced()){
         if(go) swipeBackCommit(wrap, top); else swipeBackReset(wrap, top);
         return;
       }
-      swipeBackBusy = go;
+      swipeBackBusy = true;
       swipeBackSetShift(top, go ? width : 0, true);
       var done = false;
       function after(){
@@ -171,15 +152,41 @@
       top.addEventListener("transitionend", onEnd);
       setTimeout(after, SWIPE_BACK_ANIM_MS + 80);
     }
-    h.addEventListener("pointerup", function(ev){ finish(ev, false); });
-    h.addEventListener("pointercancel", function(ev){ finish(ev, true); });
+    wrap.addEventListener("pointerup", function(ev){ finish(ev, false); });
+    wrap.addEventListener("pointercancel", function(ev){ finish(ev, true); });
   }
 
-  window.addEventListener("resize", function(){
-    var wrap = swipeBackWrap();
-    if(swipeBackEl && wrap){
-      swipeBackEl.style.top = wrap.offsetTop + "px";
-      swipeBackEl.style.height = wrap.offsetHeight + "px";
-      if(!isPhoneViewport()) swipeBackEl.style.display = "none";
-    }
-  });
+  // Phone drill-down motion (css/browse-motion.css): a new level slides in from the right;
+  // going up slides a copy of the old level out to the right over the parent.
+  function browseMotionReduced(){
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  function browseSlideIn(wrap, el){
+    if(!el) return;
+    wrap.classList.add("m-anim");
+    el.classList.add("m-enter");
+    setTimeout(function(){ el.classList.remove("m-enter"); wrap.classList.remove("m-anim"); }, 300);
+  }
+  function browseSlideOut(wrap, clone){
+    clone.className = "m-col m-leaving";
+    clone.removeAttribute("data-col-key");
+    wrap.classList.add("m-anim");
+    wrap.appendChild(clone);
+    setTimeout(function(){ if(clone.parentNode) clone.parentNode.removeChild(clone); wrap.classList.remove("m-anim"); }, 300);
+  }
+
+  // Before columns are rebuilt: decide slide-in (one level deeper) or slide-out (one level up).
+  function browseMotionPlan(wrap, newCount, isMobile){
+    var prev = wrap.children.length, last = wrap.lastElementChild;
+    var stale = wrap.querySelector(".m-leaving");
+    if(stale){ wrap.removeChild(stale); prev--; last = wrap.lastElementChild; }
+    if(!isMobile || browseMotionReduced()) return null;
+    if(prev >= 1 && newCount === prev + 1) return { inn: true };
+    if(!browseSkipLeaveAnim && prev >= 2 && newCount === prev - 1 && last) return { clone: last.cloneNode(true) };
+    return null;
+  }
+  function browseMotionRun(wrap, plan){
+    if(!plan) return;
+    if(plan.inn) browseSlideIn(wrap, wrap.lastElementChild);
+    else browseSlideOut(wrap, plan.clone);
+  }

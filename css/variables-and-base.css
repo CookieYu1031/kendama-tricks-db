@@ -5,6 +5,7 @@
    UI size: user preference x1 / x1.1 / x1.2 via html[data-ui-zoom] (js/15; see bottom of this file). */
   :root{
     --ink:#121212;
+    --edge-bg:#1B2A37; /* solid colour Safari (iOS 26) samples for its bars; ~ the glass topbar over the glow. Keep = themeColorFor() in js/15 */
     --ink-2:#191919;
     --ink-3:#212121;
     --ink-4:#2A2A2A;
@@ -69,7 +70,7 @@
   }
   :root[data-theme="light"]{
     color-scheme: light;
-    --ink:#D9DCE1; --ink-2:#D1D5DB; --ink-3:#C8CCD3; --ink-4:#BDC2CA;
+    --edge-bg:#D6DEE6; --ink:#D9DCE1; --ink-2:#D1D5DB; --ink-3:#C8CCD3; --ink-4:#BDC2CA;
     --paper:#1A1D22; --paper-dim: rgba(26,29,34,0.84); --paper-faint: rgba(26,29,34,0.66);
     --line: rgba(26,29,34,0.12); --line-strong: rgba(26,29,34,0.20);
     --lacquer:#2F86CC; --lacquer-bright:#5BB8F0; --lacquer-rgb: 47,134,204;
@@ -101,28 +102,33 @@
   /* touch-action: manipulation turns off double-tap zoom (pinch still works); more specific rules (pan-y, none) still win. */
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   html,body{ height:100%; }
-  /* Canvas colour behind the safe areas / Safari toolbars, so they never show blank or black. */
-  /* Safari: the canvas (html) carries the whole app background, so the safe areas, toolbars and
-     overscroll all show it. body must stay transparent: body background-attachment:fixed is
-     unsupported on iOS and body overflow:hidden would otherwise leave html's bare colour visible. */
-  html{
-    background-color: var(--ink);
+  /* Safari (iOS 26) ignores <meta theme-color> and tints its bars from the html/body background-COLOR,
+     so background-color is the solid --edge-bg (also what shows outside the page box: safe areas, overscroll).
+     What you SEE inside the page is unchanged: the glows over an opaque --ink layer, drawn as the bottom
+     background-IMAGE layer, so the frosted-glass contrast stays as before (body: no attachment:fixed on iOS). */
+  html, body{
+    background-color: var(--edge-bg);
     background-image:
       radial-gradient(circle at 10% 6%, var(--body-glow-1), transparent 40%),
       radial-gradient(circle at 92% 12%, var(--body-glow-2), transparent 38%),
       radial-gradient(circle at 20% 92%, var(--body-glow-3), transparent 42%),
-      radial-gradient(circle at 96% 88%, var(--body-glow-4), transparent 40%);
+      radial-gradient(circle at 96% 88%, var(--body-glow-4), transparent 40%),
+      linear-gradient(var(--ink), var(--ink));
     background-repeat: no-repeat;
     background-size: 100% 100%;
-    overscroll-behavior: none;
   }
+  html{ overscroll-behavior: none; }
   body{
     margin:0;
-    background: transparent;
     color: var(--paper);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
+  }
+  /* Installed iOS PWA (black-translucent): 100% height is short by the status-bar height, leaving a black
+     strip at the bottom. Stretch html by the top inset; html is clipped so it never scrolls. */
+  @supports (-webkit-touch-callout: none){
+    html.is-standalone{ height: calc(100% + env(safe-area-inset-top, 0px)); overflow:hidden; }
   }
   ::selection{ background: var(--lacquer); color:#fff; }
   ::-webkit-scrollbar{ width:8px; height:8px; }

@@ -8,10 +8,10 @@ const { load } = require("../_load");
 const ROOT = path.join(__dirname, "..", "..");
 const ctx = load(["js/15-shell-theme.js"]);
 
-test("theme-color follows theme and equals --ink of that theme", () => {
+test("theme-color follows theme and equals --edge-bg of that theme", () => {
   const css = fs.readFileSync(path.join(ROOT, "css/variables-and-base.css"), "utf8");
-  const dark = css.match(/--ink:(#[0-9A-Fa-f]{6})/)[1].toUpperCase();
-  const light = css.match(/data-theme="light"\]\{[^}]*?--ink:(#[0-9A-Fa-f]{6})/)[1].toUpperCase();
+  const dark = css.match(/--edge-bg:(#[0-9A-Fa-f]{6})/)[1].toUpperCase();
+  const light = css.match(/data-theme="light"\]\{[^}]*?--edge-bg:(#[0-9A-Fa-f]{6})/)[1].toUpperCase();
   assert.strictEqual(ctx.themeColorFor("dark").toUpperCase(), dark);
   assert.strictEqual(ctx.themeColorFor("light").toUpperCase(), light);
 });

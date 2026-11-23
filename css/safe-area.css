@@ -28,6 +28,13 @@
   .main-col{ padding-right: var(--safe-r); }
   .col-add-fab{ bottom: calc(14px + var(--safe-b)); }
   .drawer-body{ padding-bottom: calc(20px + var(--safe-b)); }
+  /* Installed app: no browser toolbar to dodge, reserve only the home-indicator inset. */
+  html.is-standalone .space-rail{ padding-bottom: max(14px, var(--safe-b)); }
+  html.is-standalone .col-add-fab{ bottom: max(14px, var(--safe-b)); }
+  @media (display-mode: standalone){
+    .space-rail{ padding-bottom: max(14px, var(--safe-b)); }
+    .col-add-fab{ bottom: max(14px, var(--safe-b)); }
+  }
   .drawer-foot{ padding-bottom: calc(16px + var(--safe-b)); }
   @media (max-width: 860px){
     .detail-drawer{ padding-right: var(--safe-r); padding-left: var(--safe-l); }

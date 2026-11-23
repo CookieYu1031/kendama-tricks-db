@@ -1,0 +1,24 @@
+/* Phone browse motion (v0.14.8): drill-down slide, swipe-back reveal. Phone only (<=600px). */
+@media (max-width: 600px){
+  /* Horizontal gestures go to JS (js/27); vertical scroll stays native. */
+  .miller-wrap .m-col.mobile-active, .miller-wrap .m-col.mobile-active .col-items{ touch-action: pan-y; }
+
+  /* While swiping, the sliding level keeps the normal frosted glass; the parent under it shows through the blur. */
+  .miller-wrap.swipe-live .m-col.mobile-under{ visibility:visible; }
+  .miller-wrap.swipe-live .m-col.mobile-active{ box-shadow: var(--shadow-lg), var(--glass-highlight); }
+
+  /* Parent stays visible while a level slides in / out. */
+  .miller-wrap.m-anim .m-col.mobile-under{ visibility:visible; }
+  .m-col.m-enter{ animation: mColIn .26s cubic-bezier(.2,.8,.2,1) both; }
+  .m-col.m-leaving{
+    display:block; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto;
+    z-index:3; pointer-events:none; will-change:transform;
+    animation: mColOut .26s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes mColIn{ from{ transform: translate3d(100%,0,0); } to{ transform: translate3d(0,0,0); } }
+  @keyframes mColOut{ from{ transform: translate3d(0,0,0); } to{ transform: translate3d(calc(100% + 14px),0,0); } }
+  @media (prefers-reduced-motion: reduce){
+    .m-col.m-enter, .m-col.m-leaving{ animation:none; }
+    .m-col.m-leaving{ display:none; }
+  }
+}

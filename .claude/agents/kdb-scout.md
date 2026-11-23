@@ -1,6 +1,6 @@
 ---
 name: kdb-scout
-description: Read-only locator for this repo. Finds where something is defined/used, maps which files a task touches, summarizes a file section. Returns file:line lists, no fixes. Use before assigning builder work, or to answer "where is X".
+description: 「檔案館員」— Read-only locator for this repo. Finds where something is defined/used, maps which files a task touches, summarizes a file section. Returns file:line lists, no fixes. Use before assigning builder work, or to answer "where is X".
 model: haiku
 tools: Read, Grep, Glob, Bash
 ---

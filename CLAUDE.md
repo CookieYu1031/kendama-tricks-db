@@ -56,10 +56,12 @@
 
 ## 模型分派與平行工作
 
-- 主線（Opus）：規劃、架構、拆任務、審查、整合、和我溝通。
-- `kdb-builder`（Sonnet）：照 TODO.md 實作單一任務和它的測試。
-- `kdb-scout`（Haiku）：定位程式碼、列出影響的檔案。
-- `kdb-tester`（Haiku）：跑測試、截圖檢查。
+- 稱呼：回報時用中文名稱（主企劃、工程師、檔案館員、檢測員）；括號內是呼叫用的代號，不改。
+
+- 主企劃（主線，Opus）：規劃、架構、拆任務、審查、整合、和我溝通。
+- 工程師 `kdb-builder`（Sonnet）：照 TODO.md 實作單一任務和它的測試。
+- 檔案館員 `kdb-scout`（Haiku）：定位程式碼、列出影響的檔案。
+- 檢測員 `kdb-tester`（Haiku）：跑測試、截圖檢查。
 - 平行規則：
   - 每個任務標明它擁有的檔案。同一個檔案不能同時派給兩個 agent。
   - 有共用檔案衝突時，用 worktree 隔離，或改成依序執行。
@@ -98,7 +100,7 @@
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
 | 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、資料夾深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
 | 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
-| 窄版右滑返回（把手線、跟手滑動、箭頭提示）| `js/27-browse-swipe-back.js`；`browseGoUp`、`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
+| 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseGoUp`、`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
 | 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
