@@ -68,7 +68,7 @@
       var h = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
       sw.style.background = hexToRgba(h, 0.22); sw.style.color = h;
       sw.classList.toggle("img-icon", isImageIcon(tr.icon));
-      sw.innerHTML = iconHtml(tr.icon, ICON_PLAY);
+      sw.innerHTML = iconHtml(tr.icon, ICON_TRICK);
     }
     paintSwatch();
     var lb = document.createElement("span");

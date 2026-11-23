@@ -263,7 +263,7 @@
         icon.style.fontSize = "15px";
         icon.textContent = it.ref.icon;
       } else {
-        icon.innerHTML = ICON_PLAY;
+        icon.innerHTML = ICON_TRICK;
       }
       applyTrickGlow(icon, it.ref);
     }

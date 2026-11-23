@@ -243,7 +243,7 @@
     icon.style.background = hexToRgba(hex, 0.22);
     icon.style.color = hex;
     if(isImageIcon(tr.icon)){ icon.classList.add("img-icon"); icon.innerHTML = iconHtml(tr.icon); }
-    else if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_PLAY; }
+    else if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_TRICK; }
     applyTrickGlow(icon, tr);
     var wrap = document.createElement("div");
     wrap.className = "item-text";

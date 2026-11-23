@@ -180,7 +180,7 @@
     sw.style.background = hexToRgba(hex, 0.22);
     sw.style.color = hex;
     sw.classList.toggle("img-icon", isImageIcon(state.addDraftIcon));
-    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_PLAY : ICON_LIST);
+    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_TRICK : ICON_LIST);
   }
 
   // Link target id (trick type only), else null.
