@@ -69,3 +69,13 @@
     animation: idxSpin .8s linear infinite;
   }
   @keyframes idxSpin{ to{ transform: rotate(360deg); } }
+
+/* Tag manager tab 1: editable grip / part names (js/77-admin-tags.js) */
+  .labelmgr-grips{ display:flex; flex-direction:column; gap:6px; margin-bottom:6px; }
+  .labelmgr-grip-group{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  /* category = solid header pill, same look as the grip picker's .grip-cat (still clickable here to edit its names) */
+  .drawer-chip.labelmgr-cat{ font-weight:700; background: var(--paper); border-color: var(--paper); color: var(--ink); }
+  .drawer-chip.labelmgr-cat.active{ box-shadow: 0 0 0 2px var(--lacquer); }
+  .drawer-chip.hi{ border-color: var(--accent-text); color: var(--accent-text); }
+  .labelmgr-form{ margin-top:12px; }
+  .labelmgr-form .tagmgr-form-actions{ flex-wrap:wrap; }

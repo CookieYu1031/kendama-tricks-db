@@ -30,13 +30,15 @@
     }catch(e){}
     return true; // no matchMedia: the app's existing look is dark
   }
+  // Page background per concrete theme (= --ink in css/variables-and-base.css); used for <meta theme-color>.
+  function themeColorFor(theme){ return theme === "light" ? "#D9DCE1" : "#121212"; }
   function applyTheme(){
     var theme = resolveTheme(getThemePref(), systemPrefersDark());
     if(typeof document !== "undefined" && document.documentElement){
       document.documentElement.setAttribute("data-theme", theme);
       if(document.documentElement.style) document.documentElement.style.colorScheme = theme;
-      var meta = document.querySelector && document.querySelector('meta[name="theme-color"]');
-      if(meta) meta.setAttribute("content", theme === "light" ? "#D9DCE1" : "#121212");
+      var metas = document.querySelectorAll ? document.querySelectorAll('meta[name="theme-color"]') : [];
+      for(var mi = 0; mi < metas.length; mi++) metas[mi].setAttribute("content", themeColorFor(theme));
     }
     return theme;
   }

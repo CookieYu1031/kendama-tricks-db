@@ -9,7 +9,7 @@ addStrings({
   zh: {
     pwaGuideTitle: "加到主畫面",
     pwaGuideClose: "關閉",
-    pwaG_iosSafari: "點下方工具列的「分享」圖示（iOS 26 先點「⋯」）|往下找到「加入主畫面」|點右上角「新增」",
+    pwaG_iosSafari: "點下方工具列的「分享」圖示|往下找到「加入主畫面」|點右上角「新增」",
     pwaG_ipadSafari: "點網址列右側的「分享」圖示|找到「加入主畫面」|點「新增」",
     pwaG_iosChrome: "點網址列右側的「分享」圖示|找到「加入主畫面」|點「新增」",
     pwaG_androidChrome: "點右上角「⋮」選單|選「加到主畫面」或「安裝應用程式」|點「安裝」",
@@ -20,7 +20,7 @@ addStrings({
   jp: {
     pwaGuideTitle: "ホーム画面に追加",
     pwaGuideClose: "閉じる",
-    pwaG_iosSafari: "下のツールバーの「共有」アイコンをタップ（iOS 26 は先に「⋯」）|「ホーム画面に追加」を探す|右上の「追加」をタップ",
+    pwaG_iosSafari: "下のツールバーの「共有」アイコンをタップ|「ホーム画面に追加」を探す|右上の「追加」をタップ",
     pwaG_ipadSafari: "アドレスバー右側の「共有」アイコンをタップ|「ホーム画面に追加」を探す|「追加」をタップ",
     pwaG_iosChrome: "アドレスバー右側の「共有」アイコンをタップ|「ホーム画面に追加」を探す|「追加」をタップ",
     pwaG_androidChrome: "右上の「⋮」メニューをタップ|「ホーム画面に追加」または「アプリをインストール」|「インストール」をタップ",
@@ -31,7 +31,7 @@ addStrings({
   en: {
     pwaGuideTitle: "Add to Home Screen",
     pwaGuideClose: "Close",
-    pwaG_iosSafari: "Tap the Share icon in the bottom toolbar (iOS 26: tap “⋯” first)|Scroll to “Add to Home Screen”|Tap “Add” at the top right",
+    pwaG_iosSafari: "Tap the Share icon in the bottom toolbar|Scroll to “Add to Home Screen”|Tap “Add” at the top right",
     pwaG_ipadSafari: "Tap the Share icon right of the address bar|Find “Add to Home Screen”|Tap “Add”",
     pwaG_iosChrome: "Tap the Share icon right of the address bar|Find “Add to Home Screen”|Tap “Add”",
     pwaG_androidChrome: "Tap the “⋮” menu at the top right|Choose “Add to Home screen” or “Install app”|Tap “Install”",

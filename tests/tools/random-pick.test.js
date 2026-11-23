@@ -122,3 +122,16 @@ test("normalizeRandomConds", () => {
   c.saveRandomConds(n);
   assert.strictEqual(c.loadRandomConds(["t00"]).count, 10);
 });
+
+test("grip filter: category matches its sub-grips, a sub matches only itself", () => {
+  const c = setup();
+  c.db.tricks.find((t) => t.id === "a000001").grip = "ken_sara";
+  c.db.tricks.find((t) => t.id === "a000002").grip = "tama_stunt";
+  c.db.tricks.find((t) => t.id === "a000003").grip = "ken_candle";
+  c.invalidateDbIndex();
+  assert.deepStrictEqual(pool(c, { grip: "ken" }), ["a000001", "a000003"]);
+  assert.deepStrictEqual(pool(c, { grip: "ken_sara" }), ["a000001"]);
+  assert.deepStrictEqual(pool(c, { grip: "tama" }), ["a000002"]);
+  assert.deepStrictEqual(pool(c, { grip: "tama_tama" }), []);
+  assert.strictEqual(c.normalizeRandomConds({ grip: "ken_sara" }, ["t00"]).grip, "ken_sara");
+});

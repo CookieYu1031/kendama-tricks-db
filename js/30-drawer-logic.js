@@ -25,7 +25,7 @@
     return ["zh", "jp", "en"].filter(function(l){ return l !== main; });
   }
   function trickIdLabel(tr){ return "@" + tr.id; }
-  // Single-select grip chip (tap again clears).
+  // Single-select grip (category or sub-grip, js/01 GRIP_KEYS; tap the selected one again to clear).
   function toggleGrip(tr, key){
     tr.grip = (tr.grip === key || GRIP_KEYS.indexOf(key) === -1) ? null : key;
     return tr.grip;
@@ -57,7 +57,8 @@
       .map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text, kind: tagKind(g) }; });
   }
   // Class tags NOT on the trick whose combo fits its grip + parts (suggestion only).
-  // Fits: combo non-empty, combo.grip (if set) == trick grip, every combo part is on the trick.
+  // Fits: combo non-empty, combo.grip (if set) matches the trick grip (a category combo matches any of its subs,
+  // gripMatches in js/01), every combo part is on the trick.
   function classTagSuggestions(tr){
     var have = tr.tagIds || [];
     var parts = tr.parts || [];
@@ -65,7 +66,7 @@
       if(tagKind(g) !== "class" || have.indexOf(g.id) !== -1 || !g.combo) return false;
       var cp = g.combo.parts || [];
       if(!g.combo.grip && !cp.length) return false;
-      if(g.combo.grip && g.combo.grip !== tr.grip) return false;
+      if(g.combo.grip && !gripMatches(tr.grip, g.combo.grip)) return false;
       return cp.every(function(k){ return parts.indexOf(k) !== -1; });
     }).map(function(g){ return { id: g.id, label: resolveDisplayName(g.name).text, kind: "class" }; });
   }
@@ -77,11 +78,18 @@
     (combo.parts || []).forEach(function(k){ out.push(t("part_" + k)); });
     return out.join("＋");
   }
+  // Grip a class combo would set on the trick, or null for none: a sub-grip overwrites when different; a category
+  // overwrites only if the trick's grip is not already within that category (so a specific sub-grip is kept).
+  function comboGripChange(tr, comboGrip){
+    if(!comboGrip) return null;
+    if(isGripCategory(comboGrip)) return gripCategoryOf(tr.grip) === comboGrip ? null : comboGrip;
+    return comboGrip !== tr.grip ? comboGrip : null;
+  }
   // What applying a class tag's combo would change: { grip, parts } (grip only when it differs,
   // parts = missing ones), or null when the trick already has everything / tag has no combo.
   function classComboGap(tr, tag){
     if(!tag || tagKind(tag) !== "class" || !tag.combo) return null;
-    var gripChange = tag.combo.grip && tag.combo.grip !== tr.grip ? tag.combo.grip : null;
+    var gripChange = comboGripChange(tr, tag.combo.grip);
     var missing = (tag.combo.parts || []).filter(function(k){ return (tr.parts || []).indexOf(k) === -1; });
     return (gripChange || missing.length) ? { grip: gripChange, parts: missing } : null;
   }
@@ -94,12 +102,13 @@
     return true;
   }
   // v0.9.3: adding a class tag OVERWRITES the trick's grip / parts with the tag's combo (each only when
-  // the combo specifies it; a combo without grip keeps the grip, one without parts keeps the parts).
+  // the combo specifies it; a category grip keeps a trick grip already inside that category; a combo without grip keeps the grip, one without parts keeps the parts).
   // Returns true when grip or parts changed. Removing a class tag never touches grip / parts.
   function overwriteWithClassCombo(tr, tag){
     if(!tag || tagKind(tag) !== "class" || !tag.combo) return false;
     var before = (tr.grip || "") + "|" + (tr.parts || []).join(",");
-    if(tag.combo.grip) tr.grip = tag.combo.grip;
+    var gripChange = comboGripChange(tr, tag.combo.grip);
+    if(gripChange) tr.grip = gripChange;
     var cp = tag.combo.parts || [];
     if(cp.length) tr.parts = PART_KEYS.filter(function(k){ return cp.indexOf(k) !== -1; });
     return before !== (tr.grip || "") + "|" + (tr.parts || []).join(",");
@@ -108,6 +117,32 @@
   function putTagOnTrick(tr, tagId){
     if((tr.tagIds || []).indexOf(tagId) === -1) tr.tagIds = (tr.tagIds || []).concat([tagId]);
     return overwriteWithClassCombo(tr, getTag(tagId));
+  }
+  // Tag order = array order of db.tags (per kind). Pure: new full array after moving tag `fromId` so it sits at
+  // index `toIndex` within its kind's list (0..n-1); tags of the other kind keep their slots.
+  function moveTag(tags, kind, fromId, toIndex){
+    var list = tags || [];
+    var sub = list.filter(function(g){ return tagKind(g) === kind; });
+    var from = -1;
+    sub.forEach(function(g, i){ if(g.id === fromId) from = i; });
+    if(from === -1) return list.slice();
+    var item = sub.splice(from, 1)[0];
+    var to = Math.max(0, Math.min(sub.length, toIndex | 0));
+    sub.splice(to, 0, item);
+    var k = 0;
+    return list.map(function(g){ return tagKind(g) === kind ? sub[k++] : g; });
+  }
+  // Pure: union of two tag lists by id (own entry wins on value). Order follows `own` first when ownFirst,
+  // else follows `base` first (published order for non-admins); ids only on the other side are appended.
+  function mergeTagLists(base, own, ownFirst){
+    var vals = {};
+    (base || []).forEach(function(g){ vals[g.id] = g; });
+    (own || []).forEach(function(g){ vals[g.id] = g; });
+    var seen = {}, out = [];
+    (ownFirst ? [own, base] : [base, own]).forEach(function(list){
+      (list || []).forEach(function(g){ if(!seen[g.id]){ seen[g.id] = true; out.push(vals[g.id]); } });
+    });
+    return out;
   }
   // Admin tag manager: create / edit / usage. kind "class" takes a combo.
   function createTag(kind, name, combo){

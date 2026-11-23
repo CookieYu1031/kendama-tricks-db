@@ -152,3 +152,22 @@ test("normalizeDB round-trips a published class tag", () => {
   assert.deepStrictEqual(J(d.tags.find((g) => g.id === "axe")), J(c.db.tags[1]));
 });
 
+test("class tag with a category grip: suggested for any sub, overwrites only outside that category", () => {
+  const c = setup();
+  c.db.tags = [
+    { id: "kcat", name: nm("劍類"), kind: "class", combo: { grip: "ken", parts: ["sara"] } },
+    { id: "ksub", name: nm("持皿類"), kind: "class", combo: { grip: "ken_sara", parts: ["sara"] } }
+  ];
+  const ids = (tr) => Array.from(c.classTagSuggestions(tr)).map((x) => x.id);
+  assert.deepStrictEqual(ids({ grip: "ken_gun", parts: ["sara"], tagIds: [] }), ["kcat"]);
+  assert.deepStrictEqual(ids({ grip: "ken_sara", parts: ["sara"], tagIds: [] }), ["kcat", "ksub"]);
+  assert.deepStrictEqual(ids({ grip: "tama", parts: ["sara"], tagIds: [] }), []);
+  const keep = { grip: "ken_gun", parts: [], tagIds: [] };
+  c.putTagOnTrick(keep, "kcat");
+  assert.strictEqual(keep.grip, "ken_gun");                 // already inside the category: kept
+  const move = { grip: "tama_stunt", parts: [], tagIds: [] };
+  c.putTagOnTrick(move, "kcat");
+  assert.strictEqual(move.grip, "ken");                     // other category: overwritten
+  c.putTagOnTrick(keep, "ksub");
+  assert.strictEqual(keep.grip, "ken_sara");                // sub overwrites
+});

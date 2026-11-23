@@ -44,13 +44,6 @@
 .pwa-guide-top-right { top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
 .pwa-guide-bottom { left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); }
 .pwa-guide-center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
-/* Arrow toward the browser control: up at the right for top-right, down at the center for bottom. */
-.pwa-guide-top-right::before, .pwa-guide-bottom::after {
-  content: ""; position: absolute; width: 12px; height: 12px;
-  background: inherit; border: 1px solid var(--glass-border); transform: rotate(45deg);
-}
-.pwa-guide-top-right::before { top: -7px; right: 22px; border-right: none; border-bottom: none; }
-.pwa-guide-bottom::after { bottom: -7px; left: calc(50% - 6px); border-left: none; border-top: none; }
 .pwa-guide-head { display: flex; align-items: center; gap: 8px; }
 .pwa-guide-title { flex: 1; font-size: 14px; font-weight: 600; }
 .pwa-guide-steps { margin: 6px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.6; color: var(--paper-dim); }

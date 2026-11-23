@@ -151,3 +151,35 @@ test("removeTag strips tagIds", () => {
   assert.deepStrictEqual(Array.from(ctx.db.tricks[0].tagIds), [g2.id]);
   assert.deepStrictEqual(Array.from(ctx.db.tricks[1].tagIds), []);
 });
+
+test("grip groups: categories + subs are valid, helpers map sub -> category", () => {
+  const ctx = setup();
+  assert.strictEqual(ctx.GRIP_KEYS.length, 3 + 8 + 2 + 4);
+  ["ken", "tama", "ito", "ken_sara", "tama_stunt", "ito_tornado"].forEach((k) => assert.ok(ctx.GRIP_KEYS.indexOf(k) !== -1, k));
+  assert.strictEqual(ctx.gripCategoryOf("ken_down"), "ken");
+  assert.strictEqual(ctx.gripCategoryOf("tama_stunt"), "tama");
+  assert.strictEqual(ctx.gripCategoryOf("ito"), "ito");
+  assert.strictEqual(ctx.gripCategoryOf("nope"), null);
+  assert.strictEqual(ctx.isGripCategory("tama"), true);
+  assert.strictEqual(ctx.isGripCategory("tama_tama"), false);
+});
+
+test("gripMatches: equal, or category filter matches its subs", () => {
+  const ctx = setup();
+  assert.strictEqual(ctx.gripMatches("ken_sara", "ken_sara"), true);
+  assert.strictEqual(ctx.gripMatches("ken_sara", "ken"), true);
+  assert.strictEqual(ctx.gripMatches("ken", "ken"), true);
+  assert.strictEqual(ctx.gripMatches("ken_sara", "ken_gun"), false);   // sub filter is exact
+  assert.strictEqual(ctx.gripMatches("ken", "ken_sara"), false);       // unspecified trick does not match a sub filter
+  assert.strictEqual(ctx.gripMatches("tama_tama", "ken"), false);
+  assert.strictEqual(ctx.gripMatches(null, "ken"), false);
+  assert.strictEqual(ctx.gripMatches(null, null), true);
+});
+
+test("normalizeDB keeps sub-grips and old category values, drops unknown", () => {
+  const ctx = setup();
+  const g = (grip) => ctx.normalizeDB({ categories: [], tricks: [{ id: "x", grip }] }).tricks[0].grip;
+  assert.strictEqual(g("ken_stall"), "ken_stall");
+  assert.strictEqual(g("ito"), "ito");
+  assert.strictEqual(g("ken_bogus"), null);
+});

@@ -1,7 +1,7 @@
 /* ---------- Search panel (v0.5): conditions + live results ---------- */
   /* Overrides / extends .search-panel from shell-topbar-rail.css (loaded before this file). */
   .search-panel{
-    width: min(640px, calc((100vw / var(--ui-zoom)) - 24px));
+    width: min(780px, calc((100vw / var(--ui-zoom)) - 24px));
     /* Drawer from the top edge: attached to the top (content clears the notch inset), right-aligned. */
     top:0; left:auto; right: calc(var(--safe-r, 0px) + 12px); transform-origin: top right;
     padding-top: calc(var(--safe-t, 0px) + 12px);
@@ -30,23 +30,23 @@
   .search-label-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
   .search-panel .drawer-chip-row{ margin-bottom:0; row-gap:8px; }
   .search-panel .drawer-chip{ white-space:nowrap; font-size:12px; padding:4px 11px; }
-  /* Conditions: row 2 = grip (label + toggle) left, match-mode right; row 3 = part diagram left, class chips right. */
+  .search-panel .grip-picker .drawer-chip{ white-space:normal; padding:4px 2px; }
+  @media (min-width: 861px){ .search-panel .grip-picker .drawer-chip{ white-space:nowrap; } }
+  /* Conditions, top to bottom: grip picker (js/36), part diagram centered with the match-mode toggle beside it, class chips. */
   .search-section{ display:flex; flex-direction:column; gap:12px; }
-  .search-label-row{ flex-wrap:wrap; }
-  .search-grip-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .search-cond-row{ display:flex; align-items:flex-start; gap:14px; }
-  .search-cond-row #searchPartsRow{ flex:0 0 auto; }
-  .search-class-box{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .search-grip-group{ min-width:0; }
+  .search-parts-block{ position:relative; display:flex; justify-content:center; }
+  .search-parts-block .search-label-row{ position:absolute; top:0; right:0; margin:0; }
+  .search-class-box{ display:flex; flex-direction:column; gap:6px; min-width:0; }
   .search-class-row{ align-content:flex-start; max-height:200px; overflow-y:auto; overscroll-behavior:contain; }
   .search-class-row .drawer-chip.tag-class.active{
     background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.55), rgba(var(--lacquer-rgb),0.3));
     border-color: var(--lacquer-bright); color: var(--paper);
   }
-  .search-panel .part-diagram-box{ width:200px; }
+  .search-panel .part-diagram-box{ width:200px; margin:0; }
   .search-panel .part-diagram{ display:block; width:100%; height:auto; }
   @media (max-width: 600px){
     .search-panel .part-diagram-box{ width:150px; }
-    .search-cond-row{ gap:10px; }
     .search-class-row{ max-height:150px; }
   }
   .search-seg-sm{ flex:0 1 auto; width:auto; max-width:100%; flex-wrap:wrap; justify-content:flex-start; }

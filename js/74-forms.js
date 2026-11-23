@@ -14,7 +14,7 @@
          formNameZh:"招式名稱（中文）", formNameJp:"招式名稱（日文）", formNameEn:"招式名稱（英文）",
          formDesc:"說明／備註", formVideo:"影片網址", formVideoHint:"建議使用 YouTube 連結", formApplyName:"姓名或暱稱", formApplyGmail:"Gmail 帳號", formReason:"申請原因／可協助的項目", mbApplicant:"申請人", mbGmail:"Gmail",
          formApplyLink:"欲大量投稿者，可申請成為協助者",
-         formSubName:"招式名稱（至少填一種語言）", formPhZh:"中文", formPhJp:"日文", formPhEn:"英文", formPartsGrip:"握持與部位", formTags:"標籤", formNoTags:"尚無標籤", formAddVideo:"新增影片",
+         formSubName:"招式名稱（至少填一種語言）", formPhZh:"中文", formPhJp:"日文", formPhEn:"英文", formPartsGrip:"握持手勢與部位", formTags:"標籤", formNoTags:"尚無標籤", formAddVideo:"新增影片",
          formSend:"送出", formCancel:"取消", formWait:"請稍候 {n} 秒", formSending:"送出中…", formThanks:"已送出，謝謝你！",
          formErrText:"請填寫內容（最多 1000 字）", formErrNames:"請至少填寫一個招式名稱（中／日／英擇一，各最多 60 字）",
          formErrUrl:"影片網址必須是 http(s) 連結", formErrUrlReq:"請填寫影片網址", formErrUrlHost:"僅接受 YouTube、Instagram、Facebook、TikTok、X、Threads 或 Google Drive 連結", formErrApplyName:"請填寫姓名或暱稱", formErrGmail:"請填寫有效的 Gmail 帳號（@gmail.com）", formErrReason:"請填寫申請原因／可協助的項目（最多 1000 字）", formErrTrickId:"招式 ID 格式不正確", formErrFail:"送出失敗，請稍後再試",
@@ -25,7 +25,7 @@
          formNameZh:"技の名前（中国語）", formNameJp:"技の名前（日本語）", formNameEn:"技の名前（英語）",
          formDesc:"説明／メモ", formVideo:"動画URL", formVideoHint:"YouTubeのリンクをおすすめします", formApplyName:"お名前またはニックネーム", formApplyGmail:"Gmailアカウント", formReason:"申請の理由／協力できる内容", mbApplicant:"申請者", mbGmail:"Gmail",
          formApplyLink:"大量に投稿したい方は、協力者に申請できます",
-         formSubName:"技の名前（いずれかの言語）", formPhZh:"中国語", formPhJp:"日本語", formPhEn:"英語", formPartsGrip:"握持と部位", formTags:"タグ", formNoTags:"タグはまだありません", formAddVideo:"動画を追加",
+         formSubName:"技の名前（いずれかの言語）", formPhZh:"中国語", formPhJp:"日本語", formPhEn:"英語", formPartsGrip:"持ち方と部位", formTags:"タグ", formNoTags:"タグはまだありません", formAddVideo:"動画を追加",
          formSend:"送信", formCancel:"キャンセル", formWait:"あと {n} 秒お待ちください", formSending:"送信中…", formThanks:"送信しました。ありがとうございます！",
          formErrText:"内容を入力してください（1000字まで）", formErrNames:"技の名前（中・日・英のいずれか）を1つ以上入力してください（各60字まで）",
          formErrUrl:"動画URLは http(s) のリンクにしてください", formErrUrlReq:"動画URLを入力してください", formErrUrlHost:"YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive のリンクのみ使えます", formErrApplyName:"お名前またはニックネームを入力してください", formErrGmail:"有効なGmailアカウント（@gmail.com）を入力してください", formErrReason:"申請の理由／協力できる内容を入力してください（1000字まで）", formErrTrickId:"技IDの形式が正しくありません", formErrFail:"送信に失敗しました。しばらくしてからお試しください",
@@ -279,7 +279,7 @@
         '<button type="button" class="btn btn-ghost btn-sm sf-add-url" id="sfAddUrl">+ ' + escapeHtml(t("formAddVideo")) + '</button></div>') +
       formField(t("formDesc"), '<textarea id="formText" class="sf-note" rows="2" maxlength="' + FORM_TEXT_MAX + '"></textarea>') +
       '</div><div class="sf-col">' +
-      formField(t("formPartsGrip"), '<div class="sf-parts" id="sfParts"><div class="drawer-grip-col" id="sfGrips"></div></div>') +
+      formField(t("formPartsGrip"), '<div class="sf-parts sf-parts-v" id="sfParts"><div id="sfGrips"></div></div>') +
       formField(t("formTags"), '<div class="sf-tags drawer-chip-row" id="sfTags"></div>') +
       '</div></div>';
     formOpen(user, t("formSubmitTitle"), body,
@@ -294,16 +294,12 @@
       });
     var ov = document.getElementById("formOverlay");
     ov.querySelector(".modal").classList.add("sf-wide");
-    // parts diagram + grip chips
-    var gripCol = ov.querySelector("#sfGrips"), gripBtns = {};
+    // parts diagram, then the shared grip picker (js/36; sub-grips only)
+    var gripCol = ov.querySelector("#sfGrips");
     var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){ togglePart(tr, key); sync(); } });
     ov.querySelector("#sfParts").insertBefore(diagram, gripCol);
-    GRIP_KEYS.forEach(function(k){
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "drawer-chip"; b.textContent = t("grip_" + k);
-      b.addEventListener("click", function(){ toggleGrip(tr, k); sync(); });
-      gripCol.appendChild(b); gripBtns[k] = b;
-    });
+    var gripPicker = buildGripPicker({ value: tr.grip, onChange: function(v){ tr.grip = v; } });
+    gripCol.appendChild(gripPicker);
     // tag chips: class tags first; picking a class tag with a combo overwrites grip + parts
     var tagBox = ov.querySelector("#sfTags");
     var tagChips = {};
@@ -322,7 +318,7 @@
     });
     function sync(){
       diagram.update(tr.parts);
-      GRIP_KEYS.forEach(function(k){ gripBtns[k].classList.toggle("active", tr.grip === k); });
+      gripPicker.setValue(tr.grip);
       allTags.forEach(function(g){ tagChips[g.id].classList.toggle("active", tr.tagIds.indexOf(g.id) !== -1); });
     }
     sync();

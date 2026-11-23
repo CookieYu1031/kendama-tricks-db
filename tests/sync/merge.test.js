@@ -68,3 +68,18 @@ test("merges every collection", () => {
   const r = J(c.threeWayMerge(empty, l, empty, true));
   assert.strictEqual(r.spaces.length + r.categories.length + r.infos.length + r.tags.length, 4);
 });
+
+test("labels merge per key (admin unpublished edits across devices)", () => {
+  const c = setup();
+  const L = (zh) => ({ zh, jp: zh, en: zh });
+  const base = { labels: { a: L("a0"), b: L("b0") } };
+  const local = { labels: { a: L("a1"), b: L("b0") } };
+  const cloud = { labels: { a: L("a0"), b: L("b2"), c: L("c1") } };
+  const r = J(c.threeWayMerge(base, local, cloud, false)).labels;
+  assert.strictEqual(r.a.zh, "a1");
+  assert.strictEqual(r.b.zh, "b2");
+  assert.strictEqual(r.c.zh, "c1");
+  const both = J(c.threeWayMerge({ labels: { a: L("a0") } }, { labels: { a: L("x") } }, { labels: { a: L("y") } }, true)).labels;
+  assert.strictEqual(both.a.zh, "x");
+  assert.deepStrictEqual(J(c.threeWayMerge(base, { labels: {} }, base, true)).labels, {});
+});

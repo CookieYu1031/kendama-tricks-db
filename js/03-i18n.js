@@ -183,9 +183,26 @@
     }
   };
 
+  // Built-in text of a key in one language (ignores admin label overrides).
+  function defaultText(key, lang){
+    return (UI[lang] && UI[lang][key]) || UI.zh[key] || key;
+  }
+  // Admin-edited names of grips / parts (db.labels, js/01-data-storage.js). db may not exist yet at load.
+  function labelOverride(key, lang){
+    if(typeof db === "undefined" || !db || !db.labels) return "";
+    var e = db.labels[key];
+    return (e && typeof e[lang] === "string" && e[lang]) || "";
+  }
   function t(key){
     var lang = state.lang;
-    return (UI[lang] && UI[lang][key]) || UI.zh[key] || key;
+    var c = typeof key === "string" ? key.charCodeAt(0) : 0; // g(rip) / p(art) only: keep the hot path cheap
+    if(c === 103 || c === 112){
+      if(key.indexOf("grip_") === 0 || key.indexOf("gripS_") === 0 || key.indexOf("part_") === 0){
+        var o = labelOverride(key, lang);
+        if(o) return o;
+      }
+    }
+    return defaultText(key, lang);
   }
 
   // Feature files register their own strings at load time instead of all

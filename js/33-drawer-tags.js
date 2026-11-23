@@ -8,7 +8,7 @@
      Pure helpers are in js/30-drawer-logic.js (tests/tags.test.js).
   ============================================================ */
   addStrings({
-    zh:{ classTagsLabel:"招式類別", addClassTag:"加入類別", suggestedClassHint:"符合持法與部位，點一下加入" },
+    zh:{ classTagsLabel:"招式類別", addClassTag:"加入類別", suggestedClassHint:"符合握持手勢與部位，點一下加入" },
     jp:{ classTagsLabel:"技のカテゴリ", addClassTag:"カテゴリを追加", suggestedClassHint:"持ち方と部位に一致。タップで追加" },
     en:{ classTagsLabel:"Trick class", addClassTag:"Add class", suggestedClassHint:"Matches grip and parts - tap to add" }
   });

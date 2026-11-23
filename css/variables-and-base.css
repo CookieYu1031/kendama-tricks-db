@@ -102,16 +102,23 @@
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   html,body{ height:100%; }
   /* Canvas colour behind the safe areas / Safari toolbars, so they never show blank or black. */
-  html{ background-color: var(--ink); }
-  body{
-    margin:0;
-    background: var(--ink);
+  /* Safari: the canvas (html) carries the whole app background, so the safe areas, toolbars and
+     overscroll all show it. body must stay transparent: body background-attachment:fixed is
+     unsupported on iOS and body overflow:hidden would otherwise leave html's bare colour visible. */
+  html{
+    background-color: var(--ink);
     background-image:
       radial-gradient(circle at 10% 6%, var(--body-glow-1), transparent 40%),
       radial-gradient(circle at 92% 12%, var(--body-glow-2), transparent 38%),
       radial-gradient(circle at 20% 92%, var(--body-glow-3), transparent 42%),
       radial-gradient(circle at 96% 88%, var(--body-glow-4), transparent 40%);
-    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    overscroll-behavior: none;
+  }
+  body{
+    margin:0;
+    background: transparent;
     color: var(--paper);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;

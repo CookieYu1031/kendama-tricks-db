@@ -118,6 +118,14 @@
     ((data && data.tags) || []).forEach(function(g){ dt[g.id] = g; });
     Object.keys(dt).forEach(function(id){ if(!bt[id] || _pendJson(bt[id]) !== _pendJson(dt[id])) sum.tags++; });
     Object.keys(bt).forEach(function(id){ if(!dt[id]) sum.tags++; });
+    // Reordered tags (relative order of ids present on both sides) count as one pending change.
+    var bOrder = ((base && base.tags) || []).map(function(g){ return g.id; }).filter(function(id){ return dt[id]; });
+    var dOrder = ((data && data.tags) || []).map(function(g){ return g.id; }).filter(function(id){ return bt[id]; });
+    if(bOrder.join("|") !== dOrder.join("|")) sum.tags++;
+    // Admin-edited grip / part names (db.labels): one per changed key, counted with the tags.
+    var bl = (base && base.labels) || {}, dl = (data && data.labels) || {};
+    Object.keys(dl).forEach(function(k){ if(!bl[k] || _pendJson(bl[k]) !== _pendJson(dl[k])) sum.tags++; });
+    Object.keys(bl).forEach(function(k){ if(!dl[k]) sum.tags++; });
     return { byId: byId, removedItems: removedItems, ancestorsWithChanges: anc, summary: sum };
   }
 

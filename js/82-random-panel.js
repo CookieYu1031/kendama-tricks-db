@@ -5,7 +5,7 @@
      Logic: js/81-random-logic.js.
   ============================================================ */
   addStrings({
-    zh:{ rndTitle:"隨機抽招", rndScope:"範圍", rndWholeTable:"整個表", rndGrip:"持法", rndAny:"不限", rndParts:"部位",
+    zh:{ rndTitle:"隨機抽招", rndScope:"範圍", rndWholeTable:"整個表", rndGrip:"握持手勢", rndAny:"不限", rndParts:"部位",
          rndModeAny:"其一符合", rndModeAll:"全符合", rndClass:"招式類別", rndRate:"成功率", rndCount:"抽取數量",
          rndPool:"符合 {n} 招", rndPoolLeft:"符合 {n} 招（本輪剩 {m}）", rndDraw:"抽招", rndNewRound:"新一輪",
          rndExhausted:"這一輪的招式都抽完了，按「新一輪」重新開始", rndEmptyPool:"沒有符合條件的招式",
@@ -106,11 +106,12 @@
     scope.appendChild(f1); scope.appendChild(f2);
     host.appendChild(rndRow(t("rndScope"), scope));
 
-    var grip = rndChipRow();
-    grip.appendChild(rndChip(t("rndAny"), !c.grip, function(){ c.grip = null; rndChanged(); }));
-    GRIP_KEYS.forEach(function(k){
-      grip.appendChild(rndChip(t("grip_" + k), c.grip === k, function(){ c.grip = c.grip === k ? null : k; rndChanged(); }));
-    });
+    // 不限 chip + the shared grip picker (js/36, sub-grips only).
+    var grip = document.createElement("div"); grip.className = "rnd-grip";
+    var anyRow = rndChipRow();
+    anyRow.appendChild(rndChip(t("rndAny"), !c.grip, function(){ c.grip = null; rndChanged(); }));
+    grip.appendChild(anyRow);
+    grip.appendChild(buildGripPicker({ value: c.grip, onChange: function(v){ c.grip = v; rndChanged(); } }));
     host.appendChild(rndRow(t("rndGrip"), grip));
 
     var partsBox = document.createElement("div"); partsBox.className = "rnd-parts";

@@ -4,7 +4,7 @@
     zh: { editIconColor:"編輯顏色與圖示", copied:"已複製", copyHint:"點擊複製", tagsLabel:"標籤", addTag:"加入標籤",
       removeTagFromTrick:"從此招式移除標籤",
       confirmDeleteTagTitle:"確認刪除此標籤？", confirmDeleteTagBody:"此標籤將自所有招式中移除，此動作無法復原。",
-      gripLabel:"持法", partsLabel:"部位", rateLabel:"成功率", personalNoteLabel:"備註",
+      gripLabel:"握持手勢", partsLabel:"部位", rateLabel:"成功率", personalNoteLabel:"備註",
       rate_none:"無", rateHint_none:"尚未成功", nameRequiredToast:"至少要保留一個名稱",
       part_kensaki:"劍尖", part_kenchou:"劍頂", part_sara:"大小皿", part_saraEdge:"皿邊",
       part_kenBody:"劍身", part_suberidome:"止滑", part_chuzara:"中皿", part_chuzaraEdge:"中皿邊",

@@ -10,28 +10,28 @@
   ============================================================ */
   addStrings({
     zh:{ bulkTitle:"協助者：批量投稿", bulkTplBtn:"下載批量投稿格式", bulkUploadBtn:"上傳 .xlsx 批量投稿",
-         bulkTplNote:"※ 說明列（上傳時會略過）：中／日／英名稱至少填一個；影片至少一個，限 YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive；握持填 持劍／持球／持線；部位、招式類別、標籤以「、」分隔。",
+         bulkTplNote:"※ 說明列（上傳時會略過）：中／日／英名稱至少填一個；影片至少一個，限 YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive；握持手勢填 持劍／持球／持線，或子手勢名稱（如 持皿、蠟燭、提燈台，可用中／日／英名稱）；部位、招式類別、標籤以「、」分隔。",
          bulkReading:"讀取中…", bulkUnsupported:"此瀏覽器不支援讀取 .xlsx，請改用較新的瀏覽器", bulkBadFile:"無法讀取這個檔案，請使用下載的格式 (.xlsx)",
          bulkTooBig:"檔案太大（上限 2 MB）", bulkNoHeader:"找不到標題列，請使用下載的格式", bulkNoRows:"沒有可投稿的資料列",
          bulkTooMany:"最多 {n} 列，超出的列已略過", bulkPayloadBig:"內容太大，請分批上傳",
          bulkSummary:"共 {ok} 列可送出，{bad} 列有錯誤", bulkRow:"第 {n} 列", bulkSend:"送出批量投稿",
-         bulkErrGrip:"握持必須是 持劍／持球／持線", bulkErrPart:"部位不認得：{v}", bulkErrLong:"欄位內容太長",
+         bulkErrGrip:"握持手勢不認得（可填 持劍／持球／持線，或子手勢名稱）", bulkErrPart:"部位不認得：{v}", bulkErrLong:"欄位內容太長",
          bulkSent:"已送出 {n} 個招式投稿，謝謝你！", bulkNeedOk:"沒有可送出的資料列" },
     jp:{ bulkTitle:"協力者：一括投稿", bulkTplBtn:"一括投稿のフォーマットをダウンロード", bulkUploadBtn:".xlsx をアップロードして一括投稿",
-         bulkTplNote:"※ 説明行（アップロード時は無視されます）：中・日・英の名前のいずれか1つ以上。動画は1つ以上（YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive のみ）。握持は「持劍」「持球」「持線」のいずれか。部位・招式類別・標籤は「、」で区切ってください。",
+         bulkTplNote:"※ 説明行（アップロード時は無視されます）：中・日・英の名前のいずれか1つ以上。動画は1つ以上（YouTube、Instagram、Facebook、TikTok、X、Threads、Google Drive のみ）。握持手勢は「持劍」「持球」「持線」、またはサブの持ち方の名前（皿持ち、キャンドル、ライトハウス等。中・日・英いずれも可）。部位・招式類別・標籤は「、」で区切ってください。",
          bulkReading:"読み込み中…", bulkUnsupported:"このブラウザでは .xlsx を読み込めません。新しいブラウザをお試しください", bulkBadFile:"ファイルを読み込めません。ダウンロードしたフォーマット (.xlsx) をご使用ください",
          bulkTooBig:"ファイルが大きすぎます（上限 2 MB）", bulkNoHeader:"見出し行が見つかりません。ダウンロードしたフォーマットをご使用ください", bulkNoRows:"投稿できる行がありません",
          bulkTooMany:"最大 {n} 行です。超えた行は無視しました", bulkPayloadBig:"内容が大きすぎます。分けてアップロードしてください",
          bulkSummary:"送信可能 {ok} 行、エラー {bad} 行", bulkRow:"{n} 行目", bulkSend:"一括投稿を送信",
-         bulkErrGrip:"握持は 持劍／持球／持線 のいずれかにしてください", bulkErrPart:"部位が不明です：{v}", bulkErrLong:"内容が長すぎます",
+         bulkErrGrip:"握持手勢が不明です（持劍／持球／持線、またはサブの持ち方の名前）", bulkErrPart:"部位が不明です：{v}", bulkErrLong:"内容が長すぎます",
          bulkSent:"{n} 件の技を投稿しました。ありがとうございます！", bulkNeedOk:"送信できる行がありません" },
     en:{ bulkTitle:"Helper: bulk submission", bulkTplBtn:"Download bulk submission template", bulkUploadBtn:"Upload .xlsx for bulk submission",
-         bulkTplNote:"* Notes row (skipped on upload): at least one of the zh/jp/en names; at least one video (YouTube, Instagram, Facebook, TikTok, X, Threads or Google Drive only); grip = 持劍 / 持球 / 持線; parts, classes and tags separated by 「、」.",
+         bulkTplNote:"* Notes row (skipped on upload): at least one of the zh/jp/en names; at least one video (YouTube, Instagram, Facebook, TikTok, X, Threads or Google Drive only); grip = 持劍 / 持球 / 持線, or a sub-grip name (e.g. sara, candle, lighthouse; zh/jp/en names accepted); parts, classes and tags separated by 「、」.",
          bulkReading:"Reading…", bulkUnsupported:"This browser can't read .xlsx — please use a newer browser", bulkBadFile:"Can't read this file — use the downloaded template (.xlsx)",
          bulkTooBig:"File too large (max 2 MB)", bulkNoHeader:"Header row not found — use the downloaded template", bulkNoRows:"No rows to submit",
          bulkTooMany:"At most {n} rows; the rest were skipped", bulkPayloadBig:"Too much data — upload in smaller batches",
          bulkSummary:"{ok} rows ready, {bad} rows with errors", bulkRow:"Row {n}", bulkSend:"Send bulk submission",
-         bulkErrGrip:"Grip must be 持劍 / 持球 / 持線", bulkErrPart:"Unknown part: {v}", bulkErrLong:"A cell is too long",
+         bulkErrGrip:"Unknown grip (use 持劍 / 持球 / 持線 or a sub-grip name)", bulkErrPart:"Unknown part: {v}", bulkErrLong:"A cell is too long",
          bulkSent:"Submitted {n} tricks — thank you!", bulkNeedOk:"No rows to send" }
   });
 
@@ -42,10 +42,9 @@
   var BULK_COLUMNS = [
     { key:"nameZh", label:"中文名稱" }, { key:"nameJp", label:"日文名稱" }, { key:"nameEn", label:"英文名稱" },
     { key:"url1", label:"影片1" }, { key:"url2", label:"影片2" }, { key:"url3", label:"影片3" },
-    { key:"grip", label:"握持" }, { key:"parts", label:"部位" }, { key:"classes", label:"招式類別" },
+    { key:"grip", label:"握持手勢", alias:"握持" }, { key:"parts", label:"部位" }, { key:"classes", label:"招式類別" },
     { key:"tags", label:"標籤" }, { key:"note", label:"備註" }, { key:"location", label:"建議位置" }
   ];
-  var BULK_GRIP_ZH = { "持劍":"ken", "持球":"tama", "持線":"ito" };
 
   function bulkTemplateRows(){
     return [BULK_COLUMNS.map(function(c){ return c.label; }), [t("bulkTplNote")]];
@@ -60,6 +59,27 @@
       if(x && !seen[x]){ seen[x] = true; out.push(x); }
     });
     return out;
+  }
+
+  // Grip token (key, or full / short label in any language; categories and subs) -> grip key, or "".
+  function bulkGripKey(token){
+    var tk = String(token).trim().toLowerCase();
+    if(!tk) return "";
+    var langs = ["zh", "jp", "en"];
+    for(var i = 0; i < GRIP_KEYS.length; i++){
+      var k = GRIP_KEYS[i];
+      if(k.toLowerCase() === tk) return k;
+    }
+    // categories first, so a shared name ("持劍" = ken and ken_ken) resolves to the category
+    for(var i2 = 0; i2 < GRIP_KEYS.length; i2++){
+      var k2 = GRIP_KEYS[i2];
+      for(var j = 0; j < langs.length; j++){
+        var tab = typeof UI !== "undefined" && UI[langs[j]] ? UI[langs[j]] : {};
+        var a = tab["grip_" + k2], b = tab["gripS_" + k2];
+        if((a && String(a).toLowerCase() === tk) || (b && String(b).toLowerCase() === tk)) return k2;
+      }
+    }
+    return "";
   }
 
   // Part token (key or label in any language) -> part key, or "".
@@ -86,7 +106,7 @@
       var c = String(cell == null ? "" : cell).trim().toLowerCase();
       if(!c) return;
       BULK_COLUMNS.forEach(function(col){
-        if((c === col.label.toLowerCase() || c === col.key.toLowerCase()) && map[col.key] === undefined){ map[col.key] = i; hits++; }
+        if((c === col.label.toLowerCase() || c === col.key.toLowerCase() || (col.alias && c === col.alias.toLowerCase())) && map[col.key] === undefined){ map[col.key] = i; hits++; }
       });
     });
     return hits >= 2 ? map : null;
@@ -112,7 +132,7 @@
     }
     var grip = null, g = cell("grip");
     if(g){
-      grip = BULK_GRIP_ZH[g] || (GRIP_KEYS.indexOf(g.toLowerCase()) !== -1 ? g.toLowerCase() : null);
+      grip = bulkGripKey(g) || null;
       if(!grip) errors.push({ key:"bulkErrGrip" });
     }
     var parts = [];

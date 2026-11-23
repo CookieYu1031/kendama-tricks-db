@@ -80,6 +80,14 @@ test("grip and parts (any / all), conditions-only search", () => {
   assert.deepStrictEqual(run(c, "", { grip: null, parts: [], partsMode: "any" }), []); // no criteria
 });
 
+test("grip filter: a category matches its sub-grips, a sub is exact", () => {
+  const c = setup();
+  c.db.tricks.find((x) => x.id === "a000003").grip = "ken_sara";
+  assert.deepStrictEqual(run(c, "", { grip: "ken", parts: [], partsMode: "any" }), ["a000001", "a000003"]);
+  assert.deepStrictEqual(run(c, "", { grip: "ken_sara", parts: [], partsMode: "any" }), ["a000003"]);
+  assert.deepStrictEqual(run(c, "", { grip: "ken_gun", parts: [], partsMode: "any" }), []);
+});
+
 test("index entries: format, multi-location, fav not duplicated", () => {
   const c = setup();
   const idx = c.buildSearchIndex(c.db);

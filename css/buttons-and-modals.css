@@ -120,7 +120,7 @@
   /* Fixed size for every type (trick / folder / info): body scrolls inside. */
   /* One fixed height for all three types, sized to the tallest (trick: names + parts diagram),
      so switching tabs never jumps; short screens cap it and the body scrolls. */
-  .modal.add-modal{ width:480px; height:min(540px, calc((100dvh / var(--ui-zoom)) - 32px)); max-height:none; }
+  .modal.add-modal{ width:480px; height:min(640px, calc((100dvh / var(--ui-zoom)) - 32px)); max-height:none; }
   .add-modal .modal-scroll{ overscroll-behavior:contain; padding-bottom:6px; }
   .add-name-hint{ min-height:16px; margin:-6px 0 10px; font-size:12px; }
   .add-name-hint.form-error{ display:block; margin:-6px 0 10px; }
@@ -139,7 +139,9 @@
   .add-disabled{ opacity:.45; pointer-events:none; }
   .add-modal [hidden]{ display:none !important; }
   .add-modal .field-row .field{ min-width:0; }
-  .add-parts .part-diagram{ height:150px; }
+  .add-parts{ display:flex; flex-direction:column; gap:10px; }
+  .add-parts .part-diagram-box{ margin:0; }
+  .add-parts .part-diagram{ height:120px; }
   .modal-actions-split{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:10px; }
   .form-error{ font-size:12px; color: var(--danger-bright); margin-top: -6px; margin-bottom:12px; display:none; }
   .form-error.show{ display:block; }
