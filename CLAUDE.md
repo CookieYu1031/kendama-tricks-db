@@ -75,7 +75,7 @@
 | Firebase 初始化 | `js/00-firebase-config.js` |
 | 資料模型常數、space 定義、權限、ID | `js/01-data-model.js` |
 | 本機快取、normalizeDB、loadDB/saveDB、`db` 初始化 | `js/01-data-storage.js` |
-| 顏色、icon 常數 | `js/02-constants-colors-icons.js` |
+| 顏色（13 色 COLOR_PALETTE、自訂 #rrggbb；驗證 `sanitizeColorKey` 在 `js/01-data-storage.js`）、icon 常數 | `js/02-constants-colors-icons.js` |
 | i18n 字串、假名轉羅拼、名稱顯示 | `js/03-i18n.js` |
 | UI state | `js/04-state.js` |
 | 資料索引與查詢 helpers（getChildren、getTrick…） | `js/05-data-helpers.js` |
@@ -116,7 +116,7 @@
 | 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
 | 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
-| 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜） | `js/40`–`js/45` |
+| 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
 | 登入、登出、暱稱、帳號選單（含同步時間與手動同步鈕） | `js/52-auth.js` |

@@ -1,24 +1,34 @@
 /* Phone browse motion (v0.14.8): drill-down slide, swipe-back reveal. Phone only (<=600px). */
+@property --swipe-x{ syntax:'<length>'; inherits:true; initial-value:0px; }
 @media (max-width: 600px){
   /* Horizontal gestures go to JS (js/27); vertical scroll stays native. */
   .miller-wrap .m-col.mobile-active, .miller-wrap .m-col.mobile-active .col-items{ touch-action: pan-y; }
 
-  /* While swiping, the sliding level keeps the normal frosted glass; the parent under it shows through the blur. */
-  .miller-wrap.swipe-live .m-col.mobile-under{ visibility:visible; }
-  .miller-wrap.swipe-live .m-col.mobile-active{ box-shadow: var(--shadow-lg), var(--glass-highlight); }
-
-  /* Parent stays visible while a level slides in / out. */
-  .miller-wrap.m-anim .m-col.mobile-under{ visibility:visible; }
+  /* A glass card over another glass card blends brighter and bluish. So the revealed level is
+     clipped to the strip the moving card does NOT cover: the moving card's backdrop stays the
+     page background (same as at rest) and the strip shows the real level with its own glass.
+     Swipe: --swipe-x (px, set by JS) = moving card's translateX. Slide: same clip animated in sync. */
+  .miller-wrap.swipe-live .m-col.mobile-under{
+    visibility:visible; clip-path: inset(-24px calc(100% - var(--swipe-x)) -24px -24px);
+  }
+  .miller-wrap.m-anim-in .m-col.mobile-under{
+    visibility:visible; animation: mClipIn .26s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .miller-wrap.m-anim-out .m-col.mobile-active{
+    animation: mClipOut .26s cubic-bezier(.2,.8,.2,1) both;
+  }
   .m-col.m-enter{ animation: mColIn .26s cubic-bezier(.2,.8,.2,1) both; }
   .m-col.m-leaving{
     display:block; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto;
     z-index:3; pointer-events:none; will-change:transform;
     animation: mColOut .26s cubic-bezier(.2,.8,.2,1) both;
   }
+  @keyframes mClipIn{ from{ clip-path: inset(-24px -24px -24px -24px); } to{ clip-path: inset(-24px 100% -24px -24px); } }
+  @keyframes mClipOut{ from{ clip-path: inset(-24px 100% -24px -24px); } to{ clip-path: inset(-24px -24px -24px -24px); } }
   @keyframes mColIn{ from{ transform: translate3d(100%,0,0); } to{ transform: translate3d(0,0,0); } }
   @keyframes mColOut{ from{ transform: translate3d(0,0,0); } to{ transform: translate3d(calc(100% + 14px),0,0); } }
   @media (prefers-reduced-motion: reduce){
-    .m-col.m-enter, .m-col.m-leaving{ animation:none; }
+    .m-col.m-enter, .m-col.m-leaving, .miller-wrap.m-anim-in .m-col.mobile-under, .miller-wrap.m-anim-out .m-col.mobile-active{ animation:none; }
     .m-col.m-leaving{ display:none; }
   }
 }

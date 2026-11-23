@@ -70,6 +70,7 @@
   // Icon & color picker modal
   document.getElementById("iconPickerNoneBtn").addEventListener("click", function(){
     setDraftIcon(state.iconPickerTarget, "");
+    setDraftColor(state.iconPickerTarget, state.iconPickerTarget === "drawer" ? "" : "default");
     closeIconPicker();
   });
   document.getElementById("iconPickerDoneBtn").addEventListener("click", closeIconPicker);

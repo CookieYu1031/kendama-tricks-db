@@ -4,7 +4,7 @@
      BROWSE — phone swipe-back (v0.14.8)
      Phone view shows one column level. A right-swipe starting anywhere on the
      column area drags the current level 1:1 to the right, revealing the parent
-     level (already rendered underneath, keeps its frosted-glass look). Release
+     level (rendered underneath, clipped to the strip the moving card does not cover). Release
      past ~30% of the width or with a fast flick = go up one level, else spring back.
   ============================================================ */
   var SWIPE_BACK_COMMIT_RATIO = 0.3;   // dragged farther than this share of the width = go back
@@ -66,9 +66,15 @@
   function swipeBackSetShift(top, px, animate){
     top.style.transition = animate ? "transform " + SWIPE_BACK_ANIM_MS + "ms var(--ease)" : "none";
     top.style.transform = px ? "translate3d(" + px + "px,0,0)" : "";
+    // --swipe-x drives the clip of the revealed parent (css/browse-motion.css); registered via @property so it can transition.
+    var w = top.parentNode;
+    if(w && w.style){
+      w.style.transition = animate ? "--swipe-x " + SWIPE_BACK_ANIM_MS + "ms var(--ease)" : "none";
+      w.style.setProperty("--swipe-x", (px || 0) + "px");
+    }
   }
   function swipeBackReset(wrap, top){
-    if(wrap) wrap.classList.remove("swipe-live");
+    if(wrap){ wrap.classList.remove("swipe-live"); wrap.style.transition = ""; wrap.style.removeProperty("--swipe-x"); }
     if(top){ top.style.transition = ""; top.style.transform = ""; }
     swipeBackBusy = false;
   }
@@ -163,16 +169,16 @@
   }
   function browseSlideIn(wrap, el){
     if(!el) return;
-    wrap.classList.add("m-anim");
+    wrap.classList.add("m-anim", "m-anim-in");
     el.classList.add("m-enter");
-    setTimeout(function(){ el.classList.remove("m-enter"); wrap.classList.remove("m-anim"); }, 300);
+    setTimeout(function(){ el.classList.remove("m-enter"); wrap.classList.remove("m-anim", "m-anim-in"); }, 300);
   }
   function browseSlideOut(wrap, clone){
     clone.className = "m-col m-leaving";
     clone.removeAttribute("data-col-key");
-    wrap.classList.add("m-anim");
+    wrap.classList.add("m-anim", "m-anim-out");
     wrap.appendChild(clone);
-    setTimeout(function(){ if(clone.parentNode) clone.parentNode.removeChild(clone); wrap.classList.remove("m-anim"); }, 300);
+    setTimeout(function(){ if(clone.parentNode) clone.parentNode.removeChild(clone); wrap.classList.remove("m-anim", "m-anim-out"); }, 300);
   }
 
   // Before columns are rebuilt: decide slide-in (one level deeper) or slide-out (one level up).

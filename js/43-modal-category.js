@@ -154,11 +154,66 @@
     inp.addEventListener("change", function(){ pickIconImage(inp.files && inp.files[0]); });
   })();
 
+  // Custom colour panel: native color input + preset tones + hex text box (#RGB / #RRGGBB).
+  // Typing never re-renders the picker (keeps focus); it only updates selection state + preview.
+  var customColorOpen = false;
+  function syncColorSelection(target){
+    var cur = getDraftColor(target);
+    var btn = document.querySelector("#colorSwatchRow .color-custom-btn");
+    if(btn){
+      btn.classList.toggle("selected", isCustomColor(cur));
+      btn.classList.toggle("has-color", isCustomColor(cur));
+      if(isCustomColor(cur)) btn.style.setProperty("--custom-color", cur);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("#colorSwatchRow .color-swatch"), function(el, i){
+      el.classList.toggle("selected", COLOR_PALETTE[i] && COLOR_PALETTE[i].key === cur);
+    });
+    updateIconColorPreview(target);
+  }
+  function buildCustomColorPanel(target){
+    var cur = getDraftColor(target);
+    var startHex = isCustomColor(cur) ? cur.toLowerCase() : (HEX6_RE.test(colorHex(cur)) ? colorHex(cur) : "#8b8a86");
+    var panel = document.createElement("div");
+    panel.className = "color-custom-panel";
+    var top = document.createElement("div"); top.className = "color-custom-top";
+    var pick = document.createElement("input");
+    pick.type = "color"; pick.className = "color-custom-native"; pick.value = startHex;
+    var txt = document.createElement("input");
+    txt.type = "text"; txt.className = "color-custom-hex"; txt.maxLength = 7; txt.spellcheck = false;
+    txt.placeholder = "#RRGGBB"; txt.value = isCustomColor(cur) ? cur.toLowerCase() : "";
+    top.appendChild(pick); top.appendChild(txt);
+    var err = document.createElement("div"); err.className = "form-error"; err.textContent = t("colorHexInvalid");
+    function apply(hex, fromText){
+      setDraftColor(target, hex);
+      if(!fromText) txt.value = hex;
+      pick.value = hex;
+      txt.classList.remove("invalid"); err.classList.remove("show");
+      syncColorSelection(target);
+    }
+    pick.addEventListener("input", function(){ apply(normalizeHexColor(pick.value) || startHex, false); });
+    txt.addEventListener("input", function(){
+      var v = txt.value.trim();
+      if(!v){ txt.classList.remove("invalid"); err.classList.remove("show"); return; }
+      var h = normalizeHexColor(v.charAt(0) === "#" ? v : "#" + v);
+      if(h) apply(h, true);
+      else { txt.classList.add("invalid"); err.classList.add("show"); }
+    });
+    var presets = document.createElement("div"); presets.className = "color-custom-presets";
+    CUSTOM_COLOR_PRESETS.forEach(function(h){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "color-swatch"; b.style.background = h; b.title = h; b.setAttribute("aria-label", h);
+      b.addEventListener("click", function(){ apply(h, false); });
+      presets.appendChild(b);
+    });
+    panel.appendChild(top); panel.appendChild(presets); panel.appendChild(err);
+    return panel;
+  }
+
   function renderIconPicker(){
     document.getElementById("iconPickerTitle").textContent = t("chooseIconColor");
     document.getElementById("colorPickerLabel").textContent = t("colorLabel");
     document.getElementById("emojiPickerLabel").textContent = t("iconLabel");
-    document.getElementById("iconPickerNoneBtn").textContent = t("noIconOption");
+    document.getElementById("iconPickerNoneBtn").textContent = t("resetDefaultOption");
     document.getElementById("iconPickerDoneBtn").textContent = t("doneBtn");
     document.getElementById("customEmojiInput").placeholder = t("customEmojiPlaceholder");
 
@@ -168,18 +223,34 @@
 
     var colorRow = document.getElementById("colorSwatchRow");
     colorRow.innerHTML = "";
+    var curColor = getDraftColor(target);
+    var CHECK = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     COLOR_PALETTE.forEach(function(c){
       var sw = document.createElement("button");
       sw.type = "button";
-      sw.className = "color-swatch" + (getDraftColor(target)===c.key ? " selected" : "");
+      sw.className = "color-swatch" + (curColor===c.key ? " selected" : "");
+      sw.title = t("color_" + c.key);
+      sw.setAttribute("aria-label", t("color_" + c.key));
       sw.style.background = c.hex;
-      sw.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      sw.innerHTML = CHECK;
       sw.addEventListener("click", function(){
+        customColorOpen = false;
         setDraftColor(target, c.key);
         renderIconPicker();
       });
       colorRow.appendChild(sw);
     });
+    var custom = document.createElement("button");
+    custom.type = "button";
+    custom.className = "color-custom-btn" + (isCustomColor(curColor) ? " selected" : "");
+    custom.textContent = t("color_custom");
+    if(isCustomColor(curColor)){ custom.style.setProperty("--custom-color", curColor); custom.classList.add("has-color"); }
+    custom.addEventListener("click", function(){
+      customColorOpen = !customColorOpen;
+      renderIconPicker();
+    });
+    colorRow.appendChild(custom);
+    if(customColorOpen) colorRow.appendChild(buildCustomColorPanel(target));
 
     var grid = document.getElementById("emojiGrid");
     grid.innerHTML = "";
@@ -243,6 +314,7 @@
     state.iconPickerTarget = target || "category";
     drawerPicker = target === "drawer" ? { icon: (opts && opts.icon) || "", color: (opts && opts.color) || "", onDone: opts && opts.onDone } : null;
     bindCustomIconInput();
+    customColorOpen = false;
     // Reset the text box only when the picker opens (a color pick re-renders but keeps typing).
     var cur = getDraftIcon(state.iconPickerTarget) || "";
     var box = document.getElementById("customEmojiInput");
