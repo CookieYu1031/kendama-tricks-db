@@ -177,7 +177,7 @@
     var hex = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
     icon.style.background = hexToRgba(hex, 0.22); icon.style.color = hex;
     if(isImageIcon(tr.icon)){ icon.classList.add("img-icon"); icon.innerHTML = iconHtml(tr.icon); }
-    else if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_PLAY; }
+    else if(tr.icon){ icon.style.fontSize = "15px"; icon.textContent = tr.icon; } else { icon.innerHTML = ICON_TRICK; }
     var text = document.createElement("div"); text.className = "rnd-card-text";
     var nm = document.createElement("div"); nm.className = "rnd-card-name"; nm.textContent = localize(tr.name);
     var meta = document.createElement("div"); meta.className = "rnd-card-meta"; meta.textContent = rndTrickMeta(tr);
