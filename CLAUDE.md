@@ -35,7 +35,7 @@
   - 同群組內按依賴順序排。新增、搬移檔案時，同步更新 `index.html` 和下方「檔案地圖」。
 - UI 風格不可漂移：沿用 `css/variables-and-base.css` 的變數、字型、圓角、配色。新元件比照現有 class。
 - 所有使用者看得到的文字都走 i18n（zh / jp / en）。
-- 同一視窗／頁面內切換分頁或類型（例如新增介面的招式／資料夾／資訊、標籤管理三分頁），尺寸必須一致：固定寬高，以內容最多的分頁為準，超出時內部捲動，切換時不可跳動。
+- 同一視窗／頁面內切換分頁或類型（例如新增介面的招式／清單／資訊、標籤管理三分頁），尺寸必須一致：固定寬高，以內容最多的分頁為準，超出時內部捲動，切換時不可跳動。
 - CSS 斷點只用三個：860px（窄版）、600px（小手機）、380px（極窄）（寬版對應 `min-width:861px`）；圓角只用 `--radius-xs`／`--radius-sm`／`--radius`（外加 50%、999px）；字級不低於 12px；介面大小由使用者在設定頁選 x1／x1.1／x1.2（`html[data-ui-zoom]` → `html{zoom}`，`js/15`），用到 vw／vh 的尺寸要除以 `var(--ui-zoom)`。
 
 ## 測試（A5）
@@ -98,8 +98,8 @@
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
-| 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、資料夾深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
-| 欄位右下浮動鈕（「+」與「編輯此資料夾」小膠囊） | `js/26-browse-fab.js` |
+| 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、清單深拷貝、貼上規劃與驗證） | `js/25-browse-clipboard.js` |
+| 欄位右下浮動鈕（「+」與「編輯此清單」小膠囊） | `js/26-browse-fab.js` |
 | 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
 | 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
@@ -116,7 +116,7 @@
 | 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
 | 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`（握持排版同 grip picker，`js/77-admin-labels.js`）／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`js/77-admin-labels.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |
 | 初始資料夾（SEED_FOLDERS、seedDefaultFolders）、圖片 icon（`img:assets/…`，isImageIcon/iconHtml） | `js/01-data-model.js`、`js/06-icons-svg.js` |
-| 統一新增介面（欄位右下「+」開啟：招式／資料夾／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
+| 統一新增介面（欄位右下「+」開啟：招式／清單／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
 | 影片關鍵段落（YouTube；`media[].loop`；檢視模式有 loop 只播關鍵段落並鎖在 A↔B、編輯模式手動輸入起始／結束 mm:ss（只打數字自動補「:」、結束可空＝到結尾、◇ 填入目前時間、清除設定）；編輯模式標題直接改；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`（播放器包裝、開關）、`js/41-video-range.js`（起始／結束輸入列、`maskLoopDigits`／`parseLoopTime`／`formatMmSs`）、`js/41-modal-video.js`、`css/buttons-and-modals.css` |
 | 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |

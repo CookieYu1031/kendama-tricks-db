@@ -6,12 +6,12 @@
   // A folder's position is set by where it is created (the current column) and moved by
   // drag / cut-paste (js/22, js/25) — the modal has no parent field.
   addStrings({
-    zh:{ categoryDepthLimitReached:"資料夾最多 3 層，無法在這裡新增資料夾",
-         chooseImageBtn:"選擇圖片", iconImageTooBig:"圖片太大（上限 40 KB），請換一張較簡單的圖", iconImageFailed:"無法讀取這張圖片", confirmDeleteCategoryBody:"此分類及其子分類、資訊都會被刪除；其中的招式只會移除在此處的位置，最後一個位置被移除時招式才會刪除。" },
-    jp:{ categoryDepthLimitReached:"フォルダは最大3階層までです。ここには追加できません",
-         chooseImageBtn:"画像を選択", iconImageTooBig:"画像が大きすぎます（上限 40 KB）", iconImageFailed:"画像を読み込めません", confirmDeleteCategoryBody:"このカテゴリとサブカテゴリ・情報を削除します。中の技はこの場所から外すだけで、最後の配置が消えたときに削除されます。" },
-    en:{ categoryDepthLimitReached:"Folders can go up to 3 levels deep. Can't add one here.",
-         chooseImageBtn:"Choose image", iconImageTooBig:"Image too large (40 KB max). Try a simpler one.", iconImageFailed:"Couldn't read that image", confirmDeleteCategoryBody:"This folder, its sub-folders and info items are deleted. Tricks inside only lose this location; a trick is deleted when its last location is removed." }
+    zh:{ categoryDepthLimitReached:"清單最多 3 層，無法在這裡新增清單",
+         chooseImageBtn:"選擇圖片", iconImageTooBig:"圖片太大（上限 40 KB），請換一張較簡單的圖", iconImageFailed:"無法讀取這張圖片", confirmDeleteCategoryBody:"此清單及其子清單、資訊都會被刪除；其中的招式只會移除在此處的位置，最後一個位置被移除時招式才會刪除。" },
+    jp:{ categoryDepthLimitReached:"リストは最大3階層までです。ここには追加できません",
+         chooseImageBtn:"画像を選択", iconImageTooBig:"画像が大きすぎます（上限 40 KB）", iconImageFailed:"画像を読み込めません", confirmDeleteCategoryBody:"このリストとサブリスト・情報を削除します。中の技はこの場所から外すだけで、最後の配置が消えたときに削除されます。" },
+    en:{ categoryDepthLimitReached:"Lists can go up to 3 levels deep. Can't add one here.",
+         chooseImageBtn:"Choose image", iconImageTooBig:"Image too large (40 KB max). Try a simpler one.", iconImageFailed:"Couldn't read that image", confirmDeleteCategoryBody:"This list, its sub-lists and info items are deleted. Tricks inside only lose this location; a trick is deleted when its last location is removed." }
   });
 
   var TRICK_DEFAULT_HEX = "#5B8AA6"; // matches --string, the default (un-customized) trick tint
@@ -61,7 +61,7 @@
     swatch.style.color = hex;
     var icon = getDraftIcon(target);
     swatch.classList.toggle("img-icon", isImageIcon(icon));
-    swatch.innerHTML = iconHtml(icon, target==="space" ? ICON_EMPTY : ICON_FOLDER);
+    swatch.innerHTML = iconHtml(icon, target==="space" ? ICON_EMPTY : ICON_LIST);
     text.textContent = t("chooseIconColor");
   }
 

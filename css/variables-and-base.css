@@ -135,9 +135,15 @@
     html.is-standalone{ height: calc(100% + env(safe-area-inset-top, 0px)); overflow:hidden; }
   }
   ::selection{ background: var(--lacquer); color:#fff; }
-  ::-webkit-scrollbar{ width:8px; height:8px; }
-  ::-webkit-scrollbar-thumb{ background: var(--line-strong); border-radius:var(--radius-xs); }
+  /* Scrollbars: as thin as possible (low presence). WebKit/Blink use the pseudo-elements; the standard
+     properties are only set where those don't exist (Firefox), because in Chrome they override the 4px bar. */
+  ::-webkit-scrollbar{ width:4px; height:4px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line-strong); border-radius:999px; }
   ::-webkit-scrollbar-track{ background: transparent; }
+  ::-webkit-scrollbar-corner{ background: transparent; }
+  @supports not selector(::-webkit-scrollbar){
+    *{ scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+  }
   button{ font-family: inherit; }
   input, select, textarea{ font-family: inherit; }
   /* iOS zooms the page when a focused field's text is under 16px: keep touch fields at 16px. */

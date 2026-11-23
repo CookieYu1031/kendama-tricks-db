@@ -62,7 +62,12 @@
   .m-col.collapsed:not(:hover) .item-edit-actions{ opacity:0; max-width:0; margin:0; pointer-events:none; }
   .m-col.collapsed:not(:hover) .col-empty div{ opacity:0; max-width:0; }
   .m-col.collapsed:not(:hover) .col-add-fab{ opacity:0; transform:scale(.6); pointer-events:none; }
-  .col-items{ flex: 1 1 auto; overflow-y:auto; overflow-x:hidden; min-height:0; }
+  /* The list scrolls with its bar on the column's right edge: pull the scroller over the column's right
+     padding (and give it back inside). The track keeps clear of the rounded corners. */
+  .col-items{ flex: 1 1 auto; overflow-y:auto; overflow-x:hidden; min-height:0; margin-right:-12px; padding-right:12px;
+    transition: margin-right .32s var(--ease), padding-right .32s var(--ease); }
+  .col-items::-webkit-scrollbar-track{ margin: 10px 0; }
+  .m-col.collapsed:not(:hover) .col-items{ margin-right:-8px; padding-right:8px; }
   .col-empty{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
     color: var(--paper-faint); font-size:13px; height:70%; text-align:center; padding: 0 24px;
