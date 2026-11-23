@@ -55,7 +55,40 @@
     return { type:"other", embedUrl:null, originalUrl:url };
   }
 
-  function openVideoModalForItem(tr, item){
+  // Edit-mode title: inline input in the header (same 12-char rule as the old dialog); saved on blur / Enter.
+  function buildVideoTitleInput(tr, item){
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.className = "video-modal-title-input";
+    inp.value = item.title || "";
+    inp.placeholder = t("videoTitlePlaceholder");
+    inp.setAttribute("aria-label", t("videoTitleLabel"));
+    inp.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); inp.blur(); } });
+    inp.addEventListener("blur", function(){
+      var v = inp.value.trim();
+      if(v === (item.title || "")) return;
+      if(!videoTitleFits(v)){ showToast(t("videoTitleTooLong")); inp.value = item.title || ""; return; }
+      item.title = v;
+      saveDB();
+      if(typeof renderDrawer === "function") renderDrawer();
+    });
+    return inp;
+  }
+  // Edit-mode bottom bar: change link / delete (the old link dialog and confirm are reused).
+  function buildVideoEditBar(tr, item){
+    var row = document.createElement("div");
+    row.className = "video-loop-row";
+    var ch = document.createElement("button");
+    ch.type = "button"; ch.className = "btn"; ch.textContent = t("videoEditLink");
+    ch.addEventListener("click", function(){ closeVideoModal(); openMediaModal(tr.id, item.id); });
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "btn btn-danger"; del.textContent = t("videoRemove");
+    del.addEventListener("click", function(){ closeVideoModal(); requestDeleteMedia(tr.id, item.id); });
+    row.appendChild(ch); row.appendChild(del);
+    return row;
+  }
+
+  // canEdit: drawer in edit mode and the user may modify this trick.
+  function openVideoModalForItem(tr, item, canEdit){
     var overlay = document.getElementById("videoModalOverlay");
     var modal = document.getElementById("videoModal");
     var info = getEmbedInfo(item.url);
@@ -64,7 +97,8 @@
 
     var titleBar = document.createElement("div");
     titleBar.className = "video-modal-title";
-    titleBar.textContent = item.title ? (localize(tr.name) + " · " + item.title) : localize(tr.name);
+    if(canEdit) titleBar.appendChild(buildVideoTitleInput(tr, item));
+    else titleBar.textContent = item.title ? (localize(tr.name) + " · " + item.title) : localize(tr.name);
 
     var closeBtn = document.createElement("button");
     closeBtn.type = "button";
@@ -80,7 +114,7 @@
     modal.appendChild(head);
 
     var tools = videoToolsFor(info);
-    var frameWrap = null, iframe = null;
+    var frameWrap = null, iframe = null, player = null;
     if(tools.mirror){
       var mirrorBtn = document.createElement("button");
       mirrorBtn.type = "button";
@@ -130,9 +164,14 @@
         igLink.className = "btn"; igLink.textContent = t("openInInstagram");
         igRow.appendChild(igLink); modal.appendChild(igRow);
       }
-      if(info.type === "youtube" && typeof buildVideoLoopRow === "function"){
-        var loopRow = buildVideoLoopRow(tr, item, iframe);
-        if(loopRow) modal.appendChild(loopRow);
+      if(info.type === "youtube" && typeof createYtPlayer === "function"){
+        player = createYtPlayer(iframe);
+        var kl = !canEdit ? normalizeLoop(item.loop) : null;
+        if(kl){ // view mode: play only the key section
+          player.setLoop(kl);
+          iframe.addEventListener("load", function(){ setTimeout(function(){ player.seekTo(kl.a); player.post("playVideo"); }, 500); });
+        }
+        if(canEdit && typeof buildVideoTimeline === "function") modal.appendChild(buildVideoTimeline(tr, item, player));
       }
     } else {
       var fb = document.createElement("div");
@@ -148,7 +187,7 @@
       }
       modal.appendChild(fb);
     }
-
+    if(canEdit) modal.appendChild(buildVideoEditBar(tr, item));
 
     overlay.classList.add("show");
   }

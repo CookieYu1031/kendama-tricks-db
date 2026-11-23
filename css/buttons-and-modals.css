@@ -163,6 +163,26 @@
   .video-loop-row .btn{ flex:0 0 auto; min-height:34px; padding:0 12px; font-size:13px; }
   .video-loop-row .btn.active{ color: var(--accent-text); border-color: var(--lacquer-bright); }
   .video-loop-range{ flex:1 1 auto; min-width:0; color: var(--paper-dim); font:600 13px var(--font-body); font-variant-numeric: tabular-nums; }
+  .video-modal-title-input{
+    width:100%; min-width:0; background:transparent; border:none; border-bottom:1px dashed var(--line-strong); color: var(--paper);
+    font-family: var(--font-display); font-size:15px; font-weight:700; padding:4px 0; outline:none;
+  }
+  .video-modal-title-input:focus{ border-bottom-color: var(--lacquer-bright); }
+  .video-tl{ padding:8px 14px 0; }
+  .video-tl.disabled{ opacity:.5; pointer-events:none; }
+  .video-tl-track{ position:relative; height:44px; margin:0 14px; touch-action:none; cursor:pointer; }
+  .video-tl-bar{ position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:999px; background: var(--line); }
+  .video-tl-range{ position:absolute; top:50%; height:6px; margin-top:-3px; border-radius:999px; background: var(--lacquer-bright); }
+  .video-tl-range.unset{ opacity:.35; }
+  .video-tl-playhead{ position:absolute; top:6px; bottom:6px; width:2px; margin-left:-1px; background: var(--paper); pointer-events:none; }
+  .video-tl-handle{
+    position:absolute; top:50%; width:28px; height:36px; margin:-18px 0 0 -14px; padding:0; touch-action:none; cursor:ew-resize;
+    display:flex; align-items:center; justify-content:center; font:700 12px var(--font-body); color: var(--accent-text);
+    background: var(--surface-search); border:2px solid var(--lacquer-bright); border-radius: var(--radius-xs);
+  }
+  .video-tl-handle.dragging{ background: var(--lacquer-bright); color: var(--paper); }
+  .video-tl-info{ display:flex; align-items:center; gap:8px; padding:4px 0 2px; }
+  .video-tl-info .btn{ flex:0 0 auto; min-height:34px; padding:0 12px; font-size:13px; }
   .video-frame-wrap.mirrored iframe{ transform: scaleX(-1); }
   .video-fallback{ padding: 40px 30px; text-align:center; }
   .video-fallback svg{ width:30px; height:30px; color: var(--paper-faint); margin-bottom:14px; }

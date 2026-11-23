@@ -50,18 +50,6 @@ test("shouldLoopBack at or after B", () => {
   assert.strictEqual(c.shouldLoopBack(20, 12, 15.8), true);
 });
 
-test("loopSetPoint drops the other end when range inverts", () => {
-  const c = setup();
-  let d = c.loopSetPoint(null, "a", 5.04);
-  assert.deepStrictEqual({ ...d }, { a: 5, b: null });
-  d = c.loopSetPoint(d, "b", 9);
-  assert.deepStrictEqual({ ...d }, { a: 5, b: 9 });
-  d = c.loopSetPoint(d, "a", 10);
-  assert.deepStrictEqual({ ...d }, { a: 10, b: null });
-  d = c.loopSetPoint({ a: 5, b: 9 }, "b", 3);
-  assert.deepStrictEqual({ ...d }, { a: null, b: 3 });
-});
-
 test("setItemLoop stores / clears; changing the url clears the loop", () => {
   const c = setup();
   const it = { id: "m1", type: "video", url: "https://youtu.be/abc" };
@@ -107,4 +95,15 @@ test("YouTube-first ordering keeps loops with their videos; legacy links stay ed
   // changing the url drops the old loop
   c.setDrawerVideoUrl(tr, tr.media[0].id, "https://youtu.be/new");
   assert.strictEqual("loop" in tr.media[0], false);
+});
+
+test("loopSnapTarget: snaps to A past B or before A, else null", () => {
+  const c = setup();
+  assert.strictEqual(c.loopSnapTarget(15, 12, 15.8), null);
+  assert.strictEqual(c.loopSnapTarget(12, 12, 15.8), null);
+  assert.strictEqual(c.loopSnapTarget(11.6, 12, 15.8), null);
+  assert.strictEqual(c.loopSnapTarget(11, 12, 15.8), 12);
+  assert.strictEqual(c.loopSnapTarget(15.8, 12, 15.8), 12);
+  assert.strictEqual(c.loopSnapTarget(40, 12, 15.8), 12);
+  assert.strictEqual(c.loopSnapTarget(undefined, 12, 15.8), null);
 });
