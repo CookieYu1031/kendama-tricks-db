@@ -62,6 +62,7 @@
   function _sStr(v, max){ return typeof v === "string" ? v.slice(0, max) : ""; }
   function _sName(n){ n = n || {}; return { zh: _sStr(n.zh, SHARE_LIMITS.name), jp: _sStr(n.jp, SHARE_LIMITS.name), en: _sStr(n.en, SHARE_LIMITS.name) }; }
   function _sIcon(v){ return typeof v === "string" && (v.length <= 16 || IMAGE_ICON_RE.test(v)) ? v : ""; }
+  function _sColor(v){ return typeof v === "string" ? sanitizeColorKey(v, "") : ""; }
   function _sNum(v){ return typeof v === "number" && isFinite(v) ? v : 0; }
   function _sSafeUrl(u){
     u = _sStr(u, SHARE_LIMITS.url);
@@ -86,7 +87,7 @@
       if(!url || media.length >= SHARE_LIMITS.media) return;
       media.push({ title: _sStr(m.title, SHARE_LIMITS.name), url: url });
     });
-    return { id: _sStr(tr.id, 40), name: _sName(tr.name), media: media, icon: _sIcon(tr.icon), color: _sStr(tr.color, 24),
+    return { id: _sStr(tr.id, 40), name: _sName(tr.name), media: media, icon: _sIcon(tr.icon), color: _sColor(tr.color),
       grip: typeof tr.grip === "string" ? tr.grip : null,
       parts: Array.isArray(tr.parts) ? tr.parts.filter(function(p){ return typeof p === "string"; }).slice(0, 20) : [],
       order: _sNum(tr.order), placements: [] };
@@ -100,7 +101,7 @@
   }
   // Base trick: no copy, just a reference by id (receiver gets it placed in 單招式).
   function shareBuildBaseTrickPayload(tr){
-    return { v: SHARE_VERSION, kind: "trick", name: _sName(tr.name), icon: _sIcon(tr.icon), color: _sStr(tr.color, 24),
+    return { v: SHARE_VERSION, kind: "trick", name: _sName(tr.name), icon: _sIcon(tr.icon), color: _sColor(tr.color),
       cats: [], infos: [], tricks: [], refs: [{ trickId: _sStr(tr.id, 40), c: null, o: null }] };
   }
 
@@ -110,7 +111,7 @@
     var out = { v: SHARE_VERSION, kind: rootKind, name: null, icon: "", color: "default", cats: [], infos: [], tricks: [], refs: [] };
     var byId = {};
     function catOut(c, parentKey){
-      return { id: _sStr(c.id, 40), parentId: parentKey, name: _sName(c.name), order: _sNum(c.order), icon: _sIcon(c.icon), color: _sStr(c.color, 24) };
+      return { id: _sStr(c.id, 40), parentId: parentKey, name: _sName(c.name), order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) };
     }
     function walk(containerId, outKey, spaceId, depth){
       if(depth > 12) return;
@@ -119,7 +120,7 @@
       var infos = containerId === spaceId ? ix.rootInfos.filter(function(n){ return n.spaceId === spaceId; }) : (ix.infosByParent[containerId] || []);
       infos.forEach(function(n){
         out.infos.push({ id: _sStr(n.id, 40), parentId: outKey, title: _sName(n.title), content: _sStr(n.content, SHARE_LIMITS.text),
-          order: _sNum(n.order), icon: _sIcon(n.icon), color: _sStr(n.color, 24) });
+          order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) });
       });
       (ix.tricksByContainer[containerId] || []).forEach(function(tr){
         var ord = tr.orderByCategory && typeof tr.orderByCategory[containerId] === "number" ? tr.orderByCategory[containerId] : null;
@@ -140,7 +141,7 @@
       if(!cat || cat.virtual) return null;
       var sp2 = getSpace(cat.spaceId);
       if(!sp2 || sp2.locked) return null;
-      out.name = _sName(cat.name); out.icon = _sIcon(cat.icon); out.color = _sStr(cat.color, 24) || "default";
+      out.name = _sName(cat.name); out.icon = _sIcon(cat.icon); out.color = _sColor(cat.color) || "default";
       out.cats.push(catOut(cat, null));
       walk(cat.id, cat.id, cat.spaceId, 1);
     }
@@ -161,7 +162,7 @@
     arr(raw.cats, L.cats).forEach(function(c){
       var id = c && uniq(c.id); if(!id) return;
       cats.push({ id: id, parentId: c.parentId == null ? null : _sStr(c.parentId, 40), name: _sName(c.name),
-        order: _sNum(c.order), icon: _sIcon(c.icon), color: _sStr(c.color, 24) || "default" });
+        order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) || "default" });
     });
     arr(raw.tricks, L.tricks).forEach(function(tr){
       var id = tr && uniq(tr.id); if(!id) return;
@@ -173,13 +174,13 @@
     arr(raw.infos, L.infos).forEach(function(n){
       var id = n && uniq(n.id); if(!id) return;
       infos.push({ id: id, parentId: n.parentId == null ? null : _sStr(n.parentId, 40), title: _sName(n.title), content: _sStr(n.content, L.text),
-        order: _sNum(n.order), icon: _sIcon(n.icon), color: _sStr(n.color, 24) || "default" });
+        order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) || "default" });
     });
     arr(raw.refs, L.refs).forEach(function(r){
       if(!r || typeof r.trickId !== "string") return;
       refs.push({ trickId: _sStr(r.trickId, 40), c: r.c == null ? null : _sStr(r.c, 40), o: typeof r.o === "number" && isFinite(r.o) ? r.o : null });
     });
-    var out = { v: SHARE_VERSION, kind: raw.kind, name: _sName(raw.name), icon: _sIcon(raw.icon), color: _sStr(raw.color, 24) || "default",
+    var out = { v: SHARE_VERSION, kind: raw.kind, name: _sName(raw.name), icon: _sIcon(raw.icon), color: _sColor(raw.color) || "default",
       cats: cats, infos: infos, tricks: tricks, refs: refs };
     if(raw.kind === "trick"){
       out.cats = []; out.infos = [];

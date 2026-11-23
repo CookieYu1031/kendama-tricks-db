@@ -157,6 +157,27 @@
     return out;
   }
 
+  // Color values stored on items: a palette key (see COLOR_PALETTE in js/02) or strict "#rrggbb".
+  // Lives here because normalizeDB runs at load time, before js/02.
+  var COLOR_KEYS = ["default","brown","orange","yellow","lime","green","teal","sky","blue","purple","magenta","red","pink","gray"];
+  var HEX6_RE = /^#[0-9a-f]{6}$/i;
+  // "#RGB" / "#RRGGBB" (any case) -> "#rrggbb"; anything else -> "".
+  function normalizeHexColor(v){
+    if(typeof v !== "string") return "";
+    v = v.trim();
+    if(/^#[0-9a-f]{3}$/i.test(v)) v = "#" + v[1]+v[1]+v[2]+v[2]+v[3]+v[3];
+    return HEX6_RE.test(v) ? v.toLowerCase() : "";
+  }
+  function isCustomColor(key){ return typeof key === "string" && HEX6_RE.test(key); }
+  // Valid stored color value: palette/legacy key or strict #rrggbb.
+  function isValidColorKey(key){
+    return isCustomColor(key) || COLOR_KEYS.indexOf(key) !== -1;
+  }
+  // Fallback is "default" for unknown values (never lets arbitrary strings reach CSS).
+  function sanitizeColorKey(key, fallback){
+    if(isCustomColor(key)) return key.toLowerCase();
+    return isValidColorKey(key) ? key : (fallback === undefined ? "default" : fallback);
+  }
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -166,7 +187,7 @@
         name: nameOf(c.name),
         order: typeof c.order === "number" ? c.order : idx,
         icon: c.icon || "",
-        color: c.color || "default",
+        color: sanitizeColorKey(c.color, "default"),
         spaceId: c.spaceId || spaces[0].id
       };
       // v0.9.1: source key of a one-click share copy ("<ownerUid>_<itemId>"), used for dedup.
@@ -183,7 +204,7 @@
         content: typeof n.content === "string" ? n.content : "",
         order: typeof n.order === "number" ? n.order : idx,
         icon: n.icon || "",
-        color: n.color || "default"
+        color: sanitizeColorKey(n.color, "default")
       };
     });
     var tags = (raw.tags||[]).filter(function(g){ return g && g.id; }).map(normalizeTag);
@@ -204,7 +225,7 @@
         orderByCategory: (t.orderByCategory && typeof t.orderByCategory === "object") ? Object.assign({}, t.orderByCategory) : {},
         order: typeof t.order === "number" ? t.order : idx,
         icon: t.icon || "",
-        color: t.color || "",
+        color: t.color ? sanitizeColorKey(t.color, "") : "",
         tagIds: Array.isArray(t.tagIds) ? t.tagIds.slice() : [],
         grip: GRIP_KEYS.indexOf(t.grip) !== -1 ? t.grip : null,
         parts: Array.isArray(t.parts) ? PART_KEYS.filter(function(k){ return t.parts.indexOf(k) !== -1; }) : [],

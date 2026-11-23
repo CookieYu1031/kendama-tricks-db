@@ -183,7 +183,6 @@
     /* Parent level, rendered under the current one so the swipe-back can reveal it. */
     .miller-wrap{ position:relative; }
     .m-col.mobile-under{ display:block; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto; visibility:hidden; pointer-events:none; }
-    .miller-wrap.swipe-live .m-col.mobile-under{ visibility:visible; }
   }
 
   /* Cross-column drag target: highlights the whole column when a long-pressed
