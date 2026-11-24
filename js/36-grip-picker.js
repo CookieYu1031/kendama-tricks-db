@@ -4,17 +4,17 @@
      GRIP PICKER — shared 握持手勢 widget (two levels, ONE value).
      Rows = GRIP_GROUPS (js/01): left a category HEADER (not clickable), right its sub-grip chips.
      Only sub-grips are selectable; category values stay valid data (gripMatches) but are never picked here.
-     Tapping the selected chip clears. Layout switches by CONTAINER width (css/grip.css container query).
+     Tapping the selected chip clears. One layout: category header + 4 columns (css/grip.css).
      Used by the search panel (js/62), drawer edit mode (js/31) and the add modal (js/47).
      The ⓘ link opens the grip info page (js/48).
   ============================================================ */
   addStrings({
-    zh:{ gripTitle:"起始握持", gripTitleShort:"握持" },
-    jp:{ gripTitle:"開始時の持ち方", gripTitleShort:"持ち方" },
-    en:{ gripTitle:"Starting grip", gripTitleShort:"Grip" }
+    zh:{ gripTitle:"起始握持" },
+    jp:{ gripTitle:"開始時の持ち方" },
+    en:{ gripTitle:"Starting grip" }
   });
 
-  var GRIP_COLS = 4;  // narrow layout: sub-chips per row (4 equal columns)
+  var GRIP_COLS = 4;  // sub-chips per row (4 equal columns)
 
   // opts: { value, onChange(value|null), allowNone (default true) }. The element has
   // .setValue(v) to re-sync from outside (class-tag overwrite) and .getValue(); onChange is NOT fired by setValue.
@@ -43,19 +43,18 @@
       btns[k] = b;
       return b;
     }
-    function mkInfo(cls, label, withIcon){
+    function mkInfo(){
       var info = document.createElement("button");
       info.type = "button";
-      info.className = "grip-info-link " + cls;
-      info.textContent = withIcon === "after" ? label + " ⓘ" : "ⓘ " + label;
+      info.className = "grip-info-link grip-info-title";
+      info.textContent = t("gripTitle") + " ⓘ";
       info.addEventListener("click", function(ev){
         ev.stopPropagation();
         if(typeof openGripInfo === "function") openGripInfo();
       });
       return info;
     }
-    // Narrow layout: title above the frame ("起始握持 ⓘ"). Wide layout: last cell of row 2 ("ⓘ 握持"). CSS shows one.
-    box.appendChild(mkInfo("grip-info-title", t("gripTitle"), "after"));
+    box.appendChild(mkInfo()); // "起始握持 ⓘ" above the frame
     var frame = document.createElement("div");
     frame.className = "grip-frame";
     GRIP_GROUPS.forEach(function(g){
@@ -74,7 +73,6 @@
       grp.appendChild(subs);
       frame.appendChild(grp);
     });
-    frame.appendChild(mkInfo("grip-info-cell", t("gripTitleShort"), "before"));
     box.appendChild(frame);
     function sync(){
       Object.keys(btns).forEach(function(k){ btns[k].classList.toggle("active", value === k); });

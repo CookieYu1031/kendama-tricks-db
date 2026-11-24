@@ -1,8 +1,5 @@
 /* 握持手勢 picker (js/36-grip-picker.js) and info page (js/48-modal-grip-info.js). */
-  /* Two layouts picked by the picker's OWN width (container query, so it also works inside the drawer / modals):
-     narrow (< 700px) = title above the frame + 4-column grid; wide (>= 700px) = two rows, ⓘ is the last cell of row 2.
-     700px = the ken row (category + 8 uniform chips, ~72px each) plus frame padding. */
-  .grip-picker{ container-type:inline-size; container-name:grip; }
+  /* One layout everywhere: title above the frame, then category header + 4 sub-grip columns. */
   .grip-frame{
     display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:6px;
     padding:8px; border:1px solid var(--glass-border); border-radius: var(--radius-sm); align-items:stretch;
@@ -26,16 +23,6 @@
   }
   .grip-info-link:hover{ color: var(--accent-text); }
   .grip-info-title{ display:block; margin:0 0 4px; }
-  .grip-info-cell{ display:none; }
-  @container grip (min-width: 700px){
-    /* One 9-column grid, every cell the same width and height: row 1 = 持劍 + 8, row 2 = 持球 + 2, 持線 + 4, ⓘ.
-       So 持線 sits under 蠟燭. A label longer than the uniform width widens its whole column (max-content). */
-    .grip-frame{ grid-template-columns: repeat(9, minmax(max-content, 1fr)); gap:6px; align-items:stretch; padding:8px 10px; }
-    .grip-cat{ grid-row:auto !important; grid-column:auto; }
-    .grip-picker .drawer-chip{ white-space:nowrap; padding:4px 8px; }
-    .grip-info-title{ display:none; }
-    .grip-info-cell{ display:flex; align-items:center; justify-content:center; }
-  }
 
   /* Info page: one scrollable window, three tables. */
   #gripInfoOverlay{ z-index: 75; }

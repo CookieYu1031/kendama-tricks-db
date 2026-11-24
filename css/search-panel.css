@@ -31,7 +31,6 @@
   .search-panel .drawer-chip-row{ margin-bottom:0; row-gap:8px; }
   .search-panel .drawer-chip{ white-space:nowrap; font-size:12px; padding:4px 11px; }
   .search-panel .grip-picker .drawer-chip{ white-space:normal; padding:4px 2px; }
-  @media (min-width: 861px){ .search-panel .grip-picker .drawer-chip{ white-space:nowrap; } }
   /* Conditions, top to bottom: grip picker (js/36), part diagram centered with the match-mode toggle beside it, class chips. */
   .search-section{ display:flex; flex-direction:column; gap:12px; }
   .search-grip-group{ min-width:0; }
@@ -48,6 +47,18 @@
   @media (max-width: 600px){
     .search-panel .part-diagram-box{ width:150px; }
     .search-class-row{ max-height:150px; }
+  }
+  /* Wide panel (own width): [grip picker][part diagram] side by side; match-mode toggle and class chips under the picker. */
+  .search-panel{ container-type:inline-size; container-name:search; }
+  @container search (min-width: 620px){
+    .search-section{ display:grid; grid-template-columns: minmax(0,1fr) 250px; gap:10px 20px; align-items:start; }
+    .search-parts-block{ display:contents; }
+    .search-grip-group{ grid-column:1; grid-row:1; }
+    #searchPartsRow{ grid-column:2; grid-row:1 / span 2; justify-content:center; }
+    .search-parts-block .search-label-row{ position:static; grid-column:1; grid-row:2; justify-self:end; }
+    .search-class-box{ grid-column:1; grid-row:2; padding-top:6px; }
+    .search-class-box .search-label{ min-height:24px; }
+    .search-panel .part-diagram-box{ width:250px; }
   }
   .search-seg-sm{ flex:0 1 auto; width:auto; max-width:100%; flex-wrap:wrap; justify-content:flex-start; }
   .search-seg-sm .lang-btn{ flex:0 0 auto; white-space:nowrap; font-size:12px; padding:4px 10px; min-width:0; }
