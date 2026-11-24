@@ -77,7 +77,7 @@
       var itemsWrap = document.createElement("div");
       itemsWrap.className = "col-items";
 
-      if(items.length > 1 && !collapsed) colEl.appendChild(buildColSortBar(key));
+      colEl.appendChild(buildColSortBar(key, colSortBarKind(items.length, collapsed))); // always present: placeholder keeps rows aligned
       if(items.length === 0){
         var empty = document.createElement("div");
         empty.className = "col-empty";
@@ -219,7 +219,8 @@
   // exactly the same wherever it's presented.
   var ICON_INFO_ROW = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>';
 
-  function buildItemVisual(it){
+  // parentId (column container, null = table root) enables the prefix; omit it (grid, ghost rows) for none.
+  function buildItemVisual(it, parentId){
     var hasChildren = it.type==="trick" && trickHasChildren(it.id);
 
     var icon = document.createElement("div");
@@ -259,7 +260,13 @@
     textWrap.className = "item-text";
     var nameEl = document.createElement("div");
     nameEl.className = "item-name";
-    nameEl.textContent = localize(it.name);
+    var pfx = parentId !== undefined ? itemPrefix(it, parentId) : "";
+    if(pfx){
+      var pfxEl = document.createElement("span");
+      pfxEl.className = "item-prefix"; pfxEl.textContent = pfx;
+      nameEl.appendChild(pfxEl);
+    }
+    nameEl.appendChild(document.createTextNode(localize(it.name)));
     textWrap.appendChild(nameEl);
 
     var metaEl = document.createElement("div");
@@ -306,14 +313,15 @@
   }
 
   function renderItemRow(it, parentId, colIndex, itemIdx, sortedItems, noDrag){
-    var visual = buildItemVisual(it);
+    var visual = buildItemVisual(it, parentId);
     var hasChildren = visual.hasChildren;
     var isDrillable = it.type==="category" || hasChildren;
 
     var row = document.createElement("div");
     var isCurrentTrick = it.type==="trick" && state.detailTrickId===it.id;
     row.className = "item" + (it.type==="trick" && it.ref.custom ? " custom" : "") + ((isDrillable && state.path[colIndex]===it.id) || isCurrentTrick ? " selected" : "");
-    row.title = localize(it.name);
+    var rowPfx = itemPrefix(it, parentId);
+    row.title = (rowPfx ? rowPfx + " " : "") + localize(it.name);
     row.dataset.itemId = it.id;
     row.dataset.itemType = it.type;
 
@@ -379,7 +387,7 @@
         // otherwise a previously-opened sibling's extension column would linger.
         state.path = hasChildren ? state.path.slice(0, colIndex).concat(it.id) : state.path.slice(0, colIndex);
         invalidateDbIndex();
-        openDrawerFor(it.id); // re-renders columns + drawer itself
+        openDrawerFor(it.id, orderKeyFor(parentId)); // re-renders columns + drawer itself
       });
     }
 

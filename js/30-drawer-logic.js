@@ -25,6 +25,30 @@
     return ["zh", "jp", "en"].filter(function(l){ return l !== main; });
   }
   function trickIdLabel(tr){ return "@" + tr.id; }
+  // Which placement (container key, as in orderByCategory) the open trick's prefix belongs to.
+  // Recorded key (state.detailContainerKey) if still a placement; a virtual favorites list -> null;
+  // else deepest state.path entry holding the trick, the active table, any container in the active table.
+  function resolveDrawerContainer(tr){
+    if(!tr) return null;
+    var ids = tr.categoryIds || [], rec = state.detailContainerKey;
+    if(rec && ids.indexOf(rec) !== -1) return rec;
+    if(rec === FAV_STARRED_ID || rec === FAV_CUSTOM_ID) return null;
+    var path = state.path || [];
+    for(var i = path.length - 1; i >= 0; i--){
+      if(ids.indexOf(path[i]) !== -1) return path[i];
+    }
+    if(ids.indexOf(state.activeSpace) !== -1) return state.activeSpace;
+    for(var j = 0; j < ids.length; j++){
+      if(containerSpaceId(ids[j]) === state.activeSpace) return ids[j];
+    }
+    return null;
+  }
+  // Prefix-only editing of an official trick placed in the user's own (unlocked) list.
+  function drawerPrefixOnly(key, editMode, guest, canEditTrick){
+    if(!key || !editMode || guest || canEditTrick) return false;
+    var sp = getSpace(containerSpaceId(key));
+    return !!sp && !sp.locked;
+  }
   // Single-select grip (category or sub-grip, js/01 GRIP_KEYS; tap the selected one again to clear).
   function toggleGrip(tr, key){
     tr.grip = (tr.grip === key || GRIP_KEYS.indexOf(key) === -1) ? null : key;

@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("../_load");
 
 function setup(){
-  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/05-data-prefix.js",
     "js/07-id.js", "js/09-names.js", "js/20-browse-order.js", "js/30-drawer-logic.js", "js/31-drawer-sections.js", "js/32-trick-drawer.js", "js/47-modal-add.js"]);
   ctx.saveDB = () => {};
   const nm = (z) => ({ zh: z, jp: "", en: "" });
@@ -211,3 +211,20 @@ test("createTrickRecord keeps all three names plus grip and parts", () => {
   assert.ok(Array.isArray(rec.parts));
 });
 
+
+test("prefix: folder, trick and linked placement get their prefix (normalized)", () => {
+  const c = setup(); lock(c, false);
+  const f = c.createFolderRecord("c1", "t00", { zh: "新", prefix: "  1-2  " });
+  assert.strictEqual(c.getCategoryPrefix(f), "1-2");
+  assert.strictEqual(c.getCategoryPrefix(c.createFolderRecord("c1", "t00", { zh: "無" })), "");
+  const tr = c.createTrickRecord("c2", "t00", { zh: "招", prefix: "A" + "b".repeat(20) }, false);
+  assert.strictEqual(c.getTrickPrefix(tr, "c2").length, c.PREFIX_MAX);
+  const root = c.createTrickRecord(null, "t00", { zh: "根", prefix: "7" }, false);
+  assert.strictEqual(c.getTrickPrefix(root, "t00"), "7");
+  assert.strictEqual(c.createTrickRecord("c2", "t00", { zh: "x" }, false).prefixByCategory, undefined);
+  c.linkTrickInto("d000000", "c2", "t00", "9");
+  assert.strictEqual(c.getTrickPrefix(c.getTrick("d000000"), "c2"), "9");
+  assert.strictEqual(c.getTrickPrefix(c.getTrick("d000000"), "c3"), "");
+  c.linkTrickInto("a000000", "c2", "t00", "");
+  assert.strictEqual(c.getTrick("a000000").prefixByCategory, undefined);
+});

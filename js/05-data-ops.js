@@ -58,7 +58,8 @@
     }
     var idx = tr.categoryIds.indexOf(containerId);
     if(idx !== -1) tr.categoryIds.splice(idx, 1);
-    delete tr.orderByCategory[containerId];
+    if(tr.orderByCategory) delete tr.orderByCategory[containerId];
+    if(typeof setTrickPrefix === "function") setTrickPrefix(tr, containerId, ""); // the placement's prefix goes with it
     if(tr.categoryIds.length){ saveDB(); return; }
     // last placement gone -> delete the entity
     var pos = db.tricks.indexOf(tr);
@@ -69,6 +70,22 @@
     });
     if(db.infos) db.infos = db.infos.filter(function(n){ return n.parentId !== trickId; });
     saveDB();
+  }
+
+  // Data part of deleting a list: the list, its sub-lists and their info items go; every trick
+  // placement inside is removed (a trick vanishes with its last placement). No UI / state.path.
+  // Returns the ids of all removed lists (the tree also covers tricks used as containers; those are not listed).
+  function deleteCategoryTree(categoryId){
+    var idsToRemove = getDescendantCategoryIds(categoryId);
+    var catIds = idsToRemove.filter(function(id){ return !!getCategory(id); });
+    var placements = [];
+    db.tricks.forEach(function(tr){
+      tr.categoryIds.forEach(function(cid){ if(idsToRemove.indexOf(cid) !== -1) placements.push([tr.id, cid]); });
+    });
+    db.categories = db.categories.filter(function(c){ return idsToRemove.indexOf(c.id) === -1; });
+    db.infos = (db.infos || []).filter(function(n){ return idsToRemove.indexOf(n.parentId) === -1; });
+    placements.forEach(function(p){ removeTrickPlacement(p[0], p[1]); });
+    return catIds;
   }
 
   /* ---------------- Levels (B3) ---------------- */

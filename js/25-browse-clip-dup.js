@@ -49,6 +49,8 @@
       db.tricks.push(rec);
       invalidateDbIndex();
       newId = rec.id;
+      var dupPfx = clipPfxGet(getTrick(clip.id), clipKey(parent, space)); // same level: same prefix
+      if(dupPfx) clipPfxSet(rec, clipKey(parent, space), dupPfx);
     } else {
       newId = clipApplyPaste(clip, parent, plan, env);
     }
@@ -63,9 +65,10 @@
     var plans = clips.map(function(c){ return clipPlanDup(c, env); });
     var cnt = clipBatchCounts(plans);
     clipInvalidate(); // the next Ctrl+V is a normal paste
-    if(!cnt.ok) return clipToast(plans[0] ? plans[0].err : "clipEmpty");
+    if(!cnt.ok){ clipToast(plans[0] ? plans[0].err : "clipEmpty"); return false; }
     if(typeof undoPush === "function") undoPush();
     clips.forEach(function(c, i){ if(plans[i].ok) clipApplyDup(c, plans[i], env); });
     if(clips.length > 1) clipNToast("clipPastedN", cnt.ok, cnt.skipped); else clipToast("clipPasted");
     render();
+    return true;
   }

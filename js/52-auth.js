@@ -81,17 +81,33 @@
     showNicknameError("");
   }
 
+  // Pure: photo URLs to try in order (the account's, then the sign-in provider's newer ones), no duplicates.
+  function avatarSources(user){
+    var out = [];
+    if(!user) return out;
+    [user].concat(user.providerData || []).forEach(function(p){
+      if(p && p.photoURL && out.indexOf(p.photoURL) === -1) out.push(p.photoURL);
+    });
+    return out;
+  }
   function applyAvatar(imgEl, fallbackEl){
-    if(authCurrentUser && authCurrentUser.photoURL){
-      imgEl.src = authCurrentUser.photoURL;
-      imgEl.hidden = false;
-      fallbackEl.textContent = "";
-    } else {
-      imgEl.hidden = true;
-      imgEl.src = "";
-      var initial = ((authCurrentUser && (authCurrentUser.displayName || authCurrentUser.email)) || "?").trim().charAt(0).toUpperCase();
-      fallbackEl.textContent = initial;
+    var srcs = avatarSources(authCurrentUser), i = 0;
+    var initial = ((authCurrentUser && (authCurrentUser.displayName || authCurrentUser.email)) || "?").trim().charAt(0).toUpperCase();
+    function next(){
+      if(i < srcs.length){
+        imgEl.src = srcs[i++];
+        imgEl.hidden = false;
+        fallbackEl.textContent = "";
+      } else {
+        imgEl.onerror = null;
+        imgEl.hidden = true;
+        imgEl.removeAttribute("src");
+        fallbackEl.textContent = initial;
+      }
     }
+    imgEl.referrerPolicy = "no-referrer"; // Google photo hosts may refuse requests that carry a referrer
+    imgEl.onerror = next;
+    next();
   }
 
   function renderAuthUI(){

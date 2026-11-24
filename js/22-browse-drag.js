@@ -99,6 +99,10 @@
     var idx = it.ref.categoryIds.indexOf(sourceKey);
     if(idx !== -1) it.ref.categoryIds.splice(idx, 1);
     if(it.ref.categoryIds.indexOf(targetKey) === -1) it.ref.categoryIds.push(targetKey);
+    if(sourceKey !== targetKey && typeof getTrickPrefix === "function"){ // the prefix follows the placement
+      var pfx = getTrickPrefix(it.ref, sourceKey);
+      if(pfx){ setTrickPrefix(it.ref, targetKey, pfx); setTrickPrefix(it.ref, sourceKey, ""); }
+    }
   }
 
   function clearAllDragIndicators(){

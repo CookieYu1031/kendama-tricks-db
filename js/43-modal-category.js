@@ -47,14 +47,14 @@
 
   var ICON_TARGET_ELS = {
     space:    { swatch:"spaceIconSwatch",        text:"spaceIconPreviewText" },
-    category: { swatch:"iconColorSwatch",        text:"iconColorPreviewText" }
+    category: { swatch:"iconColorSwatch",        text:null } // icon only
   };
   function updateIconColorPreview(target){
     target = target || "category";
     var els = ICON_TARGET_ELS[target] || ICON_TARGET_ELS.category;
     var swatch = document.getElementById(els.swatch);
-    var text = document.getElementById(els.text);
-    if(!swatch || !text) return;
+    var text = els.text ? document.getElementById(els.text) : null;
+    if(!swatch) return;
     var colorKey = getDraftColor(target);
     var hex = colorHex(colorKey);
     swatch.style.background = hexToRgba(hex, 0.22);
@@ -62,7 +62,7 @@
     var icon = getDraftIcon(target);
     swatch.classList.toggle("img-icon", isImageIcon(icon));
     swatch.innerHTML = iconHtml(icon, target==="space" ? ICON_EMPTY : ICON_LIST);
-    text.textContent = t("chooseIconColor");
+    if(text) text.textContent = t("chooseIconColor");
   }
 
   function openCategoryModal(categoryId, parentHint){
@@ -80,15 +80,18 @@
       document.getElementById("catZh").value = cat.name.zh || "";
       document.getElementById("catJp").value = cat.name.jp || "";
       document.getElementById("catEn").value = cat.name.en || "";
+      document.getElementById("catPrefix").value = getCategoryPrefix(cat);
       state.categoryDraftIcon = cat.icon || "";
       state.categoryDraftColor = cat.color || "default";
     } else {
       document.getElementById("catZh").value = "";
       document.getElementById("catJp").value = "";
       document.getElementById("catEn").value = "";
+      document.getElementById("catPrefix").value = "";
       state.categoryDraftIcon = "";
       state.categoryDraftColor = "default";
     }
+    document.getElementById("catPrefix").maxLength = PREFIX_MAX;
     updateIconColorPreview("category");
 
     overlay.classList.add("show");
@@ -294,6 +297,7 @@
     var zh = document.getElementById("catZh").value.trim();
     var jp = document.getElementById("catJp").value.trim();
     var en = document.getElementById("catEn").value.trim();
+    var prefix = document.getElementById("catPrefix").value;
     var parentVal = state.editingCategoryId ? getCategory(state.editingCategoryId).parentId : (state.editingCategoryParentHint || null);
 
     if(!zh){
@@ -320,9 +324,12 @@
       cat.name = { zh:zh, jp:jp, en:en };
       cat.icon = state.categoryDraftIcon;
       cat.color = state.categoryDraftColor;
+      setCategoryPrefix(cat, prefix);
     } else {
       var siblingCount = getChildren(parentVal).length;
-      db.categories.push({ id: newItemId(), parentId: parentVal, name:{ zh:zh, jp:jp, en:en }, order: siblingCount, icon: state.categoryDraftIcon, color: state.categoryDraftColor, spaceId: state.activeSpace });
+      var rec = { id: newItemId(), parentId: parentVal, name:{ zh:zh, jp:jp, en:en }, order: siblingCount, icon: state.categoryDraftIcon, color: state.categoryDraftColor, spaceId: state.activeSpace };
+      setCategoryPrefix(rec, prefix);
+      db.categories.push(rec);
     }
     saveDB();
     closeCategoryModal();
@@ -334,14 +341,7 @@
     var cat = getCategory(categoryId);
     if(!cat || cat.virtual || isFixedFavFolder(categoryId)) return; // fixed 收藏 folders can't be deleted
     openConfirm(t("confirmDeleteCategoryTitle"), t("confirmDeleteCategoryBody"), function(){
-      var idsToRemove = getDescendantCategoryIds(categoryId);
-      var placements = [];
-      db.tricks.forEach(function(tr){
-        tr.categoryIds.forEach(function(cid){ if(idsToRemove.indexOf(cid) !== -1) placements.push([tr.id, cid]); });
-      });
-      db.categories = db.categories.filter(function(c){ return idsToRemove.indexOf(c.id) === -1; });
-      db.infos = (db.infos || []).filter(function(n){ return idsToRemove.indexOf(n.parentId) === -1; });
-      placements.forEach(function(p){ removeTrickPlacement(p[0], p[1]); });
+      var idsToRemove = deleteCategoryTree(categoryId); // data only (js/05-data-ops.js)
       // trim path at the first removed ancestor (keeps everything above the deleted branch)
       var cutIdx = state.path.findIndex(function(id){ return idsToRemove.indexOf(id) !== -1; });
       if(cutIdx !== -1) state.path = state.path.slice(0, cutIdx);

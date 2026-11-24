@@ -111,8 +111,12 @@
     var out = { v: SHARE_VERSION, kind: rootKind, name: null, icon: "", color: "default", cats: [], infos: [], tricks: [], refs: [] };
     var byId = {};
     function catOut(c, parentKey){
-      return { id: _sStr(c.id, 40), parentId: parentKey, name: _sName(c.name), order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) };
+      var o = { id: _sStr(c.id, 40), parentId: parentKey, name: _sName(c.name), order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) };
+      var pf = normalizePrefix(c.prefix);
+      if(pf) o.prefix = pf;
+      return o;
     }
+    function pObj(base, pf){ if(pf) base.p = pf; return base; } // prefix only when non-empty
     function walk(containerId, outKey, spaceId, depth){
       if(depth > 12) return;
       var kids = containerId === spaceId ? ix.rootCats.filter(function(c){ return c.spaceId === spaceId; }) : (ix.catsByParent[containerId] || []);
@@ -124,10 +128,11 @@
       });
       (ix.tricksByContainer[containerId] || []).forEach(function(tr){
         var ord = tr.orderByCategory && typeof tr.orderByCategory[containerId] === "number" ? tr.orderByCategory[containerId] : null;
-        if(shareIsBaseTrick(tr)){ out.refs.push({ trickId: tr.id, c: outKey, o: ord }); return; }
+        var tp = normalizePrefix(getTrickPrefix(tr, containerId));
+        if(shareIsBaseTrick(tr)){ out.refs.push(pObj({ trickId: tr.id, c: outKey, o: ord }, tp)); return; }
         var first = !byId[tr.id];
         if(first){ byId[tr.id] = shareTrickOut(tr); out.tricks.push(byId[tr.id]); }
-        byId[tr.id].placements.push({ c: outKey, o: ord });
+        byId[tr.id].placements.push(pObj({ c: outKey, o: ord }, tp));
         if(first) walk(tr.id, tr.id, spaceId, depth + 1);
       });
     }
@@ -161,14 +166,22 @@
     var cats = [], infos = [], tricks = [], refs = [];
     arr(raw.cats, L.cats).forEach(function(c){
       var id = c && uniq(c.id); if(!id) return;
-      cats.push({ id: id, parentId: c.parentId == null ? null : _sStr(c.parentId, 40), name: _sName(c.name),
-        order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) || "default" });
+      var co = { id: id, parentId: c.parentId == null ? null : _sStr(c.parentId, 40), name: _sName(c.name),
+        order: _sNum(c.order), icon: _sIcon(c.icon), color: _sColor(c.color) || "default" };
+      var cp = normalizePrefix(c.prefix);
+      if(cp) co.prefix = cp;
+      cats.push(co);
     });
     arr(raw.tricks, L.tricks).forEach(function(tr){
       var id = tr && uniq(tr.id); if(!id) return;
       var o = shareTrickOut(Object.assign({}, tr, { id: id }));
       o.placements = arr(tr.placements, 20).filter(function(p){ return p && typeof p === "object"; })
-        .map(function(p){ return { c: p.c == null ? null : _sStr(p.c, 40), o: typeof p.o === "number" && isFinite(p.o) ? p.o : null }; });
+        .map(function(p){
+          var po = { c: p.c == null ? null : _sStr(p.c, 40), o: typeof p.o === "number" && isFinite(p.o) ? p.o : null };
+          var pp = normalizePrefix(p.p);
+          if(pp) po.p = pp;
+          return po;
+        });
       tricks.push(o);
     });
     arr(raw.infos, L.infos).forEach(function(n){
@@ -178,7 +191,10 @@
     });
     arr(raw.refs, L.refs).forEach(function(r){
       if(!r || typeof r.trickId !== "string") return;
-      refs.push({ trickId: _sStr(r.trickId, 40), c: r.c == null ? null : _sStr(r.c, 40), o: typeof r.o === "number" && isFinite(r.o) ? r.o : null });
+      var ro = { trickId: _sStr(r.trickId, 40), c: r.c == null ? null : _sStr(r.c, 40), o: typeof r.o === "number" && isFinite(r.o) ? r.o : null };
+      var rp = normalizePrefix(r.p);
+      if(rp) ro.p = rp;
+      refs.push(ro);
     });
     var out = { v: SHARE_VERSION, kind: raw.kind, name: _sName(raw.name), icon: _sIcon(raw.icon), color: _sColor(raw.color) || "default",
       cats: cats, infos: infos, tricks: tricks, refs: refs };
@@ -238,9 +254,9 @@
     }));
     out.infos = (p.infos || []).map(function(n){ return Object.assign({}, n, { parentId: par(n && n.parentId) }); });
     out.tricks = (p.tricks || []).map(function(tr){
-      return Object.assign({}, tr, { placements: (Array.isArray(tr.placements) ? tr.placements : []).map(function(pl){ return { c: par(pl && pl.c), o: pl && pl.o }; }) });
+      return Object.assign({}, tr, { placements: (Array.isArray(tr.placements) ? tr.placements : []).map(function(pl){ return { c: par(pl && pl.c), o: pl && pl.o, p: pl && pl.p }; }) });
     });
-    out.refs = (p.refs || []).map(function(r){ return { trickId: r && r.trickId, c: par(r && r.c), o: r && r.o }; });
+    out.refs = (p.refs || []).map(function(r){ return { trickId: r && r.trickId, c: par(r && r.c), o: r && r.o, p: r && r.p }; });
     return out;
   }
 
@@ -254,7 +270,10 @@
     p.tricks.forEach(function(tr){ map[tr.id] = idGen(); });
     function dest(c){ return c == null ? rootParentId : map[c]; }
     var cats = p.cats.map(function(c){
-      return { id: map[c.id], parentId: dest(c.parentId), name: c.name, order: c.order, icon: c.icon, color: c.color, spaceId: targetSpaceId };
+      var o = { id: map[c.id], parentId: dest(c.parentId), name: c.name, order: c.order, icon: c.icon, color: c.color, spaceId: targetSpaceId };
+      var cp = normalizePrefix(c.prefix);
+      if(cp) o.prefix = cp;
+      return o;
     });
     var infos = p.infos.map(function(n){
       return { id: idGen(), parentId: dest(n.parentId), spaceId: targetSpaceId, title: n.title, content: n.content,
@@ -262,19 +281,23 @@
     });
     var isTrick = p.kind === "trick";
     var tricks = p.tricks.map(function(tr){
-      var ids = [], obc = {};
+      var ids = [], obc = {}, pbc = {};
       if(isTrick) ids.push(rootParentId);
       tr.placements.forEach(function(pl){
         var d = dest(pl.c);
         if(!d || ids.indexOf(d) !== -1) return;
         ids.push(d);
         if(pl.o !== null) obc[d] = pl.o;
+        if(pl.p) pbc[d] = pl.p;
       });
-      return { id: map[tr.id], name: tr.name, media: tr.media.map(function(m){ return { id: idGen(), type: "video", title: m.title, url: m.url }; }),
+      var rt = { id: map[tr.id], name: tr.name, media: tr.media.map(function(m){ return { id: idGen(), type: "video", title: m.title, url: m.url }; }),
         categoryIds: ids, orderByCategory: obc, order: tr.order, icon: tr.icon, color: tr.color, grip: tr.grip, parts: tr.parts, custom: false };
+      var pm = normalizePrefixMap(pbc);
+      if(pm) rt.prefixByCategory = pm;
+      return rt;
     });
     var refs = p.refs.filter(function(r){ return hasTrick(r.trickId) && dest(r.c); })
-      .map(function(r){ return { trickId: r.trickId, containerId: dest(r.c), order: r.o }; });
+      .map(function(r){ return { trickId: r.trickId, containerId: dest(r.c), order: r.o, prefix: normalizePrefix(r.p) }; });
     var rootId = null;
     if(isTrick) rootId = tricks.length ? tricks[0].id : (refs.length ? refs[0].trickId : null);
     else p.cats.some(function(c){ if(c.parentId == null){ rootId = map[c.id]; return true; } return false; });
@@ -331,6 +354,7 @@
       if(!tr) return;
       if(tr.categoryIds.indexOf(r.containerId) === -1) tr.categoryIds.push(r.containerId);
       if(r.order !== null){ tr.orderByCategory = tr.orderByCategory || {}; tr.orderByCategory[r.containerId] = r.order; }
+      if(r.prefix) setTrickPrefix(tr, r.containerId, r.prefix);
     });
     saveDB();
     return { ok: true, dup: false, truncated: sx.dropped > 0, nav: { kind: isTrick ? "trick" : "folder", id: rec.rootId } };
