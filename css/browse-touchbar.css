@@ -16,42 +16,41 @@
   /* paste target column */
   .m-col.paste-target{ box-shadow: inset 0 0 0 2px var(--lacquer-bright), var(--shadow-sm), var(--glass-highlight); }
 
-  /* floating toolbar over the topbar */
+  /* floating toolbar over the topbar: frosted glass like .modal, capsule buttons like .btn (icons only) */
   .touchbar{
-    position:fixed; z-index:50; top: calc(var(--safe-t, 0px) + 6px); left:50%; height:52px;
-    width: min(520px, calc((100vw / var(--ui-zoom)) - 24px));
-    display:flex; align-items:center; gap:6px; padding: 0 6px 0 14px;
-    border:1px solid var(--glass-border); border-radius: var(--radius);
-    background: var(--surface-search, var(--glass-2)); color: var(--paper);
+    position:fixed; z-index:50; top: calc(var(--safe-t, 0px) + 5px); left:50%; height:54px;
+    max-width: calc((100vw / var(--ui-zoom)) - 16px);
+    display:flex; align-items:center; gap:6px; padding: 0 5px 0 16px;
+    border:1px solid var(--glass-border-strong); border-radius:999px; color: var(--paper);
+    background: linear-gradient(165deg, var(--surface-modal-a), var(--surface-modal-b));
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: var(--shadow-lg), var(--glass-highlight);
-    backdrop-filter: var(--glass-blur-soft); -webkit-backdrop-filter: var(--glass-blur-soft);
     transform: translate(-50%, calc(-100% - var(--safe-t, 0px) - 12px)); opacity:0; visibility:hidden;
     transition: transform .25s var(--ease), opacity .25s var(--ease), visibility 0s linear .25s;
   }
   .touchbar.show{ transform: translate(-50%, 0); opacity:1; visibility:visible; transition-delay: 0s; }
-  .tb-text{
-    flex:1 1 auto; min-width:0; font-size:12px; line-height:15px; color: var(--paper-dim);
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-  }
+  .tb-text{ flex:0 0 auto; margin-right:6px; font-size:13.5px; font-weight:600; white-space:nowrap; }
   .tb-btn{
-    flex:0 0 auto; min-width:44px; height:44px; padding: 0 10px; display:flex; align-items:center; justify-content:center; gap:6px;
-    border:1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--glass-2); color: var(--paper);
-    font-size:12px; font-weight:600; cursor:pointer; transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), opacity .15s var(--ease);
+    flex:0 0 auto; width:56px; height:42px; padding:0; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--glass-border); border-radius:999px; color: var(--paper); cursor:pointer;
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1)); box-shadow: var(--glass-highlight);
+    transition: background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), opacity .18s var(--ease);
   }
-  .tb-btn svg{ width:18px; height:18px; flex:0 0 auto; }
+  .tb-btn svg{ width:18px; height:18px; display:block; flex:0 0 auto; }
   .tb-btn:disabled{ opacity:.4; cursor:default; }
-  .tb-btn:not(:disabled):active{ background: var(--glass-3); border-color: var(--lacquer-bright); }
+  .tb-btn:not(:disabled):active{ background: var(--glass-3); border-color: var(--glass-border-strong); }
   .tb-btn.tb-danger:not(:disabled):active{ background: var(--danger); border-color: var(--danger); color:#fff; }
   @media (hover:hover){
-    .tb-btn:not(:disabled):hover{ border-color: var(--lacquer-bright); }
+    .tb-btn:not(:disabled):hover{ background: var(--glass-3); }
     .tb-btn.tb-danger:not(:disabled):hover{ background: var(--danger); border-color: var(--danger); color:#fff; }
   }
-  .tb-btn.tb-close{ border-color:transparent; background:transparent; padding:0; }
+  .tb-btn.tb-close{ width:42px; }
   @media (max-width:600px){
-    .touchbar{ gap:4px; padding: 0 4px 0 10px; }
-    .tb-btn{ padding:0; }
-    .tb-lbl{ display:none; }
+    .touchbar{ gap:4px; padding-left:12px; }
+    .tb-text{ margin-right:2px; }
+    .tb-btn{ width:48px; }
   }
+  @media (max-width:380px){ .tb-btn{ width:44px; } }
   @media (prefers-reduced-motion: reduce){
     .touchbar{ transition:none; }
   }

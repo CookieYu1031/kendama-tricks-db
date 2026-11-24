@@ -10,14 +10,11 @@
   ============================================================ */
   addStrings({
     zh:{ tbCut:"剪下", tbCopy:"複製", tbPaste:"貼上", tbClose:"關閉",
-         tbSelected:"已選 {n} 項", tbCutHint:"已剪下 {n} 項，長按空白處選擇貼上位置", tbCopyHint:"已複製 {n} 項，長按空白處選擇貼上位置",
-         tbTargetSet:"已選定貼上位置，點「貼上」" },
+         tbSelected:"已選({n})", tbCutHint:"已剪下 {n} 項，長按空白處選擇貼上位置", tbCopyHint:"已複製 {n} 項，長按空白處選擇貼上位置" },
     jp:{ tbCut:"切り取り", tbCopy:"コピー", tbPaste:"貼り付け", tbClose:"閉じる",
-         tbSelected:"{n} 件を選択中", tbCutHint:"{n} 件を切り取りました。余白を長押しして貼り付け先を選択", tbCopyHint:"{n} 件をコピーしました。余白を長押しして貼り付け先を選択",
-         tbTargetSet:"貼り付け先を選択しました。「貼り付け」をタップ" },
+         tbSelected:"選択({n})", tbCutHint:"{n} 件を切り取りました。余白を長押しして貼り付け先を選択", tbCopyHint:"{n} 件をコピーしました。余白を長押しして貼り付け先を選択" },
     en:{ tbCut:"Cut", tbCopy:"Copy", tbPaste:"Paste", tbClose:"Close",
-         tbSelected:"{n} selected", tbCutHint:"Cut {n}. Long-press a blank spot to choose where", tbCopyHint:"Copied {n}. Long-press a blank spot to choose where",
-         tbTargetSet:"Place chosen. Tap Paste" }
+         tbSelected:"Selected({n})", tbCutHint:"Cut {n}. Long-press a blank spot to choose where", tbCopyHint:"Copied {n}. Long-press a blank spot to choose where" }
   });
 
   var TB_PRESS_MS = 500;
@@ -49,12 +46,10 @@
     out.paste = !!ctx.hasClip && !!ctx.hasTarget;
     return out;
   }
-  // Pure: which hint to show -> { key, n }. cb = clipboardItem.
-  function touchbarHint(st, cb, hasTarget){
-    if(st.mode === "sel") return { key: "tbSelected", n: st.count };
-    var n = cb && cb.items ? cb.items.length : 1;
-    if(hasTarget) return { key: "tbTargetSet", n: n };
-    return { key: cb && cb.mode === "cut" ? "tbCutHint" : "tbCopyHint", n: n };
+  // Pure: number shown as 「已選(n)」: the selection, else what is on the clipboard.
+  function touchbarCount(st, cb){
+    if(st.mode === "sel") return st.count;
+    return cb && cb.items ? cb.items.length : 1;
   }
   // Pure: did a held press move far enough to cancel the long-press?
   function touchbarPressMoved(dx, dy){
@@ -75,7 +70,7 @@
     tbEl = document.createElement("div");
     tbEl.id = "touchbar"; tbEl.className = "touchbar"; tbEl.setAttribute("role", "toolbar");
     function btn(act, icon, cls){
-      return '<button type="button" class="tb-btn ' + (cls || "") + '" data-act="' + act + '">' + icon + '<span class="tb-lbl"></span></button>';
+      return '<button type="button" class="tb-btn ' + (cls || "") + '" data-act="' + act + '">' + icon + '</button>';
     }
     tbEl.innerHTML = '<div class="tb-text"></div>' + btn("cut", ICON_SCISSORS) + btn("copy", ICON_COPY) + btn("paste", ICON_PASTE) +
       btn("del", ICON_TRASH, "tb-danger") + btn("close", ICON_X, "tb-close");
@@ -94,11 +89,9 @@
     Array.prototype.forEach.call(el.querySelectorAll(".tb-btn"), function(b){
       var a = b.dataset.act;
       b.setAttribute("aria-label", labels[a]); b.title = labels[a];
-      var lbl = b.querySelector(".tb-lbl"); if(lbl) lbl.textContent = a === "close" ? "" : labels[a];
       b.disabled = a === "close" ? false : !st[a];
     });
-    var h = touchbarHint(st, clipboardItem, tbTarget !== undefined);
-    el.querySelector(".tb-text").textContent = t(h.key).replace("{n}", h.n);
+    el.querySelector(".tb-text").textContent = t("tbSelected").replace("{n}", touchbarCount(st, clipboardItem));
   }
   function tbSetShown(on){
     tbShown = on;
@@ -141,6 +134,7 @@
     if(clipboardItem === before) return; // refused (toast already shown)
     multiSelClear(); swipeSelActive = false;
     tbClip = true; tbTarget = undefined;
+    showToast(t(mode === "cut" ? "tbCutHint" : "tbCopyHint").replace("{n}", clipboardItem.items.length)); // what to do next
     touchbarSync();
   }
   function tbPaste(){

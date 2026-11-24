@@ -54,7 +54,7 @@
     if(nav.kind === "trick" && typeof goToTrickLocation === "function"){ goToTrickLocation(nav.id); return; }
     state.activeSpace = FAV_TABLE_ID;
     try{ localStorage.setItem(SPACE_KEY, state.activeSpace); }catch(e){ /* ignore */ }
-    state.path = pathToContainer(nav.id); state.detailTrickId = null;
+    state.path = pathToContainer(nav.id); clearDrawerState();
     render();
   }
 

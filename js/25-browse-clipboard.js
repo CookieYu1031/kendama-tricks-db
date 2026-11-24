@@ -124,6 +124,17 @@
       tagIds: (ext.tagIds || []).filter(function(id){ return !!getTag(id); }), note: ext.note || "" };
   }
 
+  // Pure: copy of info record src with the placement fields from pl ({ id, parentId, spaceId, order }).
+  // prefix / image (v0.17) are carried only when present (records are compared to the base with JSON).
+  function clipCopyInfoRec(src, pl){
+    var o = { id: pl.id, parentId: pl.parentId, spaceId: pl.spaceId,
+      title: { zh: src.title.zh || "", jp: src.title.jp || "", en: src.title.en || "" },
+      content: src.content || "", order: pl.order, icon: src.icon || "", color: src.color || "default" };
+    if(src.prefix) o.prefix = src.prefix;
+    if(src.image) o.image = { id: src.image.id, w: src.image.w, h: src.image.h, size: src.image.size };
+    return o;
+  }
+
   // Pure (reads db, does not write): deep copy of a folder with fresh ids from idGen().
   // Returns { rootId, cats:[], infos:[], refs:[{ trickId, containerId }] }.
   function clipDeepCopyFolder(catId, targetParentId, spaceId, idGen){
@@ -135,8 +146,7 @@
         order: typeof src.order === "number" ? src.order : 0, icon: src.icon || "", color: src.color || "default", spaceId: spaceId });
       if(src.prefix) out.cats[out.cats.length - 1].prefix = src.prefix;
       getInfosIn(srcId).forEach(function(n){
-        out.infos.push({ id: idGen(), parentId: nid, spaceId: spaceId, title: { zh: n.title.zh || "", jp: n.title.jp || "", en: n.title.en || "" },
-          content: n.content || "", order: typeof n.order === "number" ? n.order : 0, icon: n.icon || "", color: n.color || "default" });
+        out.infos.push(clipCopyInfoRec(n, { id: idGen(), parentId: nid, spaceId: spaceId, order: typeof n.order === "number" ? n.order : 0 }));
       });
       getTricksInCategory(srcId).forEach(function(tr){
         out.refs.push({ trickId: tr.id, containerId: nid, order: tr.orderByCategory && typeof tr.orderByCategory[srcId] === "number" ? tr.orderByCategory[srcId] : null,
@@ -187,8 +197,7 @@
     } else if(plan.op === "copyInfo"){
       if(!db.infos) db.infos = [];
       newId = newItemId();
-      db.infos.push({ id: newId, parentId: targetParentId, spaceId: tSpace, title: { zh: it.ref.title.zh || "", jp: it.ref.title.jp || "", en: it.ref.title.en || "" },
-        content: it.ref.content || "", order: 0, icon: it.ref.icon || "", color: it.ref.color || "default" });
+      db.infos.push(clipCopyInfoRec(it.ref, { id: newId, parentId: targetParentId, spaceId: tSpace, order: 0 }));
     } else { // move
       if(it.type === "trick"){
         var srcKey = clipKey(clip.srcParent, clip.srcSpace);

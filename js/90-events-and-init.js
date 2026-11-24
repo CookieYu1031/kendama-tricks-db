@@ -4,7 +4,7 @@
      EVENT WIRING
   ============================================================ */
   document.getElementById("brandHome").addEventListener("click", function(){
-    state.path = []; state.detailTrickId = null; state.searchQuery = "";
+    state.path = []; clearDrawerState(); state.searchQuery = "";
     document.getElementById("searchInput").value = "";
     document.getElementById("searchClear").classList.remove("show");
     updateSearchInlineCount("");
@@ -72,15 +72,6 @@
   document.getElementById("iconPickerDoneBtn").addEventListener("click", closeIconPicker);
   document.getElementById("iconPickerOverlay").addEventListener("click", function(ev){ if(ev.target.id==="iconPickerOverlay") closeIconPicker(); });
 
-  // Info modal
-  document.getElementById("infoCancelBtn").addEventListener("click", closeInfoModal);
-  document.getElementById("infoSaveBtn").addEventListener("click", saveInfoFromModal);
-  document.getElementById("infoEditBtn").addEventListener("click", function(){
-    if(infoModalState.id) openInfoModal(infoModalState.id, infoModalState.parentId, true);
-  });
-  document.getElementById("infoDeleteBtn").addEventListener("click", function(){ requestDeleteInfo(infoModalState.id); });
-  // (No overlay-click-to-close — see the category modal comment above.)
-
   // Confirm modal
   document.getElementById("confirmCancelBtn").addEventListener("click", closeConfirm);
   document.getElementById("confirmOkBtn").addEventListener("click", function(){
@@ -126,9 +117,6 @@
   bindEnterToSave("mediaModalOverlay", saveMediaFromModal);
   bindEnterToSave("spaceModalOverlay", saveSpaceFromModal);
   bindEnterToSave("addModalOverlay", saveAddModal);
-  bindEnterToSave("infoModalOverlay", function(){
-    if(!document.getElementById("infoEditBody").hidden) saveInfoFromModal();
-  });
   // Escape key closes topmost overlay
   document.addEventListener("keydown", function(ev){
     if(ev.key !== "Escape") return;
@@ -138,7 +126,6 @@
     if(document.getElementById("mediaModalOverlay").classList.contains("show")) return closeMediaModal();
     if(document.getElementById("spaceModalOverlay").classList.contains("show")) return closeSpaceModal();
     if(document.getElementById("confirmOverlay").classList.contains("show")) return closeConfirm();
-    if(document.getElementById("infoModalOverlay").classList.contains("show")) return closeInfoModal();
     if(document.getElementById("iconPickerOverlay").classList.contains("show")) return closeIconPicker();
     if(document.getElementById("addModalOverlay").classList.contains("show")) return closeAddModal();
     if(document.getElementById("categoryModalOverlay").classList.contains("show")) return closeCategoryModal();

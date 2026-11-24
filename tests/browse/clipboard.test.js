@@ -204,3 +204,33 @@ test("external trick (mailbox 複製招式): plan newTrick, paste creates a fres
   // guest cannot paste
   assert.strictEqual(c.clipPlanPaste({ type: "extTrick" }, "e1", env).ok, false);
 });
+
+test("info prefix / image: info copy and folder deep copy carry them (deep object), move keeps them", () => {
+  const c = setup();
+  const inf = c.getInfo("i000000");
+  inf.prefix = "N1";
+  inf.image = { id: "img1", w: 800, h: 600, size: 50000 };
+  const k = clip("copy", "info", "i000000", "c1");
+  const p = c.clipPlanPaste(k, "e1", env);
+  const nid = c.clipApplyPaste(k, "e1", p, env);
+  const cp = c.getInfo(nid);
+  assert.strictEqual(cp.prefix, "N1");
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(cp.image)), { id: "img1", w: 800, h: 600, size: 50000 });
+  assert.notStrictEqual(cp.image, inf.image);
+  // folder deep copy
+  let n = 0;
+  const out = c.clipDeepCopyFolder("c1", null, "t00", () => "z" + (++n));
+  assert.strictEqual(out.infos[0].prefix, "N1");
+  assert.strictEqual(out.infos[0].image.id, "img1");
+  assert.notStrictEqual(out.infos[0].image, inf.image);
+  // plain info stays free of the optional fields
+  inf.prefix = ""; delete inf.image;
+  const plain = c.clipCopyInfoRec(inf, { id: "q", parentId: null, spaceId: "t00", order: 0 });
+  assert.ok(!("prefix" in plain) && !("image" in plain));
+  // move
+  const k2 = clip("cut", "info", "i000000", "c1");
+  inf.prefix = "M"; inf.image = { id: "img2", w: 10, h: 10, size: 100 };
+  c.clipApplyPaste(k2, "c2", c.clipPlanPaste(k2, "c2", env), env);
+  assert.strictEqual(c.getInfo("i000000").prefix, "M");
+  assert.strictEqual(c.getInfo("i000000").image.id, "img2");
+});

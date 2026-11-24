@@ -21,7 +21,7 @@
     state.editMode = false;
     if(!isGuestVisibleSpace(state.activeSpace)){
       state.activeSpace = GUEST_SPACE_IDS[0];
-      state.path = []; state.detailTrickId = null;
+      state.path = []; clearDrawerState();
     }
   }
   // Tree navigation (path change only): rail, chrome and drawer don't depend on it.
@@ -213,112 +213,13 @@
     container.appendChild(actions);
   }
 
-  // Builds the icon + name/meta text block shared by every item row —
-  // the miller-column tree (renderItemRow) and the flat "columns" grid
-  // (renderGridItemRow) both use this, so a trick or category looks
-  // exactly the same wherever it's presented.
-  var ICON_INFO_ROW = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>';
-
-  // parentId (column container, null = table root) enables the prefix; omit it (grid, ghost rows) for none.
-  function buildItemVisual(it, parentId){
-    var hasChildren = it.type==="trick" && trickHasChildren(it.id);
-
-    var icon = document.createElement("div");
-    icon.className = "item-icon" + (it.type==="trick" ? " trick" : "") + (hasChildren ? " has-children" : "");
-    if(it.type==="info"){
-      icon.innerHTML = ICON_INFO_ROW;
-    } else if(it.type==="category"){
-      var cHex = colorHex(it.ref.color);
-      icon.style.background = hexToRgba(cHex, 0.22);
-      icon.style.color = cHex;
-      if(isImageIcon(it.ref.icon)){
-        icon.classList.add("img-icon");
-        icon.innerHTML = iconHtml(it.ref.icon);
-      } else if(it.ref.icon){
-        icon.style.fontSize = "15px";
-        icon.textContent = it.ref.icon;
-      } else {
-        icon.innerHTML = ICON_LIST;
-      }
-    } else {
-      var tHex = it.ref.color ? colorHex(it.ref.color) : TRICK_DEFAULT_HEX;
-      icon.style.background = hexToRgba(tHex, 0.22);
-      icon.style.color = tHex;
-      if(isImageIcon(it.ref.icon)){
-        icon.classList.add("img-icon");
-        icon.innerHTML = iconHtml(it.ref.icon);
-      } else if(it.ref.icon){
-        icon.style.fontSize = "15px";
-        icon.textContent = it.ref.icon;
-      } else {
-        icon.innerHTML = ICON_TRICK;
-      }
-      applyTrickGlow(icon, it.ref);
-    }
-
-    var textWrap = document.createElement("div");
-    textWrap.className = "item-text";
-    var nameEl = document.createElement("div");
-    nameEl.className = "item-name";
-    var pfx = parentId !== undefined ? itemPrefix(it, parentId) : "";
-    if(pfx){
-      var pfxEl = document.createElement("span");
-      pfxEl.className = "item-prefix"; pfxEl.textContent = pfx;
-      nameEl.appendChild(pfxEl);
-    }
-    nameEl.appendChild(document.createTextNode(localize(it.name)));
-    textWrap.appendChild(nameEl);
-
-    var metaEl = document.createElement("div");
-    metaEl.className = "item-meta";
-    if(it.type==="category"){
-      var subCount = getChildren(it.id).length;
-      var trickCount = getTricksInCategory(it.id).length;
-      var bits = [];
-      if(subCount) bits.push(subCount + " " + t("subCats"));
-      if(trickCount) bits.push(trickCount + " " + t("tricksCount"));
-      metaEl.textContent = bits.join(" · ");
-    } else if(it.type==="trick"){
-      var metaBits = [];
-      // Being filed into 收藏 is a bucket membership, not a real "this
-      // trick also lives under another category" cross-reference — exclude
-      // that bucket category from this line so toggling a trick into 收藏
-      // doesn't add unrelated-looking text here.
-      var realCategoryIds = it.ref.categoryIds.filter(function(cid){
-        return !getSpace(cid) && cid !== FAV_CUSTOM_ID && cid !== FAV_STARRED_ID;
-      });
-      if(realCategoryIds.length > 1){
-        metaBits.push(realCategoryIds.map(function(cid){ var cc=getCategory(cid)||getTrick(cid); return cc?localize(cc.name):""; }).filter(Boolean).join(" · "));
-      }
-      if(hasChildren){
-        // A trick-folder's children can now be a mix of sub-categories and
-        // extension tricks, so show both counts (whichever are non-zero) the
-        // same way a category row shows its subCats/tricksCount split.
-        var hcBits = [];
-        var subCatCount = getChildren(it.id).length;
-        var extTrickCount = getTricksInCategory(it.id).length;
-        if(subCatCount) hcBits.push(subCatCount + " " + t("subCats"));
-        if(extTrickCount) hcBits.push(extTrickCount + " " + t("extTricks"));
-        if(hcBits.length) metaBits.push(hcBits.join(" · "));
-      }
-      metaEl.textContent = metaBits.join(" · ");
-    }
-    // Rows have a fixed height (var(--item-h)) and are vertically centered via flex on
-    // .item, so an item with no description simply omits the meta line entirely and its
-    // single-line name centers naturally — rather than reserving an invisible blank line
-    // that pushes the name up off-center.
-    if(metaEl.textContent) textWrap.appendChild(metaEl);
-
-    return { icon: icon, textWrap: textWrap, hasChildren: hasChildren };
-  }
-
   function renderItemRow(it, parentId, colIndex, itemIdx, sortedItems, noDrag){
     var visual = buildItemVisual(it, parentId);
     var hasChildren = visual.hasChildren;
     var isDrillable = it.type==="category" || hasChildren;
 
     var row = document.createElement("div");
-    var isCurrentTrick = it.type==="trick" && state.detailTrickId===it.id;
+    var isCurrentTrick = (it.type==="trick" && state.detailTrickId===it.id) || (it.type==="info" && state.detailInfoId===it.id);
     row.className = "item" + (it.type==="trick" && it.ref.custom ? " custom" : "") + ((isDrillable && state.path[colIndex]===it.id) || isCurrentTrick ? " selected" : "");
     var rowPfx = itemPrefix(it, parentId);
     row.title = (rowPfx ? rowPfx + " " : "") + localize(it.name);
@@ -331,16 +232,15 @@
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
-      // Folders and info items get an edit button left of the chevron; tricks are edited in the drawer.
-      if(canEditRow(it, parentId, admin)){
+      // Only folders get an edit button left of the chevron; tricks and info items are edited in the drawer.
+      if(it.type === "category" && canEditRow(it, parentId, admin)){
         var actions = document.createElement("div"), editBtn = document.createElement("button");
         actions.className = "item-edit-actions";
         editBtn.type = "button"; editBtn.className = "mini-btn"; editBtn.innerHTML = ICON_EDIT;
         editBtn.title = t("rowEdit"); editBtn.setAttribute("aria-label", t("rowEdit"));
         editBtn.addEventListener("click", function(ev){
           ev.stopPropagation();
-          if(it.type === "category") openCategoryModal(it.id, parentId);
-          else openInfoModal(it.id, parentId, true);
+          openCategoryModal(it.id, parentId);
         });
         actions.appendChild(editBtn);
         row.appendChild(actions);
@@ -377,7 +277,9 @@
       });
     } else if(it.type==="info"){
       row.addEventListener("click", function(){
-        openInfoModal(it.id, parentId, false);
+        state.path = state.path.slice(0, colIndex); // like a trick without extensions
+        invalidateDbIndex();
+        openInfoDrawer(it.id);
       });
     } else {
       row.addEventListener("click", function(){

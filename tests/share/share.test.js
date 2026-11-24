@@ -341,3 +341,28 @@ test("prefix sanitize: bad / long values cleaned; single-trick share has none", 
   tp.tricks[0].placements = [{ c: null, o: null, p: "zz" }];
   assert.deepStrictEqual(J(c.shareSanitizePayload(tp, 0).tricks[0].placements), []);
 });
+
+test("info prefix: shared and applied, image never shared; empty prefix leaves no field", () => {
+  const c = setup();
+  const inf = c.db.infos[0];
+  inf.prefix = " 3-1 ";
+  inf.image = { id: "img1", w: 800, h: 600, size: 50000 };
+  c.invalidateDbIndex();
+  const p = J(c.shareBuildFolderPayload("folder", "c1"));
+  assert.strictEqual(p.infos[0].prefix, "3-1");
+  assert.ok(JSON.stringify(p).indexOf("img1") === -1 && !("image" in p.infos[0]));
+  p.infos[0].image = { id: "sneaky", w: 1, h: 1, size: 1 };
+  const s = c.shareSanitizePayload(p, 1);
+  assert.strictEqual(s.infos[0].prefix, "3-1");
+  assert.ok(!("image" in s.infos[0]));
+  const res = c.shareApply(p, "U_ip");
+  assert.strictEqual(res.ok, true);
+  const copy = c.db.infos.find((x) => x.id !== "i000001");
+  assert.strictEqual(copy.prefix, "3-1");
+  assert.ok(!("image" in copy));
+  const c2 = setup();
+  const q = J(c2.shareBuildFolderPayload("folder", "c1"));
+  assert.ok(!("prefix" in q.infos[0]));
+  p.infos[0].prefix = "x".repeat(50);
+  assert.strictEqual(c.shareSanitizePayload(p, 1).infos[0].prefix.length, c.PREFIX_MAX);
+});

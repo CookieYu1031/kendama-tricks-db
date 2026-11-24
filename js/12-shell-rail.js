@@ -141,7 +141,7 @@
       if(state.activeSpace === sp.id) return;
       state.activeSpace = sp.id;
       localStorage.setItem(SPACE_KEY, sp.id);
-      state.path = []; state.detailTrickId = null; state.searchQuery = "";
+      state.path = []; clearDrawerState(); state.searchQuery = "";
       document.getElementById("searchInput").value = "";
       document.getElementById("searchClear").classList.remove("show");
       updateSearchInlineCount("");

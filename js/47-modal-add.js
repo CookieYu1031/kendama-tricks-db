@@ -9,7 +9,7 @@
     zh:{ addTypeTrick:"招式", addTypeFolder:"清單", addTypeInfo:"資訊", addTitleBtn:"新增",
          addNameLabel:"名稱", addLinkNote:"將連結既有招式：",
          addVideoLabel:"影片連結（選填）", addTagsLabel:"標籤", addNoTags:"（尚無標籤）",
-         addContentLabel:"內容",
+         addImageLabel:"圖片",
          addErrName:"請至少輸入一種語言的名稱", addErrVideo:"影片連結必須以 http:// 或 https:// 開頭",
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
@@ -18,7 +18,7 @@
     jp:{ addTypeTrick:"技", addTypeFolder:"リスト", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
-         addContentLabel:"内容",
+         addImageLabel:"画像",
          addErrName:"少なくとも1つの言語で名前を入力してください", addErrVideo:"動画リンクは http:// または https:// で始めてください",
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
@@ -27,7 +27,7 @@
     en:{ addTypeTrick:"Trick", addTypeFolder:"List", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
-         addContentLabel:"Content",
+         addImageLabel:"Image",
          addErrName:"Enter a name in at least one language", addErrVideo:"Video link must start with http:// or https://",
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
@@ -144,11 +144,15 @@
     db.categories.push(rec);
     return rec;
   }
+  // f: { zh, jp, en, content, icon, color, prefix, image } (image = { id, w, h, size } already uploaded)
   function createInfoRecord(parentId, spaceId, f){
     var pid = getSpace(parentId) ? null : (parentId == null ? null : parentId);
     if(!db.infos) db.infos = [];
     var rec = { id: newItemId(), parentId: pid, spaceId: spaceId, title: addNameObj(f), content: f.content || "",
-      order: getInfosIn(pid).length, icon: "", color: "default" };
+      order: getInfosIn(pid).length, icon: f.icon || "", color: f.color || "default" };
+    setCategoryPrefix(rec, f.prefix);
+    var im = normalizeInfoImage(f.image);
+    if(im) rec.image = im;
     db.infos.push(rec);
     return rec;
   }
@@ -184,7 +188,7 @@
     sw.style.background = hexToRgba(hex, 0.22);
     sw.style.color = hex;
     sw.classList.toggle("img-icon", isImageIcon(state.addDraftIcon));
-    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_TRICK : ICON_LIST);
+    sw.innerHTML = iconHtml(state.addDraftIcon, isTrick ? ICON_TRICK : addForm.type === "info" ? ICON_INFO_ROW : ICON_LIST);
   }
 
   // Link target id (trick type only), else null.
@@ -199,13 +203,10 @@
     addForm.type = type;
     var isTrick = type === "trick";
     addEl("addInfoSection").hidden = type !== "info";
-    addEl("addLead").hidden = type === "info";
-    addEl("addNameGrid").classList.toggle("info", type === "info");
     Array.prototype.forEach.call(addEl("addTypeSwitch").children, function(b){
       b.classList.toggle("active", b.dataset.type === type);
     });
-    // Trick and folder: three names (trick adds grip + parts diagram). Info: one title + content.
-    addEl("addAlt1Box").hidden = addEl("addAlt2Box").hidden = type === "info";
+    // Every type: icon + prefix and three names (same grid). Trick adds grip + parts, info adds content + image.
     addEl("addPartsSection").hidden = !isTrick;
     addEl("addMainLabel").textContent = addForm.mainLabel;
     addEl("addMainName").placeholder = isTrick ? t("addNamePh") : "";
@@ -264,6 +265,19 @@
     gripHost.appendChild(buildGripPicker({ value: tr.grip, onChange: function(v){ tr.grip = v; } }));
   }
 
+  // Info type: image field (admin only), rebuilt on every open; the file uploads when saving (deferred).
+  function buildAddImage(){
+    var host = addEl("addImageHost"), field = addEl("addImageField");
+    host.innerHTML = "";
+    addForm.imageEd = null;
+    var allowed = typeof infoImageAllowed === "function" && infoImageAllowed() && typeof buildInfoImageEditor === "function";
+    field.hidden = !allowed;
+    if(!allowed) return;
+    addEl("addImageLabel").textContent = t("addImageLabel");
+    addForm.imageEd = buildInfoImageEditor({ image: null, deferred: true, onChange: function(){} });
+    host.appendChild(addForm.imageEd);
+  }
+
   function openAddModal(parentId, spaceId){
     // Already open (e.g. the "n" shortcut or a second call): keep what was typed.
     if(addForm && addEl("addModalOverlay").classList.contains("show")) return;
@@ -296,6 +310,7 @@
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
     ["addMainName", "addAlt1", "addAlt2", "addContent", "addPrefix"].forEach(function(id){ addEl(id).value = ""; });
+    buildAddImage();
     addEl("addPrefix").maxLength = PREFIX_MAX;
     addEl("addPrefixLabel").textContent = t("prefixLabel");
     addEl("addIconBtn").title = t("editIconColor");
@@ -309,9 +324,10 @@
       });
     }
     buildAddParts();
-    addEl("addContentLabel").textContent = t("addContentLabel");
+    addEl("addContentLabel").textContent = t("infoContentLabel");
     addEl("addCancelBtn").textContent = t("cancel");
     addEl("addSaveBtn").textContent = t("save");
+    addEl("addSaveBtn").disabled = false;
     addEl("addCloseBtn").innerHTML = ICON_X;
     applyAddType(types.def);
     addEl("addModalOverlay").classList.add("show");
@@ -322,8 +338,24 @@
     addForm = null;
   }
 
+  // Info: upload the image draft first (the save button stays disabled meanwhile; a failure keeps the
+  // modal open and adds nothing), then create the record and continue in its drawer (edit mode).
+  function saveAddInfo(f){
+    var form = addForm, ed = form.imageEd;
+    function finish(img){
+      if(addForm !== form) return; // modal closed meanwhile: abandon
+      f.image = img;
+      var rec = createInfoRecord(form.parentId, form.spaceId, f);
+      showToast(t("savedInfo"));
+      saveDB(); closeAddModal(); state.editMode = true; render(); openInfoDrawer(rec.id);
+    }
+    if(!(ed && ed.hasDraft && ed.hasDraft())){ finish(null); return; }
+    addEl("addSaveBtn").disabled = true;
+    ed.commit().then(finish, function(){ if(addForm === form) addEl("addSaveBtn").disabled = false; });
+  }
+
   function saveAddModal(){
-    if(!addForm) return;
+    if(!addForm || addEl("addSaveBtn").disabled) return; // disabled while an image uploads
     var admin = isAdminNow();
     var type = addForm.type, parentId = addForm.parentId, spaceId = addForm.spaceId;
     if(!addForm.types[type]) return addShowError("addErrNotAllowed");
@@ -339,23 +371,22 @@
 
     var f = {};
     f[addForm.mainLang] = addEl("addMainName").value;
-    if(type !== "info"){
-      f[addForm.alt1Lang] = addEl("addAlt1").value;
-      f[addForm.alt2Lang] = addEl("addAlt2").value;
-    }
+    f[addForm.alt1Lang] = addEl("addAlt1").value;
+    f[addForm.alt2Lang] = addEl("addAlt2").value;
     if(addNameEmpty(addNameObj(f))) return addShowError("addErrName");
-    if(type !== "info" && !iconTextFits(state.addDraftIcon)) return addShowError("iconTextTooLong");
+    if(!iconTextFits(state.addDraftIcon)) return addShowError("iconTextTooLong");
     f.icon = state.addDraftIcon; f.color = state.addDraftColor;
-    f.prefix = type === "info" ? "" : addEl("addPrefix").value;
+    f.prefix = addEl("addPrefix").value;
 
     if(type === "folder"){
       if(!canAddChild(parentId, "folder")) return addShowError("addErrNotAllowed");
       createFolderRecord(parentId, spaceId, f);
       showToast(t("savedCategory"));
     } else if(type === "info"){
+      if(!canAddChild(parentId, "info")) return addShowError("addErrNotAllowed");
       f.content = addEl("addContent").value;
-      createInfoRecord(parentId, spaceId, f);
-      showToast(t("savedInfo"));
+      saveAddInfo(f);
+      return;
     } else {
       f.grip = addForm.tr.grip; f.parts = addForm.tr.parts.slice();
       var rec = createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);

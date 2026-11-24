@@ -33,11 +33,18 @@
   // Desktop: the card slides in from / out to the right edge (CSS animation on .show /
   // .closing); closing keeps .show for DRAWER_CLOSE_MS so the slide-out is visible.
   var DRAWER_CLOSE_MS = 260, drawerCloseTimer = null;
-  // containerKey (optional): the list the trick was opened from; the prefix belongs to that placement.
-  function openDrawerFor(trickId, containerKey){
+  // Shared by the trick and info drawers: cancels a pending slide-out, resets picker state, returns the card.
+  function drawerPrepareOpen(){
     var el = document.getElementById("detailDrawer");
     if(drawerCloseTimer){ clearTimeout(drawerCloseTimer); drawerCloseTimer = null; }
     el.classList.remove("closing");
+    drawerUi.tagPicker = false; drawerUi.videoEdit = null;
+    return el;
+  }
+  // containerKey (optional): the list the trick was opened from; the prefix belongs to that placement.
+  function openDrawerFor(trickId, containerKey){
+    var el = drawerPrepareOpen();
+    state.detailInfoId = null; // trick and info drawers are exclusive
     state.detailTrickId = trickId;
     state.detailContainerKey = containerKey; // never carried over from the previous trick
     var opened = getTrick(trickId);
@@ -46,14 +53,13 @@
       var resolved = resolveDrawerContainer(opened);
       state.detailContainerKey = resolved === null ? undefined : resolved;
     }
-    drawerUi.tagPicker = false; drawerUi.videoEdit = null;
     renderColumns();
     renderDrawer();
     el.classList.add("show");
   }
   function closeDrawer(){
     var el = document.getElementById("detailDrawer");
-    state.detailTrickId = null;
+    clearDrawerState();
     state.detailContainerKey = undefined;
     if(el.classList.contains("show") && !el.classList.contains("closing") && !isNarrowViewport()){
       el.classList.add("closing");
@@ -67,8 +73,14 @@
     renderColumns();
   }
 
+  // Closes the drawer when the trick / info item it shows was deleted.
+  function closeDrawerIfGone(){
+    if((state.detailTrickId && !getTrick(state.detailTrickId)) || (state.detailInfoId && !getInfo(state.detailInfoId))) closeDrawer();
+  }
+
   function renderDrawer(){
     var drawer = document.getElementById("detailDrawer");
+    if(state.detailInfoId){ renderInfoDrawer(); return; } // js/37
     if(!state.detailTrickId){ return; }
     var tr = getTrick(state.detailTrickId);
     if(!tr){ closeDrawer(); return; }
@@ -93,7 +105,7 @@
     // Title: [prefix] name. Edit mode keeps it on one line (the icon, prefix and names are edited in the body).
     var title = document.createElement("div");
     title.className = "drawer-title" + (canEditTrick ? " single" : "");
-    function paintTitle(){ fillDrawerTitle(title, tr, key ? getTrickPrefix(tr, key) : ""); }
+    function paintTitle(){ fillDrawerTitle(title, tr.name, key ? getTrickPrefix(tr, key) : ""); }
     paintTitle();
     headLeft.appendChild(title);
     var headActions = document.createElement("div");

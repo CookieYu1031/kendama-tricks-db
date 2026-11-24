@@ -123,8 +123,11 @@
       kids.forEach(function(c){ out.cats.push(catOut(c, outKey)); walk(c.id, c.id, spaceId, depth + 1); });
       var infos = containerId === spaceId ? ix.rootInfos.filter(function(n){ return n.spaceId === spaceId; }) : (ix.infosByParent[containerId] || []);
       infos.forEach(function(n){
-        out.infos.push({ id: _sStr(n.id, 40), parentId: outKey, title: _sName(n.title), content: _sStr(n.content, SHARE_LIMITS.text),
-          order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) });
+        var io = { id: _sStr(n.id, 40), parentId: outKey, title: _sName(n.title), content: _sStr(n.content, SHARE_LIMITS.text),
+          order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) };
+        var ipf = normalizePrefix(n.prefix);
+        if(ipf) io.prefix = ipf; // prefix only; the image is never shared
+        out.infos.push(io);
       });
       (ix.tricksByContainer[containerId] || []).forEach(function(tr){
         var ord = tr.orderByCategory && typeof tr.orderByCategory[containerId] === "number" ? tr.orderByCategory[containerId] : null;
@@ -186,8 +189,11 @@
     });
     arr(raw.infos, L.infos).forEach(function(n){
       var id = n && uniq(n.id); if(!id) return;
-      infos.push({ id: id, parentId: n.parentId == null ? null : _sStr(n.parentId, 40), title: _sName(n.title), content: _sStr(n.content, L.text),
-        order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) || "default" });
+      var inf = { id: id, parentId: n.parentId == null ? null : _sStr(n.parentId, 40), title: _sName(n.title), content: _sStr(n.content, L.text),
+        order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) || "default" };
+      var inp = normalizePrefix(n.prefix);
+      if(inp) inf.prefix = inp;
+      infos.push(inf);
     });
     arr(raw.refs, L.refs).forEach(function(r){
       if(!r || typeof r.trickId !== "string") return;
@@ -276,8 +282,11 @@
       return o;
     });
     var infos = p.infos.map(function(n){
-      return { id: idGen(), parentId: dest(n.parentId), spaceId: targetSpaceId, title: n.title, content: n.content,
+      var ro = { id: idGen(), parentId: dest(n.parentId), spaceId: targetSpaceId, title: n.title, content: n.content,
         order: n.order, icon: n.icon, color: n.color };
+      var rp2 = normalizePrefix(n.prefix);
+      if(rp2) ro.prefix = rp2;
+      return ro;
     });
     var isTrick = p.kind === "trick";
     var tricks = p.tricks.map(function(tr){

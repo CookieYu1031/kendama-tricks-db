@@ -76,6 +76,9 @@
   .drawer-name-cell .drawer-inline-input{ width:100%; height:34px; }
   .drawer-icon-btn{ width:34px; height:34px; border:0; padding:0; flex:0 0 auto; font-family:inherit; cursor:pointer; transition: box-shadow .15s var(--ease); }
   .drawer-icon-btn:hover{ box-shadow: 0 0 0 2px var(--lacquer); }
+  /* Info drawer (js/37): taller content box, content text gap above the image */
+  .info-content-input{ min-height:160px; margin-bottom:16px; }
+  .drawer-body .info-content{ margin-bottom:16px; }
   .video-block{
     border-radius: var(--radius); overflow:hidden; border:1px solid var(--line); background: var(--ink);
     aspect-ratio: 16/9; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;

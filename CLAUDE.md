@@ -88,6 +88,7 @@
 | 協助者批量投稿（.xlsx 範本／上傳解析／逐列驗證／預覽／送出為單一 reports 文件；管理員端投稿項目轉換） | `js/72-submissions.js`、`css/contrib.css` |
 | 極簡 XLSX 讀寫（STORED zip 寫、deflate-raw 讀，無依賴） | `js/79-xlsx.js` |
 | rail 底部編輯鈕（編輯／完成編輯 切換） | `js/12-shell-rail.js` |
+| 項目列圖示與名稱／前綴區塊 `buildItemVisual`（清單／招式／資訊共用） | `js/21-browse-item-visual.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
 | 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、網站製作者列（顯示 @cookie_yu_1031，連到 IG）、底部隱私說明連結；標題列圖示鈕：管理員面板（限管理員）、通知、用戶統計（敬請期待）、×） | `js/14-shell-settings.js` |
@@ -110,6 +111,8 @@
 | 每層獨立排序（欄位頂端「A~Z 預設／↓／↑」，只改顯示、`state.colSort`，該層關閉回預設；非預設停用拖曳）、`findFocusColumnIndex` | `js/29-browse-sort.js`、`css/browse-columns.css` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
+| 資訊項目抽屜（點資訊列開在同一個 `#detailDrawer`；檢視＝前綴＋標題＋內文＋圖；編輯＝圖示／前綴／三語標題／內文／圖片／移除；`openInfoDrawer`、`requestDeleteInfo`；`state.detailInfoId` 與 `detailTrickId` 互斥，`drawerIsOpen`／`clearDrawerState` 在 `js/04`，`closeDrawerIfGone` 在 `js/32`） | `js/37-info-drawer.js`、`css/detail-drawer.css` |
+| 資訊圖片（僅管理員可加一張；選圖壓縮、上傳 `infoImages/{id}`、記憶體＋Cache Storage 快取、點圖放大、單張與總量上限） | `js/46-info-image.js`、`css/info.css` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（頭部圖示、持法部位、備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
