@@ -53,7 +53,8 @@
     var img = document.createElement("img");
     img.className = "settings-btn-avatar"; img.alt = "";
     img.referrerPolicy = "no-referrer";
-    img.onerror = letter;
+    var srcs = typeof avatarSources === "function" ? avatarSources(authCurrentUser) : [st.photoURL], i = 1; // js/52
+    img.onerror = function(){ if(i < srcs.length) img.src = srcs[i++]; else letter(); };
     img.src = st.photoURL;
     btn.appendChild(img);
   }

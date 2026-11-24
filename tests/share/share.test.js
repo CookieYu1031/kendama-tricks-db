@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("../_load");
 
 function setup(){
-  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-prefix.js", "js/05-data-util.js",
     "js/06-icons-svg.js", "js/07-id.js", "js/20-browse-order.js", "js/26-browse-fab.js", "js/58-share.js", "js/58-share-flow.js"], { URL });
   ctx.saveDB = () => {};
   ctx.undoPush = () => {};
@@ -302,3 +302,42 @@ test("colShareTarget: own folders / custom tables yes; locked / default / guest 
   assert.strictEqual(c.colShareTarget("c1", "u1"), null);
 });
 
+
+test("prefix round trip: folder + trick placement + base ref; old payload unchanged", () => {
+  const c = setup();
+  c.db.categories.find((x) => x.id === "c1").prefix = "A1";
+  c.setTrickPrefix(c.getTrick("own0001"), "c2", " 1-2 ");
+  c.setTrickPrefix(c.getTrick("base001"), "c1", "B9");
+  c.invalidateDbIndex();
+  const p = J(c.shareBuildFolderPayload("folder", "c1"));
+  assert.strictEqual(p.cats.find((x) => x.id === "c1").prefix, "A1");
+  assert.strictEqual(p.cats.find((x) => x.id === "c2").prefix, undefined);
+  assert.strictEqual(p.tricks.find((x) => x.id === "own0001").placements[0].p, "1-2");
+  assert.strictEqual(p.refs.find((x) => x.trickId === "base001").p, "B9");
+  const res = c.shareApply(p, "U_pf");
+  assert.strictEqual(res.ok, true);
+  const root = c.db.categories.find((x) => x.id === res.nav.id);
+  assert.strictEqual(root.prefix, "A1");
+  const sub = c.db.categories.find((x) => x.parentId === root.id);
+  const copy = c.db.tricks.find((x) => x.sharedFrom === undefined && x.id !== "own0001" && x.categoryIds.indexOf(sub.id) !== -1);
+  assert.strictEqual(c.getTrickPrefix(copy, sub.id), "1-2");
+  assert.strictEqual(c.getTrickPrefix(c.getTrick("base001"), root.id), "B9");
+  // old payload without p / prefix
+  const c2 = setup();
+  const q = J(c2.shareBuildFolderPayload("folder", "c1"));
+  assert.ok(JSON.stringify(q).indexOf('"prefix"') === -1 && JSON.stringify(q).indexOf('"p":"') === -1);
+  assert.strictEqual(c2.shareApply(q, "U_np").ok, true);
+});
+
+test("prefix sanitize: bad / long values cleaned; single-trick share has none", () => {
+  const c = setup();
+  const p = J(c.shareBuildFolderPayload("folder", "c1"));
+  p.cats[0].prefix = "x".repeat(50);
+  p.tricks[0].placements[0].p = 5;
+  const s = c.shareSanitizePayload(p, 1);
+  assert.strictEqual(s.cats[0].prefix.length, c.PREFIX_MAX);
+  assert.strictEqual(s.tricks[0].placements[0].p, undefined);
+  const tp = J(c.shareBuildTrickPayload("cus0001"));
+  tp.tricks[0].placements = [{ c: null, o: null, p: "zz" }];
+  assert.deepStrictEqual(J(c.shareSanitizePayload(tp, 0).tricks[0].placements), []);
+});

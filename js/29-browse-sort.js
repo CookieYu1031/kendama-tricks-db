@@ -26,9 +26,14 @@
     if(mode !== "asc" && mode !== "desc") return base;
     var coll = new Intl.Collator(colSortLocale(), { numeric:true, sensitivity:"base" });
     var dir = mode === "asc" ? 1 : -1;
-    var withIdx = base.map(function(it, i){ return { it:it, i:i, n:localize(it.name) || "" }; });
+    // Key = prefix first, then name. Items without a prefix come after prefixed ones in asc.
+    var withIdx = base.map(function(it, i){ return { it:it, i:i, p:itemPrefix(it, parentId), n:localize(it.name) || "" }; });
     withIdx.sort(function(a, b){
-      var c = coll.compare(a.n, b.n);
+      var c;
+      if(a.p === b.p) c = coll.compare(a.n, b.n);
+      else if(!a.p) c = 1;
+      else if(!b.p) c = -1;
+      else c = coll.compare(a.p, b.p) || coll.compare(a.n, b.n);
       return c !== 0 ? c * dir : a.i - b.i;
     });
     return withIdx.map(function(x){ return x.it; });
@@ -45,7 +50,22 @@
   function colSortLabel(mode){
     return t(mode === "asc" ? "colSortAsc" : mode === "desc" ? "colSortDesc" : "colSortDefault");
   }
-  function buildColSortBar(colKey){
+  // Pure: "on" (2+ items), "fixed" (1 item: label only, can't change), "blank" (empty / collapsed: placeholder).
+  function colSortBarKind(count, collapsed){
+    if(collapsed || count < 1) return "blank";
+    return count > 1 ? "on" : "fixed";
+  }
+  // Always the same height, so first rows align across levels.
+  function buildColSortBar(colKey, kind){
+    var bar = document.createElement("div");
+    bar.className = "col-sort-bar";
+    if(kind === "blank"){ bar.setAttribute("aria-hidden", "true"); return bar; }
+    if(kind === "fixed"){
+      var lb = document.createElement("span");
+      lb.className = "col-sort-btn fixed"; lb.textContent = colSortLabel("default");
+      bar.appendChild(lb);
+      return bar;
+    }
     var btn = document.createElement("button");
     btn.type = "button"; btn.className = "col-sort-btn";
     btn.textContent = colSortLabel(colSortMode(colKey));
@@ -56,8 +76,6 @@
       if(next === "default") delete state.colSort[colKey]; else state.colSort[colKey] = next;
       render(RENDER_COLUMNS_ONLY);
     });
-    var bar = document.createElement("div");
-    bar.className = "col-sort-bar";
     bar.appendChild(btn);
     return bar;
   }

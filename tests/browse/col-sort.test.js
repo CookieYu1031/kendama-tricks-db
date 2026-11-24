@@ -5,7 +5,7 @@ const { load } = require("../_load");
 
 function setup(){
   const ctx = load(
-    ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js", "js/20-browse-order.js", "js/29-browse-sort.js"],
+    ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-prefix.js", "js/05-data-util.js", "js/20-browse-order.js", "js/29-browse-sort.js"],
     { localize: (n) => n && n.zh, addStrings: () => {}, t: (k) => k }
   );
   return ctx;
@@ -51,6 +51,12 @@ test("default equals sortColumnItems and does not mutate input", () => {
   assert.strictEqual(items[0].ref.order, 5);
 });
 
+test("sort bar kind: 2+ items button, 1 item fixed label, empty / collapsed blank", () => {
+  const ctx = setup();
+  assert.deepStrictEqual([2, 1, 0].map((n) => ctx.colSortBarKind(n, false)), ["on", "fixed", "blank"]);
+  assert.strictEqual(ctx.colSortBarKind(5, true), "blank");
+});
+
 test("prune removes keys not in chain; space change clears all", () => {
   const ctx = setup();
   ctx.pruneColSort(["__root__", "a", "b"]);
@@ -61,4 +67,12 @@ test("prune removes keys not in chain; space change clears all", () => {
   ctx.pruneColSort(["__root__", "a"]);
   assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.state.colSort)), {});
   assert.strictEqual(ctx.colSortMode("a"), "default");
+});
+
+test("asc/desc: prefix first (numeric 2<10), then name; no-prefix after; desc is reverse", () => {
+  const ctx = setup();
+  const mk = (id, n, p) => ({ type: "category", id, name: { zh: n }, ref: p ? { order: 0, prefix: p } : { order: 0 } });
+  const items = [mk("a", "zzz"), mk("b", "b", "10"), mk("c", "c", "2"), mk("d", "a", "2"), mk("e", "aaa")];
+  assert.deepStrictEqual(ctx.applyColSort(items, "asc", null).map((x) => x.id), ["d", "c", "b", "e", "a"]);
+  assert.deepStrictEqual(ctx.applyColSort(items, "desc", null).map((x) => x.id), ["a", "e", "b", "c", "d"]);
 });

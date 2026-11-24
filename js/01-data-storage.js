@@ -191,6 +191,21 @@
     if(!isFinite(b) || b <= a || b > LOOP_MAX_SECONDS) return null;
     return { a: a, b: b };
   }
+  // v0.16 item prefix (see js/05-data-prefix.js): single line, trimmed, max PREFIX_MAX characters.
+  var PREFIX_MAX = 12;
+  function normalizePrefix(v){
+    return typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, PREFIX_MAX).trim() : "";
+  }
+  // { key: prefix } -> clean copy with sorted keys and no empty entries, or null when nothing is left.
+  function normalizePrefixMap(m){
+    if(!m || typeof m !== "object") return null;
+    var out = {}, any = false;
+    Object.keys(m).sort().forEach(function(k){
+      var p = normalizePrefix(m[k]);
+      if(p){ out[k] = p; any = true; }
+    });
+    return any ? out : null;
+  }
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -205,6 +220,8 @@
       };
       // v0.9.1: source key of a one-click share copy ("<ownerUid>_<itemId>"), used for dedup.
       if(typeof c.sharedFrom === "string" && c.sharedFrom) oc.sharedFrom = c.sharedFrom.slice(0, 120);
+      var cp = normalizePrefix(c.prefix);
+      if(cp) oc.prefix = cp;
       return oc;
     });
     seedDefaultFolders(spaces, cats);
@@ -251,6 +268,8 @@
         custom: !!t.custom
       };
       if(typeof t.sharedFrom === "string" && t.sharedFrom) ot.sharedFrom = t.sharedFrom.slice(0, 120);
+      var pm = normalizePrefixMap(t.prefixByCategory);
+      if(pm) ot.prefixByCategory = pm;
       return ot;
     });
     return { categories: cats, tricks: tricks, infos: infos, tags: tags, labels: normalizeLabels(raw.labels === undefined && typeof labelsFallback === "function" ? labelsFallback() : raw.labels), spaces: spaces };

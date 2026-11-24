@@ -18,6 +18,7 @@
     colSortSpace: null,
     searchQuery: "",
     detailTrickId: null,
+    detailContainerKey: undefined, // container (list) the open trick was opened from; undefined = unknown (js/30)
     editingCategoryId: null,   // set when category modal is in "edit" mode
     editingCategoryParentHint: null, // parent of a new folder (the column it is created in)
     confirmAction: null,

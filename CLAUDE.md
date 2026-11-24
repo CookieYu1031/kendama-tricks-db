@@ -101,6 +101,8 @@
 | 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、清單深拷貝、貼上規劃與驗證、批量 `items`） | `js/25-browse-clipboard.js` |
 | 管理員 Shift+點選多選（同欄、`multi-sel`） | `js/25-browse-multisel.js` |
 | Ctrl+C 後馬上 Ctrl+V＝原地複製（選取 token、招式新 id 副本、插在原項目下方） | `js/25-browse-clip-dup.js` |
+| 項目前綴（清單 `prefix`、招式 `prefixByCategory` 每個所在清單各一；`normalizePrefix` 在 `js/01-data-storage.js`；抽屜所在清單 `resolveDrawerContainer` 在 `js/30`） | `js/05-data-prefix.js` |
+| 觸控左滑選取（編輯模式）、頂欄懸浮工具列（剪下／複製／貼上／移除、長按空白選貼上層級） | `js/25-browse-swipe-select.js`、`js/25-browse-touchbar.js`、`css/browse-touchbar.css`；批量刪除在 `js/28-browse-undo.js` |
 | 欄位右下浮動鈕（「+」與「編輯此清單」小膠囊） | `js/26-browse-fab.js` |
 | 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
 | 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |

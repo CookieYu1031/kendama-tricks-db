@@ -14,7 +14,7 @@
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
          addLinkedToast:"已連結招式",
-         addHintEmpty:"名稱，或 @ID 連結" },
+         addNamePh:"(亦可輸入@ID連結已有招式)", prefixLabel:"前綴" },
     jp:{ addTypeTrick:"技", addTypeFolder:"リスト", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
@@ -23,7 +23,7 @@
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
          addLinkedToast:"技をリンクしました",
-         addHintEmpty:"名前、または @ID でリンク" },
+         addNamePh:"(@IDで既存の技をリンクも可)", prefixLabel:"接頭辞" },
     en:{ addTypeTrick:"Trick", addTypeFolder:"List", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
@@ -32,7 +32,7 @@
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
          addLinkedToast:"Trick linked",
-         addHintEmpty:"Name, or @ID to link" }
+         addNamePh:"(or @ID to link a trick)", prefixLabel:"Prefix" }
   });
 
   /* ---------------- Pure logic ---------------- */
@@ -70,9 +70,11 @@
     if(!canAddChild(cp, "trick") || !subtreeFits(tr.id, "trick", levelOf(cp) + 1)) return "addErrLinkLevel";
     return "";
   }
-  function linkTrickInto(id, parentId, spaceId){
-    var tr = getTrick(id);
-    tr.categoryIds.push(addEffectiveParent(parentId, spaceId));
+  // prefix (optional): label of the new placement.
+  function linkTrickInto(id, parentId, spaceId, prefix){
+    var tr = getTrick(id), key = addEffectiveParent(parentId, spaceId);
+    tr.categoryIds.push(key);
+    if(prefix) setTrickPrefix(tr, key, prefix);
     return tr;
   }
 
@@ -138,6 +140,7 @@
     var pid = getSpace(parentId) ? null : (parentId == null ? null : parentId);
     var rec = { id: newItemId(), parentId: pid, name: addNameObj(f), order: getChildren(pid).length,
       icon: f.icon || "", color: f.color || "default", spaceId: spaceId };
+    setCategoryPrefix(rec, f.prefix);
     db.categories.push(rec);
     return rec;
   }
@@ -149,7 +152,7 @@
     db.infos.push(rec);
     return rec;
   }
-  // f: { zh, jp, en, icon, color, url, grip, parts, tagIds, note }
+  // f: { zh, jp, en, icon, color, url, grip, parts, tagIds, note, prefix }
   function createTrickRecord(parentId, spaceId, f, custom){
     var media = [];
     if(f.url) media.push({ id: newItemId(), type: "video", title: "", url: f.url, platform: detectPlatform(f.url) });
@@ -157,6 +160,7 @@
       categoryIds: [addEffectiveParent(parentId, spaceId)], orderByCategory: {}, order: db.tricks.length,
       icon: f.icon || "", color: f.color || "default", custom: !!custom, grip: f.grip || null, parts: f.parts || [],
       tagIds: f.tagIds || [], note: f.note || "" }] }).tricks[0];
+    setTrickPrefix(rec, addEffectiveParent(parentId, spaceId), f.prefix);
     db.tricks.push(rec);
     return rec;
   }
@@ -195,15 +199,16 @@
     addForm.type = type;
     var isTrick = type === "trick";
     addEl("addInfoSection").hidden = type !== "info";
-    addEl("addIconBtn").hidden = type === "info";
+    addEl("addLead").hidden = type === "info";
+    addEl("addNameGrid").classList.toggle("info", type === "info");
     Array.prototype.forEach.call(addEl("addTypeSwitch").children, function(b){
       b.classList.toggle("active", b.dataset.type === type);
     });
     // Trick and folder: three names (trick adds grip + parts diagram). Info: one title + content.
-    addEl("addAltRow").hidden = type === "info";
+    addEl("addAlt1Box").hidden = addEl("addAlt2Box").hidden = type === "info";
     addEl("addPartsSection").hidden = !isTrick;
     addEl("addMainLabel").textContent = addForm.mainLabel;
-    addEl("addMainName").placeholder = isTrick ? t("addHintEmpty") : "";
+    addEl("addMainName").placeholder = isTrick ? t("addNamePh") : "";
     updateAddIconPreview();
     syncAddLinking();
     addShowError("");
@@ -290,7 +295,11 @@
     addForm.mainLabel = names[state.lang];
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
-    ["addMainName", "addAlt1", "addAlt2", "addContent"].forEach(function(id){ addEl(id).value = ""; });
+    ["addMainName", "addAlt1", "addAlt2", "addContent", "addPrefix"].forEach(function(id){ addEl(id).value = ""; });
+    addEl("addPrefix").maxLength = PREFIX_MAX;
+    addEl("addPrefixLabel").textContent = t("prefixLabel");
+    addEl("addIconBtn").title = t("editIconColor");
+    addEl("addIconBtn").setAttribute("aria-label", t("editIconColor"));
     if(!addInputsBound){
       addInputsBound = true;
       addEl("addModal").addEventListener("keydown", onAddArrowKey);
@@ -323,7 +332,7 @@
       var lid = addLinkTarget();
       var key = validateLinkTrick(lid, parentId, spaceId, admin);
       if(key) return addShowError(key);
-      linkTrickInto(lid, parentId, spaceId);
+      linkTrickInto(lid, parentId, spaceId, addEl("addPrefix").value);
       saveDB(); closeAddModal(); showToast(t("addLinkedToast")); render();
       return;
     }
@@ -337,6 +346,7 @@
     if(addNameEmpty(addNameObj(f))) return addShowError("addErrName");
     if(type !== "info" && !iconTextFits(state.addDraftIcon)) return addShowError("iconTextTooLong");
     f.icon = state.addDraftIcon; f.color = state.addDraftColor;
+    f.prefix = type === "info" ? "" : addEl("addPrefix").value;
 
     if(type === "folder"){
       if(!canAddChild(parentId, "folder")) return addShowError("addErrNotAllowed");
@@ -351,7 +361,7 @@
       var rec = createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);
       showToast(t("savedTrick"));
       // Continue in the drawer (edit mode): tags, videos, note live there.
-      saveDB(); closeAddModal(); state.editMode = true; render(); openDrawerFor(rec.id);
+      saveDB(); closeAddModal(); state.editMode = true; render(); openDrawerFor(rec.id, addEffectiveParent(parentId, spaceId));
       return;
     }
     saveDB(); closeAddModal(); render();

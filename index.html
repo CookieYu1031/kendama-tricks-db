@@ -38,6 +38,7 @@
 <link rel="stylesheet" href="css/search-panel.css">
 <link rel="stylesheet" href="css/browse-columns.css">
 <link rel="stylesheet" href="css/browse-motion.css">
+<link rel="stylesheet" href="css/browse-touchbar.css">
 <link rel="stylesheet" href="css/detail-drawer.css">
 <link rel="stylesheet" href="css/grip.css">
 <link rel="stylesheet" href="css/buttons-and-modals.css">
@@ -321,12 +322,12 @@
   <div class="modal" id="categoryModal">
     <div class="modal-scroll">
       <div class="modal-title" id="categoryModalTitle">新增清單</div>
-      <div class="field">
-        <label id="iconColorFieldLabel">圖示與顏色</label>
-        <button type="button" class="icon-color-preview" id="iconColorPreviewBtn">
-          <span class="icon-color-swatch" id="iconColorSwatch"></span>
-          <span id="iconColorPreviewText">選擇圖示與顏色</span>
-        </button>
+      <div class="add-lead cat-lead">
+        <button type="button" class="icon-color-preview add-icon-btn" id="iconColorPreviewBtn"><span class="icon-color-swatch" id="iconColorSwatch"></span></button>
+        <div class="field">
+          <label id="categoryPrefixLabel" for="catPrefix">前綴</label>
+          <input type="text" id="catPrefix" autocomplete="off" />
+        </div>
       </div>
       <div class="field">
         <label id="categoryNameZhLabel">中文名稱 <span class="req">*</span></label>
@@ -534,18 +535,16 @@
         <div class="lang-switch add-type-switch" id="addTypeSwitch"></div>
         <button type="button" class="icon-btn add-modal-close" id="addCloseBtn"></button>
       </div>
-      <div class="add-name-row">
-        <button type="button" class="icon-color-preview add-icon-btn" id="addIconBtn"><span class="icon-color-swatch" id="addIconSwatch"></span></button>
-        <div class="field add-name-main">
-          <label id="addMainLabel"></label>
-          <input type="text" id="addMainName" />
+      <div class="add-name-grid" id="addNameGrid">
+        <div class="add-lead" id="addLead">
+          <button type="button" class="icon-color-preview add-icon-btn" id="addIconBtn"><span class="icon-color-swatch" id="addIconSwatch"></span></button>
+          <div class="field"><label id="addPrefixLabel" for="addPrefix"></label><input type="text" id="addPrefix" autocomplete="off" /></div>
         </div>
+        <div class="field add-name-main"><label id="addMainLabel"></label><input type="text" id="addMainName" /></div>
+        <div class="field" id="addAlt1Box"><label id="addAlt1Label"></label><input type="text" id="addAlt1" /></div>
+        <div class="field" id="addAlt2Box"><label id="addAlt2Label"></label><input type="text" id="addAlt2" /></div>
       </div>
       <div class="field-hint add-name-hint" id="addNameHint"></div>
-      <div class="field-row" id="addAltRow">
-        <div class="field"><label id="addAlt1Label"></label><input type="text" id="addAlt1" /></div>
-        <div class="field"><label id="addAlt2Label"></label><input type="text" id="addAlt2" /></div>
-      </div>
       <div class="field" id="addPartsSection" hidden>
         <label id="addPartsLabel"></label>
         <div class="add-parts" id="addParts"><div id="addDiagramHost"></div><div id="addGrips"></div></div>
@@ -621,6 +620,7 @@
 <script src="js/04-state.js"></script>
 <script src="js/05-data-helpers.js"></script>
 <script src="js/05-data-ops.js"></script>
+<script src="js/05-data-prefix.js"></script>
 <script src="js/05-data-util.js"></script>
 <script src="js/06-icons-svg.js"></script>
 <script src="js/07-id.js"></script>
@@ -644,6 +644,8 @@
 <script src="js/25-browse-clipboard.js"></script>
 <script src="js/25-browse-multisel.js"></script>
 <script src="js/25-browse-clip-dup.js"></script>
+<script src="js/25-browse-swipe-select.js"></script>
+<script src="js/25-browse-touchbar.js"></script>
 <script src="js/26-browse-fab.js"></script>
 <script src="js/27-browse-swipe-back.js"></script>
 <script src="js/28-browse-undo.js"></script>

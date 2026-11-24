@@ -42,6 +42,9 @@
     return { type: type, id: id, name: name, ref: ref };
   }
   function clipKey(parentId, spaceId){ return parentId == null ? spaceId : parentId; }
+  // Prefix of a trick placement moves / copies with it (js/05-data-prefix.js).
+  function clipPfxGet(tr, key){ return typeof getTrickPrefix === "function" ? getTrickPrefix(tr, key) : ""; }
+  function clipPfxSet(tr, key, val){ if(typeof setTrickPrefix === "function") setTrickPrefix(tr, key, val); }
 
   // Pure: does this key event mean copy/cut/paste? ctx: { inField, modalOpen, editMode, guest, hasTextSelection }
   function clipKeyAction(ev, ctx){
@@ -130,12 +133,14 @@
       var nid = idGen();
       out.cats.push({ id: nid, parentId: newParent, name: { zh: src.name.zh || "", jp: src.name.jp || "", en: src.name.en || "" },
         order: typeof src.order === "number" ? src.order : 0, icon: src.icon || "", color: src.color || "default", spaceId: spaceId });
+      if(src.prefix) out.cats[out.cats.length - 1].prefix = src.prefix;
       getInfosIn(srcId).forEach(function(n){
         out.infos.push({ id: idGen(), parentId: nid, spaceId: spaceId, title: { zh: n.title.zh || "", jp: n.title.jp || "", en: n.title.en || "" },
           content: n.content || "", order: typeof n.order === "number" ? n.order : 0, icon: n.icon || "", color: n.color || "default" });
       });
       getTricksInCategory(srcId).forEach(function(tr){
-        out.refs.push({ trickId: tr.id, containerId: nid, order: tr.orderByCategory && typeof tr.orderByCategory[srcId] === "number" ? tr.orderByCategory[srcId] : null });
+        out.refs.push({ trickId: tr.id, containerId: nid, order: tr.orderByCategory && typeof tr.orderByCategory[srcId] === "number" ? tr.orderByCategory[srcId] : null,
+          prefix: clipPfxGet(tr, srcId) });
       });
       getChildren(srcId).forEach(function(c){ walk(c.id, nid); });
       return nid;
@@ -164,6 +169,8 @@
       newId = rec.id;
     } else if(plan.op === "ref"){
       it.ref.categoryIds.push(targetKey);
+      var refPfx = clipPfxGet(it.ref, clipKey(clip.srcParent, clip.srcSpace));
+      if(refPfx) clipPfxSet(it.ref, targetKey, refPfx);
     } else if(plan.op === "copyFolder"){
       var cp = clipDeepCopyFolder(it.id, targetParentId, tSpace, newItemId);
       cp.cats.forEach(function(c){ db.categories.push(c); });
@@ -174,6 +181,7 @@
         if(!tr) return;
         if(tr.categoryIds.indexOf(r.containerId) === -1) tr.categoryIds.push(r.containerId);
         if(r.order !== null){ tr.orderByCategory = tr.orderByCategory || {}; tr.orderByCategory[r.containerId] = r.order; }
+        if(r.prefix) clipPfxSet(tr, r.containerId, r.prefix);
       });
       newId = cp.rootId;
     } else if(plan.op === "copyInfo"){
@@ -188,6 +196,8 @@
         if(idx !== -1) it.ref.categoryIds.splice(idx, 1);
         if(it.ref.orderByCategory) delete it.ref.orderByCategory[srcKey];
         if(it.ref.categoryIds.indexOf(targetKey) === -1) it.ref.categoryIds.push(targetKey);
+        var mvPfx = clipPfxGet(it.ref, srcKey);
+        if(mvPfx && srcKey !== targetKey){ clipPfxSet(it.ref, targetKey, mvPfx); clipPfxSet(it.ref, srcKey, ""); }
       } else if(it.type === "category"){
         it.ref.parentId = targetParentId;
         clipRetagSpace(it.id, tSpace);
@@ -274,15 +284,29 @@
     clipToast(mode === "cut" ? "clipCut" : "clipCopied", clipName(clipItemOf(list[0].type, list[0].id)));
   }
 
+  // Pure: does pasting cb into target (touch toolbar) mean "duplicate in place"? A copy back into the
+  // source column of the same table (not an external trick); a cut there stays "already here".
+  function clipPasteIsDup(cb, target, activeSpace){
+    return !!(cb && cb.mode === "copy" && cb.items && cb.type !== "extTrick" &&
+      cb.srcSpace === activeSpace && (cb.srcParent == null ? null : cb.srcParent) === (target == null ? null : target));
+  }
+
   function clipPaste(){
     if(!clipboardItem) return clipToast("clipEmpty");
     var env = { admin: isAdminNow(), activeSpace: state.activeSpace };
     if(typeof clipDupValid === "function" && clipDupValid(clipboardItem, clipSelToken, env)) return clipPasteDup(clipboardItem, env);
-    var target = clipTargetParent(clipSelection());
+    clipPasteInto(clipTargetParent(clipSelection()), false);
+  }
+
+  // Paste into an explicit container (null = table root). Returns true when something was pasted.
+  function clipPasteInto(target, allowDup){
+    if(!clipboardItem){ clipToast("clipEmpty"); return false; }
+    var env = { admin: isAdminNow(), activeSpace: state.activeSpace };
+    if(allowDup && typeof clipPasteDup === "function" && clipPasteIsDup(clipboardItem, target, env.activeSpace)) return clipPasteDup(clipboardItem, env);
     var clips = clipClipsOf(clipboardItem);
     var plans = clips.map(function(c){ return clipPlanPaste(c, target, env); });
     var cnt = clipBatchCounts(plans);
-    if(!cnt.ok) return clipToast(plans[0] ? plans[0].err : "clipEmpty");
+    if(!cnt.ok){ clipToast(plans[0] ? plans[0].err : "clipEmpty"); return false; }
     if(typeof undoPush === "function") undoPush();
     var moved = false;
     clips.forEach(function(c, i){
@@ -297,6 +321,7 @@
     if(clips.length > 1) clipNToast("clipPastedN", cnt.ok, cnt.skipped);
     else clipToast(moved ? "clipMoved" : "clipPasted");
     render();
+    return true;
   }
 
   function clipRun(action){

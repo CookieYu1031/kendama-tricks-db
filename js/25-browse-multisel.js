@@ -66,18 +66,21 @@
     var hadCur = !!multiSel;
     multiSel = multiSelNext(multiSel, info, hadCur ? null : clipLastClick, state.activeSpace);
     if(typeof clipInvalidate === "function") clipInvalidate();
-    var wrap = document.getElementById("millerWrap");
-    if(wrap){
-      var rows = wrap.querySelectorAll(".item");
-      for(var i = 0; i < rows.length; i++){
-        var r = rows[i];
-        if(!r.dataset || !r.dataset.itemType) continue;
-        var ri = clipRowInfo(r);
-        r.classList.toggle("multi-sel", !!multiSel && ri.parentId === multiSel.parentId &&
-          multiSel.items.some(function(x){ return x.type === ri.type && x.id === ri.id; }));
-      }
-    }
+    multiSelSyncRows();
     return true;
+  }
+  // Mirrors multiSel onto the rendered rows' .multi-sel class (shared by Shift+click and the left swipe, js/25-browse-swipe-select.js).
+  function multiSelSyncRows(){
+    var wrap = document.getElementById("millerWrap");
+    if(!wrap || !wrap.querySelectorAll) return;
+    var rows = wrap.querySelectorAll(".item");
+    for(var i = 0; i < rows.length; i++){
+      var r = rows[i];
+      if(!r.dataset || !r.dataset.itemType) continue;
+      var ri = clipRowInfo(r);
+      r.classList.toggle("multi-sel", !!multiSel && ri.parentId === multiSel.parentId &&
+        multiSel.items.some(function(x){ return x.type === ri.type && x.id === ri.id; }));
+    }
   }
 
   (function bindMultiSel(){

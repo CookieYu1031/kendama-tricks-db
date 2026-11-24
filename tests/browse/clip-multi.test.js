@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { load } = require("../_load");
 
 function setup(){
-  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
+  const ctx = load(["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/03-i18n.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-prefix.js", "js/05-data-util.js",
     "js/06-icons-svg.js", "js/07-id.js", "js/09-names.js", "js/20-browse-order.js", "js/22-browse-drag.js", "js/25-browse-clipboard.js", "js/25-browse-multisel.js", "js/25-browse-clip-dup.js"]);
   ctx.saveDB = () => {};
   let seq = 0;
@@ -125,4 +125,83 @@ test("clipInsertAfter moves new entry right after the original", () => {
   const arr = [{ type: "trick", id: "a" }, { type: "trick", id: "b" }, { type: "trick", id: "n" }];
   const out = c.clipInsertAfter(arr, "trick", "n", "trick", "a");
   assert.deepStrictEqual(Array.from(out.map((x) => x.id)), ["a", "n", "b"]);
+});
+
+// ---- prefix follows the placement (v0.16) ----
+function withPrefixes(c){
+  const tr = c.getTrick("a000000");
+  c.setTrickPrefix(tr, "c1", "1-2");
+  c.getCategory("c1").prefix = "A";
+  c.invalidateDbIndex();
+  return tr;
+}
+
+test("prefix: ref copy carries the source placement prefix to the target key", () => {
+  const c = setup(); const tr = withPrefixes(c);
+  const clip = { mode: "copy", type: "trick", id: "a000000", srcParent: "c1", srcSpace: "t00" };
+  const plan = c.clipPlanPaste(clip, "e1", env);
+  assert.strictEqual(plan.op, "ref");
+  c.clipApplyPaste(clip, "e1", plan, env);
+  assert.strictEqual(c.getTrickPrefix(tr, "e1"), "1-2");
+  assert.strictEqual(c.getTrickPrefix(tr, "c1"), "1-2"); // source keeps it
+});
+
+test("prefix: move (cut) trick moves the prefix and clears the source key", () => {
+  const c = setup(); const tr = withPrefixes(c);
+  const clip = { mode: "cut", type: "trick", id: "a000000", srcParent: "c1", srcSpace: "t00" };
+  const plan = c.clipPlanPaste(clip, "e1", { admin: true, activeSpace: "t00" });
+  assert.strictEqual(plan.op, "move");
+  c.clipApplyPaste(clip, "e1", plan, { admin: true, activeSpace: "t00" });
+  assert.strictEqual(c.getTrickPrefix(tr, "e1"), "1-2");
+  assert.strictEqual(c.getTrickPrefix(tr, "c1"), "");
+});
+
+test("prefix: list copy keeps the list prefix and each inner trick prefix; move keeps list prefix", () => {
+  const c = setup(); withPrefixes(c);
+  const clip = { mode: "copy", type: "category", id: "c1", srcParent: null, srcSpace: "t00" };
+  const plan = c.clipPlanPaste(clip, "e1", env);
+  assert.strictEqual(plan.op, "copyFolder");
+  const nid = c.clipApplyPaste(clip, "e1", plan, env);
+  assert.strictEqual(c.getCategory(nid).prefix, "A");
+  assert.strictEqual(c.getTrickPrefix(c.getTrick("a000000"), nid), "1-2");
+  assert.strictEqual(c.getTrickPrefix(c.getTrick("b000000"), nid), "");
+  assert.ok(!("prefix" in c.getCategory("e1")));
+  const mv = { mode: "cut", type: "category", id: "c1", srcParent: null, srcSpace: "t00" };
+  const a = { admin: true, activeSpace: "t00" };
+  c.clipApplyPaste(mv, "e1", c.clipPlanPaste(mv, "e1", a), a);
+  assert.strictEqual(c.getCategory("c1").prefix, "A");
+});
+
+test("prefix: in-place duplicate keeps the same-level prefix", () => {
+  const c = setup(); withPrefixes(c);
+  const clip = { mode: "copy", type: "trick", id: "a000000", srcParent: "c1", srcSpace: "t00" };
+  const nid = c.clipApplyDup(clip, c.clipPlanDup(clip, env), env);
+  assert.strictEqual(c.getTrickPrefix(c.getTrick(nid), "c1"), "1-2");
+  const cc = { mode: "copy", type: "category", id: "c1", srcParent: null, srcSpace: "t00" };
+  const cid = c.clipApplyDup(cc, c.clipPlanDup(cc, env), env);
+  assert.strictEqual(c.getCategory(cid).prefix, "A");
+});
+
+test("prefix: drag reparent carries it; removing a placement drops it", () => {
+  const c = setup(); const tr = withPrefixes(c);
+  c.reparentItem({ type: "trick", id: "a000000", ref: tr }, "c1", "e1");
+  assert.strictEqual(c.getTrickPrefix(tr, "e1"), "1-2");
+  assert.strictEqual(c.getTrickPrefix(tr, "c1"), "");
+  assert.ok(!tr.prefixByCategory || !("c1" in tr.prefixByCategory));
+  c.setTrickPrefix(tr, "c1", "9"); tr.categoryIds.push("c1");
+  c.removeTrickPlacement("a000000", "c1");
+  assert.strictEqual(c.getTrickPrefix(tr, "c1"), "");
+  assert.strictEqual(c.getTrickPrefix(tr, "e1"), "1-2");
+});
+
+test("clipPasteIsDup: copy back to the source column of the same table only", () => {
+  const c = setup();
+  const cb = { mode: "copy", items: [{ type: "trick", id: "a000000" }], srcParent: "c1", srcSpace: "t00" };
+  assert.ok(c.clipPasteIsDup(cb, "c1", "t00"));
+  assert.ok(!c.clipPasteIsDup(cb, "e1", "t00"));
+  assert.ok(!c.clipPasteIsDup(cb, "c1", "t01"));
+  assert.ok(!c.clipPasteIsDup(Object.assign({}, cb, { mode: "cut" }), "c1", "t00"));
+  assert.ok(!c.clipPasteIsDup({ mode: "copy", type: "extTrick", ext: {} }, null, "t00"));
+  const root = { mode: "copy", items: [{ type: "category", id: "c1" }], srcParent: null, srcSpace: "t00" };
+  assert.ok(c.clipPasteIsDup(root, null, "t00"));
 });

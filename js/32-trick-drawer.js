@@ -33,11 +33,19 @@
   // Desktop: the card slides in from / out to the right edge (CSS animation on .show /
   // .closing); closing keeps .show for DRAWER_CLOSE_MS so the slide-out is visible.
   var DRAWER_CLOSE_MS = 260, drawerCloseTimer = null;
-  function openDrawerFor(trickId){
+  // containerKey (optional): the list the trick was opened from; the prefix belongs to that placement.
+  function openDrawerFor(trickId, containerKey){
     var el = document.getElementById("detailDrawer");
     if(drawerCloseTimer){ clearTimeout(drawerCloseTimer); drawerCloseTimer = null; }
     el.classList.remove("closing");
     state.detailTrickId = trickId;
+    state.detailContainerKey = containerKey; // never carried over from the previous trick
+    var opened = getTrick(trickId);
+    if(opened && containerKey !== FAV_STARRED_ID && containerKey !== FAV_CUSTOM_ID){
+      // Freeze the placement now, so browsing columns while the drawer is open doesn't change it.
+      var resolved = resolveDrawerContainer(opened);
+      state.detailContainerKey = resolved === null ? undefined : resolved;
+    }
     drawerUi.tagPicker = false; drawerUi.videoEdit = null;
     renderColumns();
     renderDrawer();
@@ -46,6 +54,7 @@
   function closeDrawer(){
     var el = document.getElementById("detailDrawer");
     state.detailTrickId = null;
+    state.detailContainerKey = undefined;
     if(el.classList.contains("show") && !el.classList.contains("closing") && !isNarrowViewport()){
       el.classList.add("closing");
       drawerCloseTimer = setTimeout(function(){
@@ -74,20 +83,19 @@
 
     var sec = drawerSections(tr, state.editMode, canEditTrick);
 
+    var key = resolveDrawerContainer(tr);
+    var prefixOnly = drawerPrefixOnly(key, state.editMode, isGuest(), canEditTrick);
+
     var head = document.createElement("div");
     head.className = "drawer-head" + (tr.custom ? " custom" : "");
     var headLeft = document.createElement("div");
     headLeft.className = "drawer-head-left";
-    if(canEditTrick){
-      // Edit mode: only the icon + "edit color & icon" (no name; names are edited in the body).
-      headLeft.appendChild(buildDrawerHeadIcon(tr, true));
-    } else {
-      // View mode: only the main-language name, no icon.
-      var title = document.createElement("div");
-      title.className = "drawer-title";
-      title.textContent = resolveDisplayName(tr.name).text;
-      headLeft.appendChild(title);
-    }
+    // Title: [prefix] name. Edit mode keeps it on one line (the icon, prefix and names are edited in the body).
+    var title = document.createElement("div");
+    title.className = "drawer-title" + (canEditTrick ? " single" : "");
+    function paintTitle(){ fillDrawerTitle(title, tr, key ? getTrickPrefix(tr, key) : ""); }
+    paintTitle();
+    headLeft.appendChild(title);
     var headActions = document.createElement("div");
     headActions.className = "drawer-head-actions";
 
@@ -125,26 +133,14 @@
     var body = document.createElement("div");
     body.className = "drawer-body";
 
-    // Names. Edit mode: three inputs (zh / jp / en, no dividers). View mode: the other
+    // Names. Edit mode: icon + prefix + three names in two columns. View mode: the other
     // languages (otherNames skips the one the title shows verbatim; empty ones hidden).
     var nameTable = document.createElement("div");
-    nameTable.className = "name-table" + (canEditTrick ? " editing" : "");
+    nameTable.className = "name-table";
     if(canEditTrick){
-      ["zh", "jp", "en"].forEach(function(l){
-        var row = document.createElement("div");
-        row.className = "name-row";
-        var tag = document.createElement("span");
-        tag.className = "lang-tag"; tag.textContent = l === "zh" ? "TW" : l.toUpperCase();
-        var inp = document.createElement("input");
-        inp.type = "text"; inp.className = "drawer-inline-input";
-        inp.value = tr.name[l] || "";
-        inp.placeholder = t(l === "jp" ? "categoryNameJp" : l === "en" ? "categoryNameEn" : "categoryNameZh");
-        inp.addEventListener("input", function(){ if(setTrickName(tr, l, inp.value)) saveDB(); });
-        inp.addEventListener("blur", function(){ commitNameInput(tr, l, inp); });
-        row.appendChild(tag); row.appendChild(inp);
-        nameTable.appendChild(row);
-      });
+      body.appendChild(buildDrawerNameGrid(tr, key, paintTitle));
     } else {
+      if(prefixOnly) body.appendChild(buildDrawerPrefixLine(tr, key, paintTitle));
       var others = otherNames(tr.name);
       // Two short names sit side by side (half width each); long ones keep one per row.
       if(namesFitSideBySide(others)) nameTable.classList.add("pair");

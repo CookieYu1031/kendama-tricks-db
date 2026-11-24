@@ -9,7 +9,8 @@
     document.getElementById("searchInput").placeholder = t("searchPlaceholder");
     document.getElementById("searchToggleLabel").textContent = t("searchToggle");
     document.getElementById("brandHome").title = t("backHome");
-    document.getElementById("iconColorFieldLabel").textContent = t("iconColorLabel");
+    document.getElementById("iconColorPreviewBtn").title = t("iconColorLabel");
+    document.getElementById("iconColorPreviewBtn").setAttribute("aria-label", t("iconColorLabel"));
 
     Array.prototype.forEach.call(document.querySelectorAll(".lang-btn"), function(btn){
       if(btn.hasAttribute("data-lang")) btn.classList.toggle("active", btn.getAttribute("data-lang")===state.lang);
@@ -24,6 +25,7 @@
   // here whenever the chrome re-renders (including on every language switch).
   function localizeModalStatics(){
     var eg = t("egPrefix");
+    setText("categoryPrefixLabel", t("prefixLabel"));
     setText("categoryNameZhLabel", t("categoryNameZh"), true);
     setText("categoryNameJpLabel", t("categoryNameJp"));
     setText("categoryNameEnLabel", t("categoryNameEn"));

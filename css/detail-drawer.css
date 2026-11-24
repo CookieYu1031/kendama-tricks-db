@@ -28,15 +28,8 @@
   }
   .drawer-head-left{ flex:1 1 auto; min-width:0; }
   .drawer-title{ font-family: var(--font-display); font-size:20px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
-  .drawer-head-icon{ width:40px; height:40px; border-radius:var(--radius-xs); font-size:20px; border:0; padding:0; flex:0 0 auto; font-family:inherit; }
-  .drawer-head-edit{ display:inline-flex; align-items:center; gap:10px; max-width:100%; padding:0; border:0; background:transparent; color: var(--paper-dim); font-family:inherit; font-size:12px; cursor:pointer; transition: color .15s var(--ease); }
-  .drawer-head-edit:hover{ color: var(--paper); }
-  .drawer-head-edit:hover .drawer-head-icon{ box-shadow: 0 0 0 2px var(--lacquer); }
-  .drawer-head-edit .drawer-head-icon{ display:flex; align-items:center; justify-content:center; }
-  .drawer-head-edit-label{ min-width:0; text-align:left; }
-  .drawer-head-icon.editable{ cursor:pointer; transition: box-shadow .15s var(--ease); }
-  .drawer-head-icon.editable:hover{ box-shadow: 0 0 0 2px var(--lacquer); }
-  .drawer-head-icon svg{ width:22px; height:22px; }
+  .drawer-title-prefix{ color: var(--paper-faint); }
+  .drawer-title.single{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   /* Unique ID (edit mode), left of the star */
   .drawer-id-btn{
     font-family: var(--font-mono); font-size:12px; letter-spacing:.02em; padding: 4px 6px; border-radius:var(--radius-xs);
@@ -68,14 +61,21 @@
   .drawer-star-btn.active{ color: var(--star); }
   .drawer-body{ padding: 20px; overflow-y:auto; flex:1 1 auto; }
   .name-table{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
-  .name-table.editing{ gap:8px; }
   .name-table.pair{ display:grid; grid-template-columns:1fr 1fr; column-gap:16px; }
   .name-table.pair .name-row{ min-width:0; }
   .name-table.pair .name-val{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .name-row{ display:flex; align-items:baseline; gap:10px; padding: 9px 0; }
-  .name-table.editing .name-row{ align-items:center; padding:0; }
   .name-row .lang-tag{ font-family: var(--font-mono); font-size:12px; color: var(--paper-faint); width:26px; flex:0 0 auto; text-transform:uppercase; }
   .name-row .name-val{ font-size:15px; }
+  /* Edit mode names: two half-width columns, label above each box; icon button bottom-aligned with the inputs. */
+  .drawer-name-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; align-items:end; margin-bottom:20px; }
+  .drawer-name-lead{ display:flex; align-items:flex-end; gap:8px; min-width:0; }
+  .drawer-name-lead .drawer-name-cell{ flex:1 1 auto; }
+  .drawer-name-cell{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .drawer-name-label{ font-size:12px; color: var(--paper-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .drawer-name-cell .drawer-inline-input{ width:100%; height:34px; }
+  .drawer-icon-btn{ width:34px; height:34px; border:0; padding:0; flex:0 0 auto; font-family:inherit; cursor:pointer; transition: box-shadow .15s var(--ease); }
+  .drawer-icon-btn:hover{ box-shadow: 0 0 0 2px var(--lacquer); }
   .video-block{
     border-radius: var(--radius); overflow:hidden; border:1px solid var(--line); background: var(--ink);
     aspect-ratio: 16/9; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;
