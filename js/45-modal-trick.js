@@ -36,7 +36,7 @@
         removeTrickPlacement(trickId, cid);
       }
       saveDB();
-      if(state.detailTrickId && !getTrick(state.detailTrickId)) closeDrawer();
+      closeDrawerIfGone();
       showToast(t("deletedTrick"));
       render();
     });

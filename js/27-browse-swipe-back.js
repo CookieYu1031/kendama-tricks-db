@@ -103,7 +103,7 @@
       if(!swipeBackReady || swipeBackBusy || !isPhoneViewport()) return;
       if(ev.pointerType === "mouse") return;
       if(typeof browseModalOpen === "function" && browseModalOpen()) return;
-      if(state.detailTrickId || !state.path.length) return;
+      if(drawerIsOpen() || !state.path.length) return;
       if(ev.target.closest && ev.target.closest("input,textarea,select")) return;
       if(!swipeBackTopCol()) return;
       width = wrap.clientWidth;

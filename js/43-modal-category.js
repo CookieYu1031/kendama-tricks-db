@@ -345,7 +345,7 @@
       // trim path at the first removed ancestor (keeps everything above the deleted branch)
       var cutIdx = state.path.findIndex(function(id){ return idsToRemove.indexOf(id) !== -1; });
       if(cutIdx !== -1) state.path = state.path.slice(0, cutIdx);
-      if(state.detailTrickId && !getTrick(state.detailTrickId)) closeDrawer();
+      closeDrawerIfGone();
       saveDB();
       closeCategoryModal();
       showToast(t("deletedCategory"));

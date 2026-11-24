@@ -61,11 +61,12 @@ test("hasOnly field lists exact", function () {
     "lang,favorites,lastActiveAt,createdAt",
     "ownerUid,itemId,createdAt,kind,title,payload,v",
     "lists,clientUpdatedAt,updatedAt",
-    "pages,updatedAt"
+    "pages,updatedAt",
+    "data,by,createdAt"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);
   });
-  assert.equal(l.length, 16); // data appears twice (user + shared chunks)
+  assert.equal(l.length, 17); // data appears twice (user + shared chunks)
 });
 
 test("limits", function () {
@@ -134,6 +135,22 @@ test("shares: public read, owner-only write (re-share overwrites), size caps, be
   assert.match(b, /payload\.size\(\) <= 204800/);
   assert.match(b, /title\.size\(\) <= 120/);
   assert.match(b, /allow delete: if isOwner\(resource\.data\.ownerUid\);/);
+});
+
+test("infoImages: public get, admin list/create/delete, immutable, strict data check, before catch-all", function () {
+  var i = src.indexOf("match /infoImages/{imgId}");
+  assert.ok(i > 0 && i < src.lastIndexOf("match /{document=**}"));
+  var b = src.slice(i, src.indexOf("match /{document=**}"));
+  assert.match(b, /allow get: if true;/);
+  assert.match(b, /allow list: if isAdmin\(\);/);
+  assert.match(b, /allow create: if isAdmin\(\)/);
+  assert.match(b, /allow update: if false;/);
+  assert.match(b, /allow delete: if isAdmin\(\);/);
+  assert.match(b, /imgId\.matches\('\^\[0-9A-Za-z_-\]\{1,40\}\$'\)/);
+  assert.match(b, /data\.size\(\) <= 150000/);
+  assert.match(b, /data:image\/\(webp\|jpeg\|png\);base64,/);
+  assert.match(b, /by == request\.auth\.uid/);
+  assert.match(b, /createdAt == request\.time/);
 });
 
 test("meta/spaces accepts labels only as a map", function () {

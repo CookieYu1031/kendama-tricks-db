@@ -20,6 +20,7 @@
     m = normalizePrefixMap(m);
     if(m) tr.prefixByCategory = m; else delete tr.prefixByCategory;
   }
+  // Generic: works for lists and info items (both use a plain .prefix string).
   function getCategoryPrefix(cat){ return (cat && typeof cat.prefix === "string") ? cat.prefix : ""; }
   function setCategoryPrefix(cat, val){
     if(!cat) return;
@@ -27,10 +28,10 @@
     if(p) cat.prefix = p; else delete cat.prefix;
   }
   // Prefix of a column row: it = { type, ref }; parentId = its column (null = root of the active table).
-  // Info items have none.
+  // Info items (v0.17) carry info.prefix like lists (the category helpers are generic).
   function itemPrefix(it, parentId){
     if(!it || !it.ref) return "";
-    if(it.type === "category") return getCategoryPrefix(it.ref);
+    if(it.type === "category" || it.type === "info") return getCategoryPrefix(it.ref);
     if(it.type === "trick") return getTrickPrefix(it.ref, orderKeyFor(parentId));
     return "";
   }

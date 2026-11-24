@@ -12,7 +12,7 @@
     return {
       inField: !!(tg && tg.closest && tg.closest("input, textarea, select, [contenteditable]")),
       modalOpen: browseModalOpen(),
-      drawerOpen: !!state.detailTrickId,
+      drawerOpen: drawerIsOpen(),
       editMode: !!state.editMode,
       guest: typeof isGuest === "function" && isGuest(),
       ctrl: !!(ev.ctrlKey || ev.metaKey || ev.altKey)

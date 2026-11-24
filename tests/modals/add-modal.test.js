@@ -105,6 +105,29 @@ test("createFolderRecord / createInfoRecord", () => {
   assert.strictEqual(i.parentId, "c1");
   assert.strictEqual(i.content, "body");
   assert.ok(c.getInfo(i.id));
+  assert.strictEqual(i.icon, "");
+  assert.strictEqual(i.color, "default");
+  assert.strictEqual(i.prefix, undefined);
+  assert.strictEqual(i.image, undefined);
+});
+
+test("createInfoRecord: icon, color, prefix, image and three titles", () => {
+  const c = setup(); lock(c, false);
+  const i = c.createInfoRecord("c1", "t00", { zh: " 說明 ", jp: "せつめい", en: "Guide", content: "x", icon: "📘", color: "blue", prefix: " 1-2 ",
+    image: { id: "img0001", w: 800, h: 600, size: 50000 } });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(i.title)), { zh: "說明", jp: "せつめい", en: "Guide" });
+  assert.strictEqual(i.icon, "📘");
+  assert.strictEqual(i.color, "blue");
+  assert.strictEqual(i.prefix, "1-2");
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(i.image)), { id: "img0001", w: 800, h: 600, size: 50000 });
+  // survives a normalize round trip unchanged (same key order -> equal JSON)
+  const again = c.normalizeDB({ categories: [], tricks: [], infos: [JSON.parse(JSON.stringify(i))] }).infos[0];
+  assert.strictEqual(JSON.stringify(again), JSON.stringify(i));
+  // invalid image is dropped, blank prefix absent
+  const j = c.createInfoRecord(null, "t00", { zh: "b", image: { id: "bad id!" }, prefix: "  " });
+  assert.strictEqual(j.image, undefined);
+  assert.strictEqual(j.prefix, undefined);
+  assert.strictEqual(j.parentId, null);
 });
 
 test("createTrickRecord: fields, video, custom flag, root placement", () => {

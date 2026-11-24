@@ -91,7 +91,7 @@
       if(state.activeSpace === spaceId){
         state.activeSpace = fallbackId;
         localStorage.setItem(SPACE_KEY, fallbackId);
-        state.path = []; state.detailTrickId = null;
+        state.path = []; clearDrawerState();
         closeDrawer();
       }
       saveDB();

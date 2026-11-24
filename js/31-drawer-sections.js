@@ -47,9 +47,11 @@
   }
 
   // Blur check for a name input: refuse emptying the last name (restore + toast).
-  function commitNameInput(tr, lang, inp){
-    if(setTrickName(tr, lang, inp.value)){ saveDB(); return; }
-    inp.value = tr.name[lang] || "";
+  // isInfo: the record is an info item (names live in .title).
+  function commitNameInput(rec, lang, inp, isInfo){
+    var ok = isInfo ? setInfoTitle(rec, lang, inp.value) : setTrickName(rec, lang, inp.value);
+    if(ok){ saveDB(); return; }
+    inp.value = (isInfo ? rec.title : rec.name)[lang] || "";
     showToast(t("nameRequiredToast"));
   }
 
@@ -57,21 +59,22 @@
   var ICON_STAR_SOLID = '<svg viewBox="0 0 24 24" width="18" height="18" fill="var(--star)" stroke="var(--star)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
 
   // Icon button (edit mode, first cell of the name grid): opens the shared picker (target "drawer").
-  function buildDrawerIconBtn(tr){
+  // isInfo: info item (fallback icon ⓘ, colour "default" instead of empty).
+  function buildDrawerIconBtn(rec, isInfo){
     var el = document.createElement("button");
     el.type = "button";
     el.className = "drawer-icon-btn icon-color-swatch editable";
     el.title = t("editIconColor"); el.setAttribute("aria-label", t("editIconColor"));
     function paintSwatch(){
-      var h = tr.color ? colorHex(tr.color) : TRICK_DEFAULT_HEX;
+      var h = rec.color ? colorHex(rec.color) : (isInfo ? colorHex("default") : TRICK_DEFAULT_HEX);
       el.style.background = hexToRgba(h, 0.22); el.style.color = h;
-      el.classList.toggle("img-icon", isImageIcon(tr.icon));
-      el.innerHTML = iconHtml(tr.icon, ICON_TRICK);
+      el.classList.toggle("img-icon", isImageIcon(rec.icon));
+      el.innerHTML = iconHtml(rec.icon, isInfo ? ICON_INFO_ROW : ICON_TRICK);
     }
     paintSwatch();
     el.addEventListener("click", function(){
-      openIconPicker("drawer", { icon: tr.icon || "", color: tr.color || "", onDone: function(icon, color){
-        tr.icon = icon; tr.color = color;
+      openIconPicker("drawer", { icon: rec.icon || "", color: rec.color || "", onDone: function(icon, color){
+        rec.icon = icon; rec.color = isInfo ? (color || "default") : color;
         saveDB(); renderColumns();
         paintSwatch(); // only the swatch: re-rendering the whole drawer would flicker
       } });
@@ -79,8 +82,8 @@
     return el;
   }
 
-  // Head title: optional faint prefix + main-language name.
-  function fillDrawerTitle(el, tr, prefix){
+  // Head title: optional faint prefix + main-language name (nameObj = tr.name / info.title).
+  function fillDrawerTitle(el, nameObj, prefix){
     el.textContent = "";
     if(prefix){
       var sp = document.createElement("span");
@@ -88,16 +91,18 @@
       sp.textContent = prefix + " ";
       el.appendChild(sp);
     }
-    el.appendChild(document.createTextNode(resolveDisplayName(tr.name).text));
+    el.appendChild(document.createTextNode(resolveDisplayName(nameObj).text));
   }
 
-  // Prefix of the placement `key` (js/05-data-prefix.js): saved as you type, the list refreshes on blur.
-  function buildDrawerPrefixInput(tr, key, onChange){
+  // Prefix of the placement `key` (js/05-data-prefix.js; info items have one own prefix, key unused):
+  // saved as you type, the list refreshes on blur.
+  function buildDrawerPrefixInput(rec, key, onChange, isInfo){
     var inp = document.createElement("input");
     inp.type = "text"; inp.className = "drawer-inline-input";
-    inp.maxLength = PREFIX_MAX; inp.value = getTrickPrefix(tr, key);
+    inp.maxLength = PREFIX_MAX; inp.value = isInfo ? getCategoryPrefix(rec) : getTrickPrefix(rec, key);
     inp.addEventListener("input", function(){
-      setTrickPrefix(tr, key, inp.value); saveDB();
+      if(isInfo) setCategoryPrefix(rec, inp.value); else setTrickPrefix(rec, key, inp.value);
+      saveDB();
       if(onChange) onChange();
     });
     inp.addEventListener("change", function(){ renderColumns(); });
@@ -120,20 +125,24 @@
   }
   // Edit mode, two half-width columns: [icon + prefix][main name] / [name 2][name 3] (main = UI language).
   // key = placement of the prefix (null: no prefix box). onChange refreshes the head title.
-  function buildDrawerNameGrid(tr, key, onChange){
+  // isInfo: info item (names in .title, own prefix, always has the prefix box).
+  function buildDrawerNameGrid(rec, key, onChange, isInfo){
     var grid = document.createElement("div");
     grid.className = "drawer-name-grid";
     var lead = document.createElement("div");
     lead.className = "drawer-name-lead";
-    lead.appendChild(buildDrawerIconBtn(tr));
-    if(key) lead.appendChild(drawerNameCell(t("prefixLabel"), buildDrawerPrefixInput(tr, key, onChange)));
+    lead.appendChild(buildDrawerIconBtn(rec, isInfo));
+    if(key || isInfo) lead.appendChild(drawerNameCell(t("prefixLabel"), buildDrawerPrefixInput(rec, key, onChange, isInfo)));
     grid.appendChild(lead);
     [state.lang].concat(nameTableLangs(state.lang)).forEach(function(l){
       var inp = document.createElement("input");
       inp.type = "text"; inp.className = "drawer-inline-input";
-      inp.value = tr.name[l] || "";
-      inp.addEventListener("input", function(){ if(setTrickName(tr, l, inp.value)){ saveDB(); if(onChange) onChange(); } });
-      inp.addEventListener("blur", function(){ commitNameInput(tr, l, inp); });
+      inp.value = (isInfo ? rec.title : rec.name)[l] || "";
+      inp.addEventListener("input", function(){
+        if(isInfo ? setInfoTitle(rec, l, inp.value) : setTrickName(rec, l, inp.value)){ saveDB(); if(onChange) onChange(); }
+      });
+      inp.addEventListener("blur", function(){ commitNameInput(rec, l, inp, isInfo); });
+      if(isInfo) inp.addEventListener("change", function(){ renderColumns(); }); // row title follows on blur
       grid.appendChild(drawerNameCell(t(l === "jp" ? "categoryNameJp" : l === "en" ? "categoryNameEn" : "categoryNameZh"), inp));
     });
     return grid;

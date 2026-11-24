@@ -64,13 +64,11 @@ test("paste needs a clipboard AND a chosen level", () => {
   assert.deepStrictEqual([s(false, false), s(true, false), s(false, true), s(true, true)], [false, false, false, true]);
 });
 
-test("hint text key and press-move cancel", () => {
+test("count: selection, else clipboard; press-move cancel", () => {
   const c = setup();
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.touchbarHint({ mode: "sel", count: 3 }, null, false))), { key: "tbSelected", n: 3 });
-  const cut = { mode: "cut", items: [{}, {}] };
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.touchbarHint({ mode: "clip", count: 0 }, cut, false))), { key: "tbCutHint", n: 2 });
-  assert.strictEqual(c.touchbarHint({ mode: "clip", count: 0 }, { mode: "copy", type: "extTrick" }, false).key, "tbCopyHint");
-  assert.strictEqual(c.touchbarHint({ mode: "clip", count: 0 }, cut, true).key, "tbTargetSet");
+  assert.strictEqual(c.touchbarCount({ mode: "sel", count: 3 }, null), 3);
+  assert.strictEqual(c.touchbarCount({ mode: "clip", count: 0 }, { mode: "cut", items: [{}, {}] }), 2);
+  assert.strictEqual(c.touchbarCount({ mode: "clip", count: 0 }, { mode: "copy", type: "extTrick" }), 1);
   assert.ok(!c.touchbarPressMoved(5, -7));
   assert.ok(c.touchbarPressMoved(9, 0));
   assert.ok(c.touchbarPressMoved(0, -9));

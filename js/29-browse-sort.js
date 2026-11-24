@@ -86,11 +86,11 @@
   // this (those actions never touch state.detailTrickId), only actually opening
   // a trick's detail does.
   function findFocusColumnIndex(columns){
-    if(!state.detailTrickId) return -1;
+    if(!drawerIsOpen()) return -1;
     for(var i=0;i<columns.length;i++){
       var items = columns[i].items;
       for(var j=0;j<items.length;j++){
-        if(items[j].type==="trick" && items[j].id===state.detailTrickId) return i;
+        if((items[j].type==="trick" && items[j].id===state.detailTrickId) || (items[j].type==="info" && items[j].id===state.detailInfoId)) return i;
       }
     }
     return -1;

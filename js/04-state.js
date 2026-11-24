@@ -18,6 +18,7 @@
     colSortSpace: null,
     searchQuery: "",
     detailTrickId: null,
+    detailInfoId: null,            // open info drawer (v0.17); mutually exclusive with detailTrickId
     detailContainerKey: undefined, // container (list) the open trick was opened from; undefined = unknown (js/30)
     editingCategoryId: null,   // set when category modal is in "edit" mode
     editingCategoryParentHint: null, // parent of a new folder (the column it is created in)
@@ -32,3 +33,6 @@
     editingMediaTrickId: null
   };
 
+  // The detail drawer shows a trick OR an info item, never both.
+  function drawerIsOpen(){ return !!(state.detailTrickId || state.detailInfoId); }
+  function clearDrawerState(){ state.detailTrickId = null; state.detailInfoId = null; }

@@ -12,14 +12,17 @@
     tr.landed = !!tr.rate;
     return tr.rate;
   }
-  // Set one language of the name. Refuses (false) if all three would be empty.
-  function setTrickName(tr, lang, value){
-    var next = { zh: tr.name.zh || "", jp: tr.name.jp || "", en: tr.name.en || "" };
+  // Set one language of a name object (rec[field]). Refuses (false) if all three would be empty.
+  function setRecordName(rec, field, lang, value){
+    var cur = rec[field] || {};
+    var next = { zh: cur.zh || "", jp: cur.jp || "", en: cur.en || "" };
     next[lang] = (value || "").trim();
     if(!next.zh && !next.jp && !next.en) return false;
-    tr.name = next;
+    rec[field] = next;
     return true;
   }
+  function setTrickName(tr, lang, value){ return setRecordName(tr, "name", lang, value); }
+  function setInfoTitle(info, lang, value){ return setRecordName(info, "title", lang, value); }
   // The two languages shown in the edit-mode name table (the title edits `main`).
   function nameTableLangs(main){
     return ["zh", "jp", "en"].filter(function(l){ return l !== main; });

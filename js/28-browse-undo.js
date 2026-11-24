@@ -40,9 +40,7 @@
         var cut = state.path.findIndex(function(id){ return !getCategory(id); });
         if(cut !== -1) state.path = state.path.slice(0, cut);
       }
-      if(typeof state !== "undefined" && state.detailTrickId && !getTrick(state.detailTrickId)){
-        if(typeof closeDrawer === "function") closeDrawer();
-      }
+      if(typeof state !== "undefined" && typeof closeDrawerIfGone === "function") closeDrawerIfGone();
       saveDB();
       return true;
     }
@@ -132,7 +130,7 @@
       if(typeof multiSelClear === "function") multiSelClear();
       var cutIdx = state.path.findIndex(function(id){ return res.catIds.indexOf(id) !== -1; });
       if(cutIdx !== -1) state.path = state.path.slice(0, cutIdx);
-      if(state.detailTrickId && !getTrick(state.detailTrickId) && typeof closeDrawer === "function") closeDrawer();
+      if(typeof closeDrawerIfGone === "function") closeDrawerIfGone();
       var msg = t("batchDeletedN").replace("{n}", res.removed);
       if(plan.skipped) msg += t("clipSkippedN").replace("{m}", plan.skipped);
       showToast(msg);

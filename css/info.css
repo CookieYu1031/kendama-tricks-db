@@ -1,0 +1,38 @@
+/* v0.17 info image: view, editor, lightbox (js/46-info-image.js) */
+  .info-img{
+    margin: 14px 0 0; width:100%; position:relative; overflow:hidden;
+    border-radius: var(--radius-sm); border:1px solid var(--line); background: var(--glass-1);
+  }
+  .info-img.is-loading{ background: linear-gradient(110deg, var(--glass-1) 30%, var(--glass-2) 50%, var(--glass-1) 70%); background-size:200% 100%; animation: infoImgShimmer 1.4s linear infinite; }
+  @keyframes infoImgShimmer{ from{ background-position: 200% 0; } to{ background-position: -200% 0; } }
+  .info-img img{ display:block; width:100%; height:100%; object-fit:contain; cursor: zoom-in; }
+  .info-img-retry{
+    position:absolute; inset:0; width:100%; border:0; background:transparent; cursor:pointer;
+    color: var(--paper-dim); font-size:13px; font-family:inherit; padding:12px; text-align:center;
+  }
+  .info-img-retry:hover{ color: var(--paper); }
+
+  .info-img-editor{ display:flex; flex-direction:column; gap:10px; }
+  .info-img-editor .info-img{ margin-top:0; }
+  .info-img-prev img{ display:block; width:100%; max-height:240px; object-fit:contain; border-radius: var(--radius-sm); border:1px solid var(--line); background: var(--glass-1); }
+  .info-img-prev .info-img{ max-height:240px; }
+  .info-img-prev .info-img img{ max-height:100%; border:0; border-radius:0; }
+  .info-img-actions{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .info-img-actions .col-add-btn{ width:auto; flex:0 0 auto; padding:7px 12px; }
+  .info-img-editor .form-error{ margin:0; }
+  .info-img-hint{ font-size:12px; color: var(--paper-faint); line-height:1.5; }
+
+  .info-lb{ z-index: 78; padding:0; background: rgba(8,9,10,0.82); touch-action: pinch-zoom pan-x pan-y; }
+  .info-lb-scroll{
+    width:100%; height:100%; overflow:auto; display:flex; /* centred by the image's auto margins, so a larger image can scroll from its left / top edge */
+    padding: 56px 16px 24px; box-sizing:border-box; -webkit-overflow-scrolling: touch;
+  }
+  .info-lb-img{
+    display:block; margin:auto; max-width:100%; max-height: calc(100vh / var(--ui-zoom) - 90px);
+    object-fit:contain; border-radius: var(--radius-xs); cursor: zoom-in; box-shadow: var(--shadow-lg);
+  }
+  .info-lb-img.actual{ max-width:none; max-height:none; cursor: zoom-out; }
+  .info-lb-close{ position:absolute; top: max(12px, env(safe-area-inset-top)); right:12px; z-index:1; }
+  @media (max-width: 600px){
+    .info-lb-scroll{ padding: 52px 8px 16px; }
+  }

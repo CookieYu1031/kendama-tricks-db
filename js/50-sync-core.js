@@ -169,7 +169,7 @@
       state.activeSpace = db.spaces[0].id;
     }
     state.path = [];
-    state.detailTrickId = null;
+    clearDrawerState();
     if(typeof closeDrawer === "function") closeDrawer();
   }
 

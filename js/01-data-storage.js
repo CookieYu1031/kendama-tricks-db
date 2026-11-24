@@ -206,6 +206,15 @@
     });
     return any ? out : null;
   }
+  // v0.17 info image ref { id, w, h, size } (blob lives in infoImages/{id}, see js/46-info-image.js).
+  // Fixed key order; null when invalid (the field must then be absent from the record).
+  function normalizeInfoImage(v){
+    if(!v || typeof v !== "object" || typeof v.id !== "string" || !/^[0-9A-Za-z_-]{1,40}$/.test(v.id)) return null;
+    function num(x, max){ return (typeof x === "number" && isFinite(x) && Math.floor(x) === x && x >= 1 && x <= max) ? x : 0; }
+    var w = num(v.w, 4000), h = num(v.h, 4000), size = num(v.size, 200000);
+    if(!w || !h || !size) return null;
+    return { id: v.id, w: w, h: h, size: size };
+  }
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -227,7 +236,7 @@
     seedDefaultFolders(spaces, cats);
     ensureFavFixedFolders(cats);
     var infos = (raw.infos||[]).map(function(n, idx){
-      return {
+      var oi = {
         id:n.id, parentId: n.parentId===undefined?null:n.parentId,
         spaceId: n.spaceId || spaces[0].id,
         title: nameOf(n.title),
@@ -236,6 +245,11 @@
         icon: n.icon || "",
         color: sanitizeColorKey(n.color, "default")
       };
+      var ip = normalizePrefix(n.prefix);
+      if(ip) oi.prefix = ip;
+      var im = normalizeInfoImage(n.image);
+      if(im) oi.image = im;
+      return oi;
     });
     var tags = (raw.tags||[]).filter(function(g){ return g && g.id; }).map(normalizeTag);
     var tricks = (raw.tricks||[]).map(function(t, idx){

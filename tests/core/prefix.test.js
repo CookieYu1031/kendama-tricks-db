@@ -53,3 +53,19 @@ test("setCategoryPrefix + normalizeDB: fields only when non-empty", () => {
   assert.strictEqual("prefixByCategory" in tk("t000001"), false);
   assert.deepStrictEqual(Object.keys(J(tk("t000002").prefixByCategory)), ["a", "c1"]);
 });
+
+test("info prefix: normalizeDB keeps it only when non-empty; itemPrefix reads it", () => {
+  const c = setup();
+  const nm = { zh: "i", jp: "", en: "" };
+  const d = c.normalizeDB({ infos: [
+    { id: "i1", parentId: null, title: nm, prefix: "  A-1 " },
+    { id: "i2", parentId: null, title: nm, prefix: "  " },
+    { id: "i3", parentId: null, title: nm }
+  ] });
+  assert.strictEqual(d.infos[0].prefix, "A-1");
+  assert.ok(!("prefix" in d.infos[1]) && !("prefix" in d.infos[2]));
+  assert.strictEqual(c.itemPrefix({ type: "info", ref: d.infos[0] }, null), "A-1");
+  assert.strictEqual(c.itemPrefix({ type: "info", ref: d.infos[2] }, null), "");
+  c.setCategoryPrefix(d.infos[0], "");
+  assert.ok(!("prefix" in d.infos[0]));
+});
