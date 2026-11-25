@@ -112,7 +112,7 @@
 | 手機右滑返回（欄位任何位置、跟手、毛玻璃露出上一層）、進入下一層從右滑入／返回滑出 | `js/27-browse-swipe-back.js`、`css/browse-motion.css`；`browseModalOpen` 在 `js/23-browse-gestures.js`（其他手勢已移除） |
 | 快捷鍵（只有 Ctrl/Cmd+C／X／V／Z、Delete；Esc 在 `js/90`） | `js/24-browse-keys.js` |
 | 復原（Ctrl+Z 快照堆疊）、Delete 刪除選取項目 | `js/28-browse-undo.js` |
-| 每層獨立排序（欄位頂端「A~Z 預設／↓／↑」，只改顯示、`state.colSort`，該層關閉回預設；非預設停用拖曳）、`findFocusColumnIndex` | `js/29-browse-sort.js`、`css/browse-columns.css` |
+| 每層獨立排序（欄位頂端「排序↓」＝自訂順序、「排序↑」＝倒序，只改顯示、`state.colSort`，該層關閉回預設；倒序停用拖曳）、`findFocusColumnIndex` | `js/29-browse-sort.js`、`css/browse-columns.css` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
 | 資訊項目抽屜（點資訊列開在同一個 `#detailDrawer`；檢視＝前綴＋標題＋內文＋連結；編輯＝圖示／前綴／三語標題／內文／連結／移除；`openInfoDrawer`、`requestDeleteInfo`；`state.detailInfoId` 與 `detailTrickId` 互斥，`drawerIsOpen`／`clearDrawerState` 在 `js/04`，`closeDrawerIfGone` 在 `js/32`） | `js/37-info-drawer.js`、`css/detail-drawer.css` |

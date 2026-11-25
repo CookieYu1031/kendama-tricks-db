@@ -114,3 +114,17 @@ test("tooltip shortcut labels: Mac shows ⌘ for C/X/V only", () => {
     ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Delete", "Ctrl+Alt+C", "Ctrl+Alt+V", "Esc"]);
   assert.deepStrictEqual(["cut", "paste", "drop"].map((a) => c.touchbarKeyLabel(a, "MacIntel")), ["⌘X", "⌘V", "Ctrl+Alt+C"]);
 });
+
+test("握有樣式時，單點的項目也能用工具列的滴管／油漆，並計入已選(n)", () => {
+  const c = setup();
+  c.styleCanCopy = (items) => items.length === 1;
+  c.styleCanApply = (items) => items.length > 0;
+  const base = { items: [], parentId: null, admin: true, editMode: true, guest: false, styleClip: { icon: "x", color: "red" } };
+  const none = c.touchbarState(Object.assign({}, base, { styleBar: { items: [], parentId: null } }));
+  assert.strictEqual(none.paint, false);
+  assert.strictEqual(c.touchbarCount(none, null), 0);
+  const one = c.touchbarState(Object.assign({}, base, { styleBar: { items: [{ type: "trick", id: "a" }], parentId: "c1" } }));
+  assert.strictEqual(one.paint && one.drop, true);
+  assert.strictEqual(one.cut || one.copy || one.del, false);
+  assert.strictEqual(c.touchbarCount(one, null), 1);
+});

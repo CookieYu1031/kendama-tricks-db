@@ -19,6 +19,7 @@
   });
 
   var styleClip = null;
+  var styleUsedClick = null; // the plain click already consumed by the dropper / brush (the toolbar then waits for a new one)
 
   function styleToast(msg, kind){ if(typeof showToast === "function") showToast(msg, kind); }
   function styleSync(){ if(typeof touchbarSync === "function") touchbarSync(); }
@@ -31,6 +32,16 @@
     if(sel && sel.type) return { items: [{ type: sel.type, id: sel.id }], parentId: sel.parentId };
     return { items: [], parentId: null };
   }
+
+  // What the toolbar's dropper / brush act on: the multi-selection, else - while a style is held - the item
+  // clicked since the last dropper / brush (the keyboard shortcuts always take the last clicked item).
+  function styleBarItems(){
+    var s = styleItems();
+    if(typeof multiSelItems === "function" && multiSelItems().length) return s;
+    if(!styleClip || typeof clipLastClick === "undefined" || !clipLastClick || clipLastClick === styleUsedClick) return { items: [], parentId: null };
+    return s;
+  }
+  function styleMarkUsed(){ styleUsedClick = typeof clipLastClick !== "undefined" ? clipLastClick : null; }
 
   // Pure: exactly one existing, non-virtual item. No edit permission needed to copy.
   function styleCanCopy(items, parentId){
@@ -86,6 +97,7 @@
     var img = isImageIcon(it.ref.icon);
     styleClip = { icon: img ? null : (it.ref.icon || ""), color: it.ref.color || "", type: it.type };
     if(typeof multiSelClear === "function") multiSelClear();
+    styleMarkUsed();
     styleSync();
     styleToast(t(img ? "styleCopiedImg" : "styleCopied"));
     return true;
@@ -107,6 +119,7 @@
     if(changed) ok.forEach(function(it){ styleWrite(it.ref, styleResolve(styleClip, it.type)); });
     if(changed) saveDB();
     if(typeof multiSelClear === "function") multiSelClear();
+    styleMarkUsed();
     styleSync();
     render();
     var msg = t("styleAppliedN").replace("{n}", ok.length);

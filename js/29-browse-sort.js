@@ -1,42 +1,23 @@
 "use strict";
 
   /* ============================================================
-     BROWSE — per-column display sort (A~Z default / asc / desc)
+     BROWSE — per-column display order: the custom order (default) or the same order reversed ("desc")
      In-memory only (state.colSort); never written back to the data.
   ============================================================ */
   addStrings({
-    zh:{ colSortDefault:"A~Z 預設", colSortAsc:"A~Z ↓", colSortDesc:"A~Z ↑", colSortTip:"切換此層排序" },
-    jp:{ colSortDefault:"A~Z 既定", colSortAsc:"A~Z ↓", colSortDesc:"A~Z ↑", colSortTip:"この階層の並び順を切り替え" },
-    en:{ colSortDefault:"A~Z Default", colSortAsc:"A~Z ↓", colSortDesc:"A~Z ↑", colSortTip:"Change sort order of this level" }
+    zh:{ colSortDefault:"排序↓", colSortDesc:"排序↑", colSortTip:"切換此層排序" },
+    jp:{ colSortDefault:"並び順↓", colSortDesc:"並び順↑", colSortTip:"この階層の並び順を切り替え" },
+    en:{ colSortDefault:"Order ↓", colSortDesc:"Order ↑", colSortTip:"Change sort order of this level" }
   });
 
   function colSortMode(key){
-    var m = state.colSort && state.colSort[key];
-    return m === "asc" || m === "desc" ? m : "default";
+    return state.colSort && state.colSort[key] === "desc" ? "desc" : "default";
   }
-  function nextColSortMode(mode){
-    return mode === "default" ? "asc" : mode === "asc" ? "desc" : "default";
-  }
-  function colSortLocale(){
-    return state.lang === "jp" ? "ja" : state.lang === "en" ? "en" : "zh-Hant";
-  }
-  // Returns a new array; "default" = the custom order (sortColumnItems).
+  function nextColSortMode(mode){ return mode === "desc" ? "default" : "desc"; }
+  // Returns a new array: the custom order (sortColumnItems), or that order reversed.
   function applyColSort(items, mode, parentId){
     var base = sortColumnItems(items, parentId);
-    if(mode !== "asc" && mode !== "desc") return base;
-    var coll = new Intl.Collator(colSortLocale(), { numeric:true, sensitivity:"base" });
-    var dir = mode === "asc" ? 1 : -1;
-    // Key = prefix first, then name. Items without a prefix come after prefixed ones in asc.
-    var withIdx = base.map(function(it, i){ return { it:it, i:i, p:itemPrefix(it, parentId), n:localize(it.name) || "" }; });
-    withIdx.sort(function(a, b){
-      var c;
-      if(a.p === b.p) c = coll.compare(a.n, b.n);
-      else if(!a.p) c = 1;
-      else if(!b.p) c = -1;
-      else c = coll.compare(a.p, b.p) || coll.compare(a.n, b.n);
-      return c !== 0 ? c * dir : a.i - b.i;
-    });
-    return withIdx.map(function(x){ return x.it; });
+    return mode === "desc" ? base.reverse() : base;
   }
   // Drops sort entries for columns no longer in the chain; a space change clears all.
   function pruneColSort(keys){
@@ -48,7 +29,7 @@
     });
   }
   function colSortLabel(mode){
-    return t(mode === "asc" ? "colSortAsc" : mode === "desc" ? "colSortDesc" : "colSortDefault");
+    return t(mode === "desc" ? "colSortDesc" : "colSortDefault");
   }
   // Pure: "on" (2+ items), "fixed" (1 item: label only, can't change), "blank" (empty / collapsed: placeholder).
   function colSortBarKind(count, collapsed){

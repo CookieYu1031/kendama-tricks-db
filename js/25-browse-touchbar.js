@@ -55,8 +55,13 @@
       });
       if(items.some(function(x){ return x.hasOwnProperty("parentId"); })) cp = ct = dl = false; // cross-column: paint only
       out.copy = cp; out.cut = ct; out.del = dl;
-      out.drop = typeof styleCanCopy === "function" && !!styleCanCopy(items, ctx.parentId);
-      out.paint = typeof styleCanApply === "function" && !!styleCanApply(items, ctx.parentId, ctx.admin);
+    }
+    // dropper / brush also take the plainly clicked item while a style is held (same as the shortcuts)
+    var sb = n > 0 ? { items: items, parentId: ctx.parentId } : (ctx.styleBar || { items: [], parentId: null });
+    if(sb.items.length){
+      out.drop = typeof styleCanCopy === "function" && !!styleCanCopy(sb.items, sb.parentId);
+      out.paint = typeof styleCanApply === "function" && !!styleCanApply(sb.items, sb.parentId, ctx.admin);
+      if(out.mode === "style") out.count = sb.items.length;
     }
     out.paste = !!ctx.hasClip && !!ctx.hasTarget;
     return out;
@@ -64,7 +69,7 @@
   // Pure: number shown as 「已選(n)」: the selection, else what is on the clipboard; a style-only bar shows 0.
   function touchbarCount(st, cb){
     if(st.mode === "sel") return st.count;
-    if(st.mode === "style") return 0;
+    if(st.mode === "style") return st.count;
     return cb && cb.items ? cb.items.length : 1;
   }
   // Pure: did a held press move far enough to cancel the long-press?
@@ -80,7 +85,8 @@
     else tbMouse = !swipeSelActive; // swipe = touch; Shift+click = mouse
     return { items: items, parentId: items.length && multiSel ? multiSel.parentId : null, admin: isAdminNow(),
       hasClip: !!clipboardItem, hasTarget: tbMouse || tbTarget !== undefined, touchClip: tbClip,
-      editMode: !!state.editMode, guest: isGuest(), styleClip: tbStyleClip() };
+      editMode: !!state.editMode, guest: isGuest(), styleClip: tbStyleClip(),
+      styleBar: typeof styleBarItems === "function" ? styleBarItems() : null };
   }
 
   // act, icon, class, group
