@@ -1,7 +1,7 @@
 "use strict";
 
   /* ============================================================
-     BROWSE — admin multi-select (edit mode, Shift+click) for batch Ctrl+C / X / V (js/25-browse-clipboard.js)
+     BROWSE — multi-select (any user) (edit mode, Shift+click) for batch Ctrl+C / X / V (js/25-browse-clipboard.js)
      multiSel = { parentId, space, items:[{ type, id }] } | null. One column (one parentId) only.
      Cleared by: a plain click, Esc, leaving edit mode, switching table.
      Pure logic first (multiSelNext), DOM glue below.
@@ -57,7 +57,7 @@
 
   // Called from the capture click handler in js/25. Returns true when it consumed the click.
   function multiSelHandleClick(ev, row){
-    if(!ev.shiftKey || !state.editMode || !isAdminNow() || !row || !row.dataset || !row.dataset.itemType) return false;
+    if(!ev.shiftKey || !state.editMode || !row || !row.dataset || !row.dataset.itemType) return false;
     ev.stopPropagation(); ev.preventDefault();
     if(row.dataset.ghost) return true;
     var info = clipRowInfo(row);
@@ -88,7 +88,7 @@
     if(wrap && wrap.addEventListener){
       // stop the browser's Shift+click text highlight
       wrap.addEventListener("mousedown", function(ev){
-        if(ev.shiftKey && state.editMode && isAdminNow()) ev.preventDefault();
+        if(ev.shiftKey && state.editMode) ev.preventDefault();
       }, true);
     }
     document.addEventListener("keydown", function(ev){

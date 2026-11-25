@@ -125,13 +125,14 @@
   }
 
   // Pure: copy of info record src with the placement fields from pl ({ id, parentId, spaceId, order }).
-  // prefix / image (v0.17) are carried only when present (records are compared to the base with JSON).
+  // prefix / links (v0.17.2) are carried only when present (records are compared to the base with JSON).
   function clipCopyInfoRec(src, pl){
     var o = { id: pl.id, parentId: pl.parentId, spaceId: pl.spaceId,
       title: { zh: src.title.zh || "", jp: src.title.jp || "", en: src.title.en || "" },
       content: src.content || "", order: pl.order, icon: src.icon || "", color: src.color || "default" };
     if(src.prefix) o.prefix = src.prefix;
-    if(src.image) o.image = { id: src.image.id, w: src.image.w, h: src.image.h, size: src.image.size };
+    var lk = normalizeInfoLinks(src.links);
+    if(lk.length) o.links = lk;
     return o;
   }
 
@@ -280,16 +281,19 @@
     var sel = multi.length ? { type: multi[0].type, id: multi[0].id, parentId: multiSel.parentId } : clipSelection();
     if(!sel || !sel.type) return clipToast("clipNoSelection");
     var list = multi.length ? multi : [{ type: sel.type, id: sel.id }];
-    var admin = isAdminNow();
+    var admin = isAdminNow(), kept = [], skipped = 0;
     for(var i = 0; i < list.length; i++){
       var it = clipItemOf(list[i].type, list[i].id);
       if(!it) return clipToast("clipNoSelection");
       if(it.ref.virtual || sel.parentId === FAV_STARRED_ID) return clipToast("clipCannotCopy");
-      if(mode === "cut" && it.type === "category" && isFixedFavFolder(it.id)) return clipToast("clipNoPerm");
-      if(mode === "cut" && !(canDragItem(it, sel.parentId, admin))) return clipToast("clipNoPerm");
+      // Cut: items without permission are skipped (nothing left -> the plain no-permission toast).
+      if(mode === "cut" && ((it.type === "category" && isFixedFavFolder(it.id)) || !canDragItem(it, sel.parentId, admin))){ skipped++; continue; }
+      kept.push(list[i]);
     }
+    if(!kept.length) return clipToast("clipNoPerm");
+    list = kept;
     clipboardItem = { mode: mode, items: list, srcParent: sel.parentId, srcSpace: state.activeSpace, token: clipSelToken };
-    if(list.length > 1) return clipNToast(mode === "cut" ? "clipCutN" : "clipCopiedN", list.length, 0);
+    if(list.length > 1 || skipped) return clipNToast(mode === "cut" ? "clipCutN" : "clipCopiedN", list.length, skipped);
     clipToast(mode === "cut" ? "clipCut" : "clipCopied", clipName(clipItemOf(list[0].type, list[0].id)));
   }
 

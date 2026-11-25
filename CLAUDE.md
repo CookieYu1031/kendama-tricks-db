@@ -100,7 +100,7 @@
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |
 | 剪貼簿（編輯模式 Ctrl+C/X/V：招式引用、清單深拷貝、貼上規劃與驗證、批量 `items`） | `js/25-browse-clipboard.js` |
-| 管理員 Shift+點選多選（同欄、`multi-sel`） | `js/25-browse-multisel.js` |
+| Shift+點選多選（編輯模式，任何人）（同欄、`multi-sel`） | `js/25-browse-multisel.js` |
 | Ctrl+C 後馬上 Ctrl+V＝原地複製（選取 token、招式新 id 副本、插在原項目下方） | `js/25-browse-clip-dup.js` |
 | 項目前綴（清單 `prefix`、招式 `prefixByCategory` 每個所在清單各一；`normalizePrefix` 在 `js/01-data-storage.js`；抽屜所在清單 `resolveDrawerContainer` 在 `js/30`） | `js/05-data-prefix.js` |
 | 觸控左滑選取（編輯模式）、頂欄懸浮工具列（剪下／複製／貼上／移除、長按空白選貼上層級） | `js/25-browse-swipe-select.js`、`js/25-browse-touchbar.js`、`css/browse-touchbar.css`；批量刪除在 `js/28-browse-undo.js` |
@@ -111,8 +111,8 @@
 | 每層獨立排序（欄位頂端「A~Z 預設／↓／↑」，只改顯示、`state.colSort`，該層關閉回預設；非預設停用拖曳）、`findFocusColumnIndex` | `js/29-browse-sort.js`、`css/browse-columns.css` |
 | 網站 icon（原圖 `assets/brand/`，`scripts/build-icons.sh` 產生 brand-icon、app-icon） | `scripts/icon-render.html` |
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
-| 資訊項目抽屜（點資訊列開在同一個 `#detailDrawer`；檢視＝前綴＋標題＋內文＋圖；編輯＝圖示／前綴／三語標題／內文／圖片／移除；`openInfoDrawer`、`requestDeleteInfo`；`state.detailInfoId` 與 `detailTrickId` 互斥，`drawerIsOpen`／`clearDrawerState` 在 `js/04`，`closeDrawerIfGone` 在 `js/32`） | `js/37-info-drawer.js`、`css/detail-drawer.css` |
-| 資訊圖片（僅管理員可加一張；選圖壓縮、上傳 `infoImages/{id}`、記憶體＋Cache Storage 快取、點圖放大、單張與總量上限） | `js/46-info-image.js`、`css/info.css` |
+| 資訊項目抽屜（點資訊列開在同一個 `#detailDrawer`；檢視＝前綴＋標題＋內文＋連結；編輯＝圖示／前綴／三語標題／內文／連結／移除；`openInfoDrawer`、`requestDeleteInfo`；`state.detailInfoId` 與 `detailTrickId` 互斥，`drawerIsOpen`／`clearDrawerState` 在 `js/04`，`closeDrawerIfGone` 在 `js/32`） | `js/37-info-drawer.js`、`css/detail-drawer.css` |
+| 資訊連結（抽屜最多 3 槽，每槽網址＋名稱 ≤12 字，只收 http/https，開新分頁；資料 `info.links`，`normalizeInfoLinks` 在 `js/01-data-storage.js`；複製／分享帶 links） | `js/38-info-links.js`、`css/info.css` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（頭部圖示、持法部位、備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |

@@ -205,3 +205,24 @@ test("clipPasteIsDup: copy back to the source column of the same table only", ()
   const root = { mode: "copy", items: [{ type: "category", id: "c1" }], srcParent: null, srcSpace: "t00" };
   assert.ok(c.clipPasteIsDup(root, null, "t00"));
 });
+
+test("non-admin: Shift+click multi-selects; cut skips items without permission, copy keeps all", () => {
+  const c = setup();
+  c.state.editMode = true;
+  c.state.activeSpace = "fav";
+  c.showToast = () => {};
+  const fixedId = c.FAV_FIXED_FOLDERS[0].id;
+  c.db.categories.push({ id: "mine1", parentId: null, name: { zh: "m", jp: "", en: "" }, order: 9, icon: "", color: "default", spaceId: "fav" });
+  c.invalidateDbIndex();
+  const ev = () => ({ shiftKey: true, stopPropagation(){}, preventDefault(){} });
+  const row = (id) => ({ dataset: { itemType: "category", itemId: id } });
+  assert.strictEqual(c.isAdminNow(), false);
+  assert.strictEqual(c.multiSelHandleClick(ev(), row(fixedId)), true);
+  assert.strictEqual(c.multiSelHandleClick(ev(), row("mine1")), true);
+  assert.deepStrictEqual(Array.from(c.multiSelItems().map((x) => x.id)).sort(), [fixedId, "mine1"].sort());
+  c.clipCopyOrCut("copy");
+  assert.strictEqual(c.clipboardItem.items.length, 2);
+  c.clipCopyOrCut("cut");
+  assert.deepStrictEqual(Array.from(c.clipboardItem.items.map((x) => x.id)), ["mine1"]);
+  assert.strictEqual(c.clipboardItem.mode, "cut");
+});

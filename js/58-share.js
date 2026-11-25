@@ -126,7 +126,9 @@
         var io = { id: _sStr(n.id, 40), parentId: outKey, title: _sName(n.title), content: _sStr(n.content, SHARE_LIMITS.text),
           order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) };
         var ipf = normalizePrefix(n.prefix);
-        if(ipf) io.prefix = ipf; // prefix only; the image is never shared
+        if(ipf) io.prefix = ipf;
+        var ilk = normalizeInfoLinks(n.links);
+        if(ilk.length) io.links = ilk;
         out.infos.push(io);
       });
       (ix.tricksByContainer[containerId] || []).forEach(function(tr){
@@ -193,6 +195,8 @@
         order: _sNum(n.order), icon: _sIcon(n.icon), color: _sColor(n.color) || "default" };
       var inp = normalizePrefix(n.prefix);
       if(inp) inf.prefix = inp;
+      var inl = normalizeInfoLinks(n.links); // the receiver never trusts the payload
+      if(inl.length) inf.links = inl;
       infos.push(inf);
     });
     arr(raw.refs, L.refs).forEach(function(r){
@@ -286,6 +290,8 @@
         order: n.order, icon: n.icon, color: n.color };
       var rp2 = normalizePrefix(n.prefix);
       if(rp2) ro.prefix = rp2;
+      var rl = normalizeInfoLinks(n.links);
+      if(rl.length) ro.links = rl;
       return ro;
     });
     var isTrick = p.kind === "trick";
