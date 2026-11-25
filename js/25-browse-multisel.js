@@ -3,7 +3,7 @@
   /* ============================================================
      BROWSE — multi-select (any user) (edit mode, Shift+click) for batch Ctrl+C / X / V (js/25-browse-clipboard.js)
      multiSel = { parentId, space, items:[{ type, id }] } | null. One column (one parentId) only.
-     Cleared by: a plain click, Esc, leaving edit mode, switching table.
+     Cleared by: a plain click, Esc, leaving edit mode, switching table. Shown in the floating toolbar (js/25-browse-touchbar.js).
      Pure logic first (multiSelNext), DOM glue below.
   ============================================================ */
   var multiSel = null;
@@ -67,6 +67,8 @@
     multiSel = multiSelNext(multiSel, info, hadCur ? null : clipLastClick, state.activeSpace);
     if(typeof clipInvalidate === "function") clipInvalidate();
     multiSelSyncRows();
+    if(typeof swipeSelActive !== "undefined") swipeSelActive = false; // a Shift+click selection is a mouse one (the toolbar then shows mouse behaviour)
+    if(typeof touchbarSync === "function") touchbarSync();
     return true;
   }
   // Mirrors multiSel onto the rendered rows' .multi-sel class (shared by Shift+click and the left swipe, js/25-browse-swipe-select.js).

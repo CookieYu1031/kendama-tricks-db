@@ -23,12 +23,12 @@
 @keyframes tourRipple{ from{ opacity:.9; transform: scale(1); } to{ opacity:0; transform: scale(2.8); } }
 .tour-card{
   position:absolute; box-sizing:border-box; padding:16px 18px; max-width:100%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   background: linear-gradient(180deg, var(--surface-modal-a), var(--surface-modal-b));
   border:1px solid var(--glass-border); border-radius: var(--radius);
   -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-lg), var(--glass-highlight);
   color: var(--paper); font-family: var(--font-body);
-  transition: left .2s var(--ease), top .2s var(--ease);
 }
 .tour-card.tour-in{ animation: tourIn .18s var(--ease); }
 @keyframes tourIn{ from{ opacity:0; transform: scale(.97); } to{ opacity:1; transform:none; } }
@@ -57,6 +57,6 @@
 }
 @media (prefers-reduced-motion: reduce){
   .tour-card.tour-in{ animation:none; }
-  .tour-card, .tour-hole, .tour-cursor{ transition:none; }
+  .tour-hole, .tour-cursor{ transition:none; }
   .tour-cursor.click::after{ animation:none; }
 }
