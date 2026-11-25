@@ -20,7 +20,7 @@
       icon.innerHTML = iconHtml(ref.icon);
     } else if(ref.icon){
       icon.style.fontSize = "15px";
-      icon.textContent = ref.icon;
+      icon.innerHTML = iconHtml(ref.icon);
     } else {
       icon.innerHTML = fallbackSvg;
     }

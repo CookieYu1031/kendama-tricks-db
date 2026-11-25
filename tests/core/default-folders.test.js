@@ -84,7 +84,8 @@ test("image icon validation", () => {
 test("iconHtml: img tag, escaped emoji, fallback", () => {
   const ctx = setup();
   assert.match(ctx.iconHtml("img:assets/x.png"), /^<img class="icon-img" src="assets\/x\.png"/);
-  assert.strictEqual(ctx.iconHtml("<b>", "F"), "&lt;b&gt;");
+  assert.strictEqual(ctx.iconHtml("<i", "F"), "&lt;i");
+  assert.strictEqual(ctx.iconHtml("<b>", "F"), "<span class=\"icon-txt3\">&lt;b&gt;</span>"); // three half-width characters
   assert.strictEqual(ctx.iconHtml("", "F"), "F");
   assert.ok(!/<img/.test(ctx.iconHtml("img:https://a.b/x.png")));
 });

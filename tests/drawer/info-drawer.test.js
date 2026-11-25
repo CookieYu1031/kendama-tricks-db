@@ -100,7 +100,7 @@ test("buildItemVisual info: default look keeps the ⓘ svg untinted; icon / colo
   assert.strictEqual(v.icon.style.background, undefined);
   info.icon = "📘"; info.color = "blue"; info.prefix = "A1";
   v = c.buildItemVisual({ type: "info", id: info.id, name: info.title, ref: info }, "c1");
-  assert.strictEqual(v.icon.textContent, "📘");
+  assert.strictEqual(v.icon.innerHTML, "📘");
   assert.ok(v.icon.style.background);
   const nameEl = v.textWrap.children[0];
   assert.strictEqual(nameEl.children[0].textContent, "A1");
