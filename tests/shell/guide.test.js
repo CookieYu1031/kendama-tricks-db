@@ -21,11 +21,11 @@ test("guideNeedsLogin: 訪客需登入", () => {
   assert.strictEqual(c.guideNeedsLogin(true), false);
 });
 
-test("guideItems: 兩種裝置都有瀏覽與編輯兩組", () => {
+test("guideItems: 電腦只有編輯組（Shift 在最上面），觸控有瀏覽與編輯", () => {
   const c = ctx();
   [false, true].forEach((touch) => {
     const g = c.guideItems(touch);
-    assert.deepStrictEqual(Array.from(g, (x) => x.group), ["browse", "edit"]);
+    assert.deepStrictEqual(Array.from(g, (x) => x.group), touch ? ["browse", "edit"] : ["edit"]);
     g.forEach((grp) => {
       assert.ok(grp.items.length > 0);
       grp.items.forEach((it) => assert.ok(it.textKey && (it.keys || it.gesture)));
@@ -36,15 +36,15 @@ test("guideItems: 兩種裝置都有瀏覽與編輯兩組", () => {
 test("guideItems: 電腦為鍵盤、觸控為手勢", () => {
   const c = ctx();
   const desk = c.guideItems(false);
-  const ids = desk[1].items.filter((i) => i.keys).map((i) => i.keys.join("+"));
-  ["Mod+C", "Mod+X", "Mod+V", "Mod+C+then+Mod+V", "Mod+Z", "Delete", "Shift"].forEach((k) => assert.ok(ids.includes(k), k));
-  assert.ok(desk[0].items.some((i) => i.keys.join() === "Esc"));
+  const ids = desk[0].items.filter((i) => i.keys).map((i) => i.keys.join("+"));
+  ["Mod+C", "Mod+X", "Mod+V", "Mod+Z", "Delete", "Shift"].forEach((k) => assert.ok(ids.includes(k), k));
+  assert.strictEqual(ids[0], "Shift");
   c.guideItems(true).forEach((grp) => grp.items.forEach((i) => assert.ok(i.gesture && !i.keys)));
 });
 
 test("guideItems：電腦有滴管／油漆快捷鍵（Ctrl 不隨平台變 ⌘），觸控有滴管／油漆列", () => {
   const c = ctx();
-  const ids = c.guideItems(false)[1].items.filter((i) => i.keys).map((i) => i.keys.join("+"));
+  const ids = c.guideItems(false)[0].items.filter((i) => i.keys).map((i) => i.keys.join("+"));
   assert.ok(ids.includes("Ctrl+Alt+C") && ids.includes("Ctrl+Alt+V"));
   assert.ok(c.guideItems(true)[1].items.some((i) => i.textKey === "guideTouchStyle"));
 });
