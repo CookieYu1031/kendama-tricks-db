@@ -151,3 +151,25 @@ test("styleKeyAction：Ctrl+Alt+C/V；不含一般 Ctrl+C", () => {
   assert.strictEqual(c.styleKeyAction(ev({}), Object.assign({}, ctx, { modalOpen: true })), null);
   assert.strictEqual(c.clipKeyAction(ev({}), Object.assign({ hasTextSelection: false }, ctx)), null);
 });
+
+test("握有樣式時可跨欄、跨類型選取並一次套用；跨欄不可剪下", () => {
+  const c = setup();
+  c.styleClip = { icon: "🔥", color: "red", type: "category" };
+  const info = (type, id, parentId) => ({ type, id, parentId });
+  let s = c.multiSelNext(null, info("category", "c2", null), null, "t00", true);
+  s = c.multiSelNext(s, info("trick", "b000000", "c1"), null, "t00", true);
+  assert.strictEqual(s.parentId, null);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(s.items)), [{ type: "category", id: "c2" }, { type: "trick", id: "b000000", parentId: "c1" }]);
+  const only = c.multiSelNext(s, info("category", "c2", null), null, "t00", true); // first one off: home column moves
+  assert.strictEqual(only.parentId, "c1");
+  assert.strictEqual(c.multiSelIsMixed(only), false);
+  c.multiSel = s;
+  assert.strictEqual(c.multiSelMixed(), true);
+  c.clipboardItem = null;
+  c.clipCopyOrCut("cut");
+  assert.strictEqual(c.clipboardItem, null);
+  assert.strictEqual(c.styleApply(), true);
+  assert.strictEqual(c.getTrick("b000000").icon, "🔥");
+  assert.strictEqual(c.db.categories.find((x) => x.id === "c2").color, "red");
+  assert.strictEqual(c.multiSelNext(s, info("trick", "a000000", "c9"), null, "t00").items.length, 1); // no style: restarts
+});
