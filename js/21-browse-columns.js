@@ -61,6 +61,7 @@
         wrap.appendChild(fresh);
       }
       var colEl = wrap.children[colIndex];
+      var oldItems = colEl.querySelector(".col-items"), oldScroll = oldItems ? oldItems.scrollTop : 0; // same level rebuilt: keep its scroll
       colEl.innerHTML = "";
 
       // Tablet: only the last two levels stay open; earlier ones fold to the icon strip (tap to jump up).
@@ -101,6 +102,7 @@
         fabParts.forEach(function(el){ colEl.appendChild(el); });
         if(fabParts.length) colEl.classList.add("has-fab");
       }
+      if(oldScroll) itemsWrap.scrollTop = oldScroll; // last: the fab padding counts towards the scroll height
     });
 
     while(wrap.children.length > columns.length) wrap.removeChild(wrap.lastChild);

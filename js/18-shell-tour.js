@@ -311,6 +311,7 @@
     _tourAutoDone[key] = true;
     var attempt = function(retry){
       if(_tour) return;
+      if(typeof bootSplashActive === "function" && bootSplashActive()){ setTimeout(function(){ attempt(retry); }, 400); return; }
       var decision = decideAutoTour(user, readTourSeen());
       if(!decision) return;
       if(document.querySelector(".modal-overlay.show")){
