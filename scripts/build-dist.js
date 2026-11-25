@@ -20,7 +20,8 @@ var ESBUILD_VERSION = "0.25.0";
 // es2019: lowers ?. ?? ||= etc. so minify never emits syntax older browsers lack; esnext would let
 // esbuild turn `a = a || b` into `a ||= b`. Lowering is semantics-preserving and never errors here.
 var ESBUILD_TARGET = "es2019";
-var COPY_DIRS = ["assets", "data"];
+// js / css (unhashed): a page cached before v0.19 still asks for the old paths. Safe to drop after a while.
+var COPY_DIRS = ["assets", "data", "js", "css"];
 var COPY_FILES = ["manifest.webmanifest", "sw.js", "404.html"];
 
 function hash10(content){
