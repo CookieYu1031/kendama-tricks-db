@@ -23,7 +23,7 @@
     font-family: var(--font-mono); font-size:12px; color: var(--paper);
     background: var(--glass-2); border:1px solid var(--glass-border-strong); border-radius:var(--radius-xs);
   }
-  .guide-plus, .guide-then{ font-size:12px; color: var(--paper-faint); }
+  .guide-plus{ font-size:12px; color: var(--paper-faint); }
   .guide-gesture{
     font-size:12px; font-weight:600; color: var(--accent-text); line-height:1.4;
     background: rgba(var(--lacquer-rgb),0.16); border-radius:999px; padding:3px 10px;
