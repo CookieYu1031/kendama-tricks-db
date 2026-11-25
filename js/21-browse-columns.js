@@ -234,6 +234,7 @@
 
     var admin = isAdminNow();
     if(state.editMode && canModifyItem(it, parentId, admin)){
+      if(typeof attachRowIconEdit === "function") attachRowIconEdit(row, visual.icon, it, parentId, admin); // icon click = picker
       // Only folders get an edit button left of the chevron; tricks and info items are edited in the drawer.
       if(it.type === "category" && canEditRow(it, parentId, admin)){
         var actions = document.createElement("div"), editBtn = document.createElement("button");

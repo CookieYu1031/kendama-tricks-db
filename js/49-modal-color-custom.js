@@ -131,6 +131,14 @@
     ccmDrag(ccmEl("ccmSV"), function(x, y){ ccm.hsv.s = x; ccm.hsv.v = 1 - y; ccmEl("ccmHex").classList.remove("invalid"); ccmEl("ccmError").classList.remove("show"); ccmPaint(false); });
     ccmDrag(ccmEl("ccmHue"), function(x){ ccm.hsv.h = Math.min(359.99, x * 360); ccmEl("ccmHex").classList.remove("invalid"); ccmEl("ccmError").classList.remove("show"); ccmPaint(false); });
     var inp = ccmEl("ccmHex");
+    // Entering the field selects the whole code; a later click places the caret as usual (a drag keeps its own selection).
+    var ccmFresh = false;
+    inp.addEventListener("focus", function(){ ccmFresh = true; inp.select(); });
+    inp.addEventListener("blur", function(){ ccmFresh = false; });
+    inp.addEventListener("click", function(){
+      if(ccmFresh && inp.selectionStart === inp.selectionEnd) inp.select(); // the click itself collapsed it
+      ccmFresh = false;
+    });
     inp.addEventListener("input", function(){
       var v = inp.value.trim();
       if(!v){ inp.classList.remove("invalid"); ccmEl("ccmError").classList.remove("show"); return; }

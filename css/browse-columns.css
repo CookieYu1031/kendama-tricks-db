@@ -99,6 +99,9 @@
   .item.selected .item-icon{ background: rgba(var(--lacquer-rgb),0.24); color: var(--accent-text); }
   .item-icon.trick{ color: var(--string); }
   .item-icon svg{ width:15px; height:15px; }
+  /* edit mode: a click on the icon opens the icon & color picker (js/25-browse-icon-edit.js) */
+  .m-col:not(.collapsed) .item-icon.icon-edit{ cursor:pointer; }
+  @media (hover:hover){ .m-col:not(.collapsed) .item-icon.icon-edit:hover{ box-shadow: 0 0 0 2px rgba(var(--lacquer-rgb),0.6); } }
   /* image icons (value "img:assets/..."): logo on a white tile, shared by rows and icon previews */
   .img-icon{ background:#fff !important; padding:2px; overflow:hidden; }
   .space-btn.img-icon{ overflow:hidden; padding:4px; }
