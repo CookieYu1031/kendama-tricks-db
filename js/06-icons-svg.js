@@ -50,5 +50,6 @@
   // HTML for an icon box: <img> for image icons, escaped text for emoji, `fallback` (svg) when empty.
   function iconHtml(icon, fallback){
     if(isImageIcon(icon)) return '<img class="icon-img" src="' + escapeHtml(imageIconSrc(icon)) + '" alt="" draggable="false">';
+    if(icon && typeof iconTextLong === "function" && iconTextLong(icon)) return '<span class="icon-txt3">' + escapeHtml(icon.trim()) + '</span>';
     return icon ? escapeHtml(icon) : (fallback || "");
   }

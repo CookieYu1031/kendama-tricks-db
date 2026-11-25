@@ -39,18 +39,23 @@
     ["✈️","🌍","🕯️","🕊️","🌙","🪓","🪝","🛸"],
     ["🌀","☁️","🌪️","⚡","🦵","💪","🤹","🍞"]
   ];
-  // Icon text limit: 2 width units (full-width = 2, half-width = 1), counted per code point.
+  // Icon text limit: up to 3 half-width characters, or 1 full-width one (no mixing), counted per code point.
   // Emoji (any sequence), image icons ("img:...") and empty always fit. Checked on save /
   // picker close, never while typing (truncating mid-input breaks IME composition).
   // Needs isLikelyEmojiIcon / charDisplayWidth from 05-data-util.js (resolved at call time).
-  var ICON_TEXT_MAX_UNITS = 2;
+  var ICON_TEXT_MAX_HALF = 3;
   function iconTextFits(str){
     str = String(str == null ? "" : str).trim();
     if(!str) return true;
     if(str.indexOf("img:") === 0 || isLikelyEmojiIcon(str)) return true;
-    var chars = Array.from(str), w = 0;
-    for(var i = 0; i < chars.length; i++) w += charDisplayWidth(chars[i]);
-    return w <= ICON_TEXT_MAX_UNITS;
+    var chars = Array.from(str);
+    if(chars.length === 1) return true;
+    return chars.length <= ICON_TEXT_MAX_HALF && chars.every(function(ch){ return charDisplayWidth(ch) === 1; });
+  }
+  // Pure: three half-width characters need the narrower look (.icon-txt3, css/browse-columns.css).
+  function iconTextLong(str){
+    str = String(str == null ? "" : str).trim();
+    return Array.from(str).length === ICON_TEXT_MAX_HALF && str.indexOf("img:") !== 0 && !isLikelyEmojiIcon(str) && iconTextFits(str);
   }
   var ICON_EMOJI_SET = ICON_EMOJI_GROUPS.reduce(function(a,b){ return a.concat(b); }, []);
 
@@ -93,7 +98,7 @@
       rate_rare:"罕見", rate_sometimes:"有時", rate_most:"多數", rate_mastered:"熟練",
       rateHint_rare:"約 1/10", rateHint_sometimes:"約 3/10", rateHint_most:"約 5/10", rateHint_mastered:"約 8/10",
       landed:"成招", notLanded:"無成招",
-      iconTextTooLong:"圖示文字過長：最多 1 個全形字或 2 個半形字"
+      iconTextTooLong:"圖示文字過長：最多 1 個全形字或 3 個半形字"
     },
     jp: {
       resetDefaultOption:"デフォルトに戻す", color_default:"デフォルト", color_contrast:"ハイコントラスト", color_brown:"茶", color_orange:"オレンジ", color_yellow:"黄", color_lime:"黄緑", color_green:"緑", color_teal:"青緑", color_sky:"水色", color_blue:"青", color_purple:"紫", color_magenta:"マゼンタ", color_red:"赤", color_pink:"ピンク", color_custom:"カスタム", colorHexInvalid:"#RGB または #RRGGBB で入力してください",
@@ -111,7 +116,7 @@
       rate_rare:"たまに", rate_sometimes:"ときどき", rate_most:"だいたい", rate_mastered:"得意",
       rateHint_rare:"約1/10", rateHint_sometimes:"約3/10", rateHint_most:"約5/10", rateHint_mastered:"約8/10",
       landed:"成功", notLanded:"未成功",
-      iconTextTooLong:"アイコン文字が長すぎます：全角1文字か半角2文字まで"
+      iconTextTooLong:"アイコン文字が長すぎます：全角1文字か半角3文字まで"
     },
     en: {
       resetDefaultOption:"Reset to default", color_default:"Default", color_contrast:"High contrast", color_brown:"Brown", color_orange:"Orange", color_yellow:"Yellow", color_lime:"Lime", color_green:"Green", color_teal:"Teal", color_sky:"Sky", color_blue:"Blue", color_purple:"Purple", color_magenta:"Magenta", color_red:"Red", color_pink:"Pink", color_custom:"Custom", colorHexInvalid:"Enter #RGB or #RRGGBB",
@@ -129,6 +134,6 @@
       rate_rare:"Rarely", rate_sometimes:"Sometimes", rate_most:"Mostly", rate_mastered:"Mastered",
       rateHint_rare:"about 1/10", rateHint_sometimes:"about 3/10", rateHint_most:"about 5/10", rateHint_mastered:"about 8/10",
       landed:"Landed", notLanded:"Not landed",
-      iconTextTooLong:"Icon text too long: 1 full-width or 2 half-width characters max"
+      iconTextTooLong:"Icon text too long: 1 full-width or 3 half-width characters max"
     }
   };

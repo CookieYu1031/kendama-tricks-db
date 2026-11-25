@@ -99,6 +99,8 @@
   .item.selected .item-icon{ background: rgba(var(--lacquer-rgb),0.24); color: var(--accent-text); }
   .item-icon.trick{ color: var(--string); }
   .item-icon svg{ width:15px; height:15px; }
+  /* three half-width characters as an icon: monospace, so any three fit the tile (iconHtml, js/06) */
+  .icon-txt3{ font-family: var(--font-mono); font-size:.85em; line-height:1; letter-spacing:-.02em; white-space:nowrap; }
   /* edit mode: a click on the icon opens the icon & color picker (js/25-browse-icon-edit.js) */
   .m-col:not(.collapsed) .item-icon.icon-edit{ cursor:pointer; }
   @media (hover:hover){ .m-col:not(.collapsed) .item-icon.icon-edit:hover{ box-shadow: 0 0 0 2px rgba(var(--lacquer-rgb),0.6); } }

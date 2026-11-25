@@ -12,18 +12,22 @@ test("iconTextFits: empty / whitespace / nullish fit", () => {
   assert.ok(ctx.iconTextFits("   "));
   assert.ok(ctx.iconTextFits(null));
 });
-test("iconTextFits: ascii max 2 chars", () => {
+test("iconTextFits: half-width max 3 chars", () => {
   assert.ok(ctx.iconTextFits("V"));
   assert.ok(ctx.iconTextFits("V2"));
-  assert.ok(!ctx.iconTextFits("V22"));
+  assert.ok(ctx.iconTextFits("V22"));
+  assert.ok(ctx.iconTextFits("123"));
+  assert.ok(ctx.iconTextFits("ｱｲｳ"));
+  assert.ok(!ctx.iconTextFits("V222"));
+  assert.ok(ctx.iconTextLong("V22") && !ctx.iconTextLong("V2") && !ctx.iconTextLong("招") && !ctx.iconTextLong("🗂️"));
 });
 test("iconTextFits: CJK max 1 char", () => {
   assert.ok(ctx.iconTextFits("招"));
   assert.ok(ctx.iconTextFits("あ"));
   assert.ok(!ctx.iconTextFits("招式"));
-  assert.ok(!ctx.iconTextFits("ABC"));
+  assert.ok(ctx.iconTextFits("ABC"));
 });
-test("iconTextFits: mixed counts full-width as 2", () => {
+test("iconTextFits: full-width never mixes with half-width", () => {
   assert.ok(!ctx.iconTextFits("招V"));
   assert.ok(!ctx.iconTextFits("V招"));
 });
