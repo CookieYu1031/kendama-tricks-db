@@ -91,11 +91,12 @@
 | 項目列圖示與名稱／前綴區塊 `buildItemVisual`（清單／招式／資訊共用） | `js/21-browse-item-visual.js` |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
-| 設定頁（齒輪、帳號列、語言、快速導覽、新手教學入口、網站製作者列（顯示 @cookie_yu_1031，連到 IG）、底部隱私說明連結；標題列圖示鈕：管理員面板（限管理員）、通知、用戶統計（敬請期待）、×） | `js/14-shell-settings.js` |
+| 設定頁（齒輪、帳號列、語言、導覽與快捷鍵、新手教學入口、網站製作者列（顯示 @cookie_yu_1031，連到 IG）、底部隱私說明連結；標題列圖示鈕：管理員面板（限管理員）、通知、用戶統計（敬請期待）、×） | `js/14-shell-settings.js` |
 | 主題偏好（system／dark／light） | `js/15-shell-theme.js` |
 | PWA：SW 註冊、離線 toast、安裝列與一次性橫幅；依瀏覽器的安裝引導卡（`js/17-shell-pwa-guide.js`） | `js/17-shell-pwa.js`、`css/pwa.css`、`sw.js`、`manifest.webmanifest` |
 | 新手教學（設定頁入口、兩條路線各 10 頁、管理員逐頁編輯、`tutorial/{track}`、`TUTORIAL_PUBLIC` 旗標） | `js/19-tutorial-logic.js`（純邏輯）、`js/19-shell-tutorial.js`（UI／Firestore）、`css/tutorial.css` |
-| 互動式導覽（首次使用／首次登入、設定頁快速導覽） | `js/18-shell-tour.js`、`css/tour.css`（觸發點在 `js/59-auth-state.js`） |
+| 網站介紹（首次使用自動跳、每步腳本示範、不改資料） | `js/18-shell-tour.js`（引擎）、`js/18-tour-demo.js`（示範與還原、挑示範招式）、`js/18-tour-steps.js`（步驟與文案）、`css/tour.css`（觸發點在 `js/59-auth-state.js`） |
+| 導覽與快捷鍵選單、操作一覽（依裝置顯示快捷鍵或手勢；`guideItems`） | `js/19-shell-guide.js`、`css/guide.css` |
 | 欄位鏈、項目排序 | `js/20-browse-order.js` |
 | `render()`、欄位瀏覽、平面和格狀檢視、項目列 | `js/21-browse-columns.js` |
 | 長按拖曳（排序、換層） | `js/22-browse-drag.js` |

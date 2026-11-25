@@ -85,7 +85,7 @@
   // Privacy notice (v0.8, D6 follow-up): what the site stores, shown in its own modal (openPrivacy).
   if(typeof addStrings === "function") addStrings({
     zh: {
-      settingsGuide: "快速導覽",
+      settingsGuide: "導覽與快捷鍵",
       settingsTutorial: "新手教學",
       settingsPrivacy: "隱私說明",
       privacyBody: "・登入使用 Google 帳號，只用來辨識你的資料，名稱和信箱不會公開。\n" +
@@ -95,7 +95,7 @@
         "・不販售、不提供第三方。想刪除資料，請用「問題回報」告訴我們。"
     },
     jp: {
-      settingsGuide: "クイックガイド",
+      settingsGuide: "ガイドとショートカット",
       settingsTutorial: "はじめてガイド",
       settingsPrivacy: "プライバシー",
       privacyBody: "・ログインには Google アカウントを使い、データの識別のみに使用します。名前とメールは公開されません。\n" +
@@ -105,7 +105,7 @@
         "・販売や第三者への提供はしません。データの削除は「問題を報告」からご連絡ください。"
     },
     en: {
-      settingsGuide: "Quick tour",
+      settingsGuide: "Tour & shortcuts",
       settingsTutorial: "Beginner tutorial",
       settingsPrivacy: "Privacy",
       privacyBody: "- Sign-in uses your Google account, only to identify your data. Your name and email are never shown publicly.\n" +
@@ -209,7 +209,7 @@
   });
   document.getElementById("settingsGuideBtn").addEventListener("click", function(){
     closeSettings();
-    if(typeof startTour === "function") startTour("full");
+    if(typeof openGuide === "function") openGuide();
   });
   document.getElementById("settingsPrivacyBtn").addEventListener("click", function(){
     closeSettings();

@@ -1,219 +1,147 @@
 "use strict";
 
   /* ============================================================
-     SHELL TOUR — first-run / first-login interactive spotlight guide.
-     Exports: startTour(kind), maybeStartTour(user), isTourActive(),
-              tourStepsFor(kind), decideAutoTour(user, seen), isTouchDevice(env)
+     SHELL TOUR — "site introduction": a spotlight card plus a scripted cursor that really operates the page.
+     This file: pure decisions, card / spotlight / cursor, step navigation, auto trigger.
+     Strings and step table: js/18-tour-steps.js. Demo trick, snapshot / restore, cursor toolkit: js/18-tour-demo.js.
+     Exports: startTour(), maybeStartTour(user), isTourActive(), endTour(), tourGo(d),
+              tourStepsFor(env), decideAutoTour(user, seen), isTouchDevice(env), tourEnv()
   ============================================================ */
   var TOUR_SEEN_KEY = "kendama-tour-seen-v1";
-  var TOUR_SEEN_UID_KEY = "kendama-tour-seen-uid-v1";
-
-  if(typeof addStrings === "function") addStrings({
-    zh:{
-      tourPrev:"上一步", tourNext:"下一步", tourDone:"完成", tourSkip:"略過", tourCounter:"{n} / {total}",
-      tourWelcomeTitle:"歡迎來到劍玉招式庫",
-      tourWelcomeBody:"瀏覽各種劍玉招式、查看影片與標籤，並記錄自己的成招率。花一分鐘看看主要功能吧。",
-      tourRailTitle:"左欄分區",
-      tourRailBody:"總表、檢定、賽事，以及收藏與自訂表。點選即可切換分區。",
-      tourMillerTitle:"逐層瀏覽",
-      tourMillerBody:"點清單逐層展開，點招式會打開右側資訊抽屜：影片、標籤、握持手勢與部位、成招率。",
-      tourSearchTitle:"搜尋",
-      tourSearchBody:"可搜尋中日英名稱與羅馬拼音；輸入 #標籤 篩選；還能加上握持手勢、部位條件。",
-      tourTouchTitle:"手勢",
-      tourTouchBody:"<b>右滑</b>返回上一層。<br>編輯模式下<b>長按拖曳</b>可排序或換層。",
-      tourKeysTitle:"快捷鍵",
-      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd> 複製、剪下、貼上（編輯模式）<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 復原　<kbd>Del</kbd> 刪除選取項目<br><kbd>Esc</kbd> 關閉視窗",
-      tourSettingsTitle:"設定",
-      tourSettingsBody:"在這裡登入、切換主題與語言。想再看一次導覽，可在設定裡點「快速導覽」；也能加到主畫面（電腦為建立桌面捷徑）。",
-      tourMemberIntroTitle:"登入後的功能",
-      tourMemberIntroBody:"登入之後，你可以記錄自己的成招率、收藏招式、建立自訂表。接下來快速介紹。",
-      tourRateTitle:"成招率與收藏",
-      tourRateBody:"在招式抽屜裡點 ★ 收藏招式；成招率分 4 個等級，另有「無」代表尚未記錄。",
-      tourEditTitle:"編輯模式",
-      tourEditBody:"點這顆按鈕進入編輯模式，可新增、改名、排序與刪除自己的項目。",
-      tourCustomTitle:"自訂表",
-      tourCustomBody:"開啟編輯模式後，可以在左欄中間建立自訂表，整理自己的招式清單。"
-    },
-    jp:{
-      tourPrev:"戻る", tourNext:"次へ", tourDone:"完了", tourSkip:"スキップ", tourCounter:"{n} / {total}",
-      tourWelcomeTitle:"けん玉技データベースへようこそ",
-      tourWelcomeBody:"けん玉の技を閲覧し、動画やタグを確認し、自分の成功率を記録できます。主な機能を1分で見てみましょう。",
-      tourRailTitle:"左のレール",
-      tourRailBody:"総表、検定、大会、そしてお気に入りとカスタム表。タップで切り替えます。",
-      tourMillerTitle:"階層ブラウズ",
-      tourMillerBody:"リストをタップして階層を開き、技をタップすると右の情報ドロワーが開きます：動画、タグ、持ち方、成功率。",
-      tourSearchTitle:"検索",
-      tourSearchBody:"中日英の名前とローマ字で検索。#タグで絞り込み、持ち方や部位の条件も追加できます。",
-      tourTouchTitle:"ジェスチャー",
-      tourTouchBody:"<b>右スワイプ</b>で一つ前の階層へ。<br>編集モードでは<b>長押しドラッグ</b>で並べ替えや階層移動ができます。",
-      tourKeysTitle:"ショートカット",
-      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd> コピー・切り取り・貼り付け（編集モード）<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> 元に戻す　<kbd>Del</kbd> 選択項目を削除<br><kbd>Esc</kbd> ウィンドウを閉じる",
-      tourSettingsTitle:"設定",
-      tourSettingsBody:"ここでログイン、テーマと言語の切り替えができます。もう一度見たいときは設定の「クイックツアー」から。ホーム画面への追加（PCはデスクトップショートカット作成）も可能です。",
-      tourMemberIntroTitle:"ログイン後の機能",
-      tourMemberIntroBody:"ログインすると、成功率の記録、お気に入り、カスタム表の作成ができます。簡単に紹介します。",
-      tourRateTitle:"成功率とお気に入り",
-      tourRateBody:"技のドロワーで ★ を押してお気に入りに。成功率は4段階＋「なし」（未記録）です。",
-      tourEditTitle:"編集モード",
-      tourEditBody:"このボタンで編集モードに入り、自分の項目の追加・名前変更・並べ替え・削除ができます。",
-      tourCustomTitle:"カスタム表",
-      tourCustomBody:"編集モードにすると、左レールの中央でカスタム表を作成し、自分の技リストを整理できます。"
-    },
-    en:{
-      tourPrev:"Back", tourNext:"Next", tourDone:"Done", tourSkip:"Skip", tourCounter:"{n} / {total}",
-      tourWelcomeTitle:"Welcome to the Kendama Tricks DB",
-      tourWelcomeBody:"Browse kendama tricks, watch videos and tags, and track your own success rates. Take a minute to see the main features.",
-      tourRailTitle:"Left rail",
-      tourRailBody:"Master list, Certification, Competitions, plus favourites and your own tables. Tap to switch.",
-      tourMillerTitle:"Browse level by level",
-      tourMillerBody:"Tap a list to open the next level. Tap a trick to open the info drawer: video, tags, grips, success rate.",
-      tourSearchTitle:"Search",
-      tourSearchBody:"Search Chinese, Japanese and English names and romaji. Type #tag to filter, and add grip or part conditions.",
-      tourTouchTitle:"Gestures",
-      tourTouchBody:"<b>Swipe right</b> to go up a level.<br>In edit mode, <b>long-press and drag</b> to reorder or move between levels.",
-      tourKeysTitle:"Shortcuts",
-      tourKeysBody:"<kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd> copy, cut, paste (edit mode)<br><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo &nbsp;<kbd>Del</kbd> delete selected<br><kbd>Esc</kbd> close window",
-      tourSettingsTitle:"Settings",
-      tourSettingsBody:"Sign in, change theme and language here. Replay this tour any time from Settings (Quick tour). You can also add it to your Home Screen (or create a desktop shortcut on PC).",
-      tourMemberIntroTitle:"When you sign in",
-      tourMemberIntroBody:"Signed in, you can track success rates, favourite tricks and build your own tables. A quick look follows.",
-      tourRateTitle:"Success rate and favourites",
-      tourRateBody:"In a trick's drawer, tap ★ to favourite it. Success rate has 4 levels, plus \"none\" for not recorded.",
-      tourEditTitle:"Edit mode",
-      tourEditBody:"Tap this button for edit mode: add, rename, reorder and delete your own items.",
-      tourCustomTitle:"Custom tables",
-      tourCustomBody:"In edit mode, create your own tables in the middle of the left rail to organise your trick lists."
-    }
-  });
+  var TOUR_SEEN_UID_KEY = "kendama-tour-seen-uid-v1"; // legacy (first-login tour): read only
 
   /* ---------- pure logic ---------- */
+  // Coarse primary pointer = touch device; only without matchMedia fall back to maxTouchPoints.
   function isTouchDevice(env){
     env = env || {};
     if(typeof env.matchMedia === "function"){
-      try{ if(env.matchMedia("(pointer: coarse)").matches) return true; }catch(e){}
+      try{ return !!env.matchMedia("(pointer: coarse)").matches; }catch(e){}
     }
     return (env.maxTouchPoints || 0) > 0;
   }
 
-  var _tourEnv = (typeof window !== "undefined" && window) || {};
+  var _tourWin = (typeof window !== "undefined" && window) || {};
   function tourEnv(){
     return {
-      matchMedia: typeof _tourEnv.matchMedia === "function" ? function(q){ return _tourEnv.matchMedia(q); } : null,
+      matchMedia: typeof _tourWin.matchMedia === "function" ? function(q){ return _tourWin.matchMedia(q); } : null,
       maxTouchPoints: (typeof navigator !== "undefined" && navigator.maxTouchPoints) || 0
     };
   }
-
-  function tourBasicSteps(){
-    return [
-      { id:"welcome", sel:null, title:"tourWelcomeTitle", body:"tourWelcomeBody" },
-      { id:"rail", sel:"#spaceRail", title:"tourRailTitle", body:"tourRailBody" },
-      { id:"miller", sel:"#millerWrap", title:"tourMillerTitle", body:"tourMillerBody" },
-      { id:"search", sel:"#searchToggleBtn", title:"tourSearchTitle", body:"tourSearchBody" },
-      isTouchDevice(tourEnv())
-        ? { id:"gestures", sel:null, title:"tourTouchTitle", body:"tourTouchBody" }
-        : { id:"keys", sel:null, title:"tourKeysTitle", body:"tourKeysBody" },
-      { id:"settings", sel:"#settingsBtn", title:"tourSettingsTitle", body:"tourSettingsBody" }
-    ];
+  function tourStandalone(){
+    try{ if(typeof pwaEnv === "function") return !!pwaEnv().standalone; }catch(e){}
+    try{ if(_tourWin.matchMedia && _tourWin.matchMedia("(display-mode: standalone)").matches) return true; }catch(e){}
+    return !!(typeof navigator !== "undefined" && navigator.standalone);
   }
-  function tourMemberSteps(withIntro){
-    var s = [];
-    if(withIntro) s.push({ id:"memberIntro", sel:null, title:"tourMemberIntroTitle", body:"tourMemberIntroBody" });
-    s.push({ id:"rate", sel:null, title:"tourRateTitle", body:"tourRateBody" });
-    s.push({ id:"edit", sel:".rail-edit-toggle", title:"tourEditTitle", body:"tourEditBody" });
-    s.push({ id:"custom", sel:"#spaceRail", title:"tourCustomTitle", body:"tourCustomBody" });
-    return s;
-  }
-  // kind: "basic" | "member" (intro + member steps) | "full" (basic + member, no intro)
-  function tourStepsFor(kind){
-    if(kind === "member") return tourMemberSteps(true);
-    if(kind === "full") return tourBasicSteps().concat(tourMemberSteps(false));
-    return tourBasicSteps();
+  function tourStepEnv(){
+    return {
+      signedIn: typeof isGuest === "function" ? !isGuest() : false,
+      touch: isTouchDevice(tourEnv()),
+      standalone: tourStandalone()
+    };
   }
 
-  // seen: { basic:boolean, uids:string[] }. Returns { kind, markBasic, uid } or null.
+  // Steps that apply to this visitor. env = { signedIn, touch, standalone }.
+  function tourStepsFor(env){
+    env = env || {};
+    return (typeof TOUR_STEPS !== "undefined" ? TOUR_STEPS : []).filter(function(s){ return !(s.skip && s.skip(env)); });
+  }
+
+  // seen: { basic:boolean, uids:string[] }. First visit only: any earlier tour record (either key) = never again.
   function decideAutoTour(user, seen){
     seen = seen || {};
-    var uids = seen.uids || [];
-    if(!user){
-      return seen.basic ? null : { kind:"basic", markBasic:true, uid:null };
-    }
-    if(uids.indexOf(user.uid) >= 0) return null;
-    if(seen.basic) return { kind:"member", markBasic:false, uid:user.uid };
-    return { kind:"full", markBasic:true, uid:user.uid };
+    if(seen.basic || (seen.uids && seen.uids.length)) return null;
+    return { kind: "intro", markBasic: true };
   }
-
   function readTourSeen(){
-    var uids = [];
+    var uids = [], basic = false;
     try{
       var a = JSON.parse(localStorage.getItem(TOUR_SEEN_UID_KEY) || "[]");
       if(Array.isArray(a)) uids = a;
     }catch(e){}
-    var basic = false;
     try{ basic = !!localStorage.getItem(TOUR_SEEN_KEY); }catch(e){}
-    return { basic:basic, uids:uids };
+    return { basic: basic, uids: uids };
   }
   function writeTourSeen(decision){
-    try{
-      if(decision.markBasic) localStorage.setItem(TOUR_SEEN_KEY, "1");
-      if(decision.uid){
-        var uids = readTourSeen().uids;
-        if(uids.indexOf(decision.uid) < 0) uids.push(decision.uid);
-        localStorage.setItem(TOUR_SEEN_UID_KEY, JSON.stringify(uids));
-      }
-    }catch(e){}
+    try{ if(decision && decision.markBasic) localStorage.setItem(TOUR_SEEN_KEY, "1"); }catch(e){}
   }
 
-  /* ---------- UI ---------- */
-  var _tour = null; // { steps, i, root, dim, hole, card, ... }
+  // A step offers a demo (and the replay button) only when the demo trick has what it needs.
+  function tourStepHasDemo(s){
+    if(!s || !s.demo) return false;
+    if(!s.needs) return true;
+    var p = tourDemoPick();
+    if(!p) return false;
+    if(s.needs === "video") return !!p.videoId;
+    if(s.needs === "search") return !!(p.grip || p.part);
+    return true;
+  }
+
+  /* ---------- geometry (CSS px: html{zoom} makes rects come back scaled) ---------- */
+  var _tour = null; // { steps, i, env, snap, root, hole, cursor, card, ..., focus, layoutKey }
 
   function isTourActive(){ return !!_tour; }
-
-  function tourTargetRect(sel){
-    if(!sel) return null;
-    var el = document.querySelector(sel);
-    if(!el) return null;
-    var r = el.getBoundingClientRect();
-    if(!r || r.width < 1 || r.height < 1) return null;
-    var cs = window.getComputedStyle(el);
-    if(cs.display === "none" || cs.visibility === "hidden") return null;
-    // Under html{zoom} (>=1280px, css/variables-and-base.css) rects come back in zoomed px while
-    // style.left/top are CSS px: convert so the card and hole land on the target.
-    var z = tourZoom();
-    if(z === 1) return r;
-    return { left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z };
-  }
   function tourZoom(){
     var z = parseFloat(window.getComputedStyle(document.documentElement).zoom);
     return z > 0 ? z : 1;
   }
+  function tourRectOf(el){
+    var r = el.getBoundingClientRect();
+    if(!r || r.width < 1 || r.height < 1) return null;
+    var z = tourZoom();
+    return { left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z };
+  }
+  function tourTargetRect(x){
+    if(!x) return null;
+    var el = typeof x === "string" ? document.querySelector(x) : x;
+    if(!el || el.isConnected === false) return null;
+    var cs = window.getComputedStyle(el);
+    if(cs.display === "none" || cs.visibility === "hidden") return null;
+    var r = tourRectOf(el), z = tourZoom(); // off-screen (a closed drawer) = no spotlight
+    return r && r.right > 4 && r.bottom > 4 && r.left < window.innerWidth / z - 4 && r.top < window.innerHeight / z - 4 ? r : null;
+  }
 
+  function tourOverlap(x, y, w, h, R){
+    var ox = Math.min(x + w, R.r) - Math.max(x, R.l), oy = Math.min(y + h, R.b) - Math.max(y, R.t);
+    return ox > 0 && oy > 0 ? ox * oy : 0;
+  }
+  // Card beside the target (below, above, right, left), never over it. Nothing fits (phone, big target):
+  // compact card pinned to the bottom or top, whichever covers less.
   function tourPlaceCard(rect, card){
-    var z = tourZoom(), vw = window.innerWidth / z, vh = window.innerHeight / z, G = 16; // CSS px (see tourTargetRect)
-    var cw = Math.min(360, vw - G * 2);
+    var z = tourZoom(), vw = window.innerWidth / z, vh = window.innerHeight / z, G = vw < 600 ? 10 : 16;
+    var cw = Math.min(340, vw - G * 2), x, y, ch;
     card.style.width = cw + "px";
-    var ch = card.offsetHeight;
-    var x, y;
+    card.classList.remove("tour-compact");
+    ch = card.offsetHeight;
+    var cl = function(v, lo, hi){ return Math.max(lo, Math.min(v, hi)); };
     if(!rect){
       x = (vw - cw) / 2; y = (vh - ch) / 2;
     } else {
-      var gap = 12, below = vh - rect.bottom - gap - G, above = rect.top - gap - G;
-      var cx = rect.left + rect.width / 2 - cw / 2;
-      if(below >= ch){ y = rect.bottom + gap; x = cx; }
-      else if(above >= ch){ y = rect.top - gap - ch; x = cx; }
-      else if(vw - rect.right - gap - G >= cw){ x = rect.right + gap; y = rect.top + rect.height / 2 - ch / 2; }
-      else if(rect.left - gap - G >= cw){ x = rect.left - gap - cw; y = rect.top + rect.height / 2 - ch / 2; }
-      else { x = (vw - cw) / 2; y = vh - ch - G; }
+      var R = { l: rect.left - 8, t: rect.top - 8, r: rect.right + 8, b: rect.bottom + 8 }, cx = cl(rect.left + rect.width / 2 - cw / 2, G, vw - cw - G),
+          cy = cl(rect.top + rect.height / 2 - ch / 2, G, vh - ch - G);
+      if(R.b + ch + G <= vh){ x = cx; y = R.b; }
+      else if(R.t - ch >= G){ x = cx; y = R.t - ch; }
+      else if(R.r + cw + G <= vw){ x = R.r; y = cy; }
+      else if(R.l - cw >= G){ x = R.l - cw; y = cy; }
+      else {
+        card.classList.add("tour-compact");
+        ch = card.offsetHeight;
+        x = (vw - cw) / 2;
+        var yb = vh - ch - G;
+        y = tourOverlap(x, G, cw, ch, R) < tourOverlap(x, yb, cw, ch, R) ? G : yb;
+      }
     }
-    x = Math.max(G, Math.min(x, vw - cw - G));
-    y = Math.max(G, Math.min(y, vh - ch - G));
+    x = Math.max(G, Math.min(x, vw - cw - G)); y = Math.max(G, Math.min(y, vh - ch - G)); // a target sliding in from off-screen must not drag the card out
     card.style.left = Math.round(x) + "px";
     card.style.top = Math.round(y) + "px";
   }
 
-  function tourLayout(){
+  function tourLayout(force){
     if(!_tour) return;
-    var step = _tour.steps[_tour.i];
-    var rect = tourTargetRect(step.sel);
+    var rect = tourTargetRect(_tour.focus);
+    var key = (rect ? [rect.left, rect.top, rect.width, rect.height].map(Math.round).join(",") : "-") + "|" +
+      window.innerWidth + "x" + window.innerHeight + "|" + tourZoom() + "|" + _tour.cardVer;
+    if(force !== true && key === _tour.layoutKey) return;
+    _tour.layoutKey = key;
     var hole = _tour.hole;
     if(rect){
       var pad = 6;
@@ -229,19 +157,95 @@
     }
     tourPlaceCard(rect, _tour.card);
   }
+  // Follows slide-in animations and viewport changes (also across the 860px breakpoint).
+  function tourTick(){
+    if(!_tour) return;
+    _tour.raf = requestAnimationFrame(tourTick);
+    tourLayout();
+  }
+  function tourOnResize(){ tourLayout(true); }
 
+  // Spotlight target (selector or element); scrolled into view once.
+  function tourSetFocus(x){
+    if(!_tour) return;
+    _tour.focus = x || null;
+    var el = typeof x === "string" ? document.querySelector(x) : x;
+    if(el && el.scrollIntoView){ try{ el.scrollIntoView({ block: "nearest", inline: "nearest" }); }catch(e){} }
+    tourLayout();
+  }
+  // The demo may leave focus in the search box: hand it back to the card (no keyboard on touch, no typing into search).
+  function tourRefocus(){
+    if(_tour && _tour.next){ try{ _tour.next.focus({ preventScroll: true }); }catch(e){} }
+  }
+
+  /* ---------- cursor ---------- */
+  function tourCursorMove(x, y, jump){
+    var c = _tour && _tour.cursor;
+    if(!c) return;
+    var first = !c.classList.contains("show");
+    c.classList.add("jump");
+    c.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
+    c.classList.add("show");
+    if(!(first || jump)){ c.classList.remove("jump"); return; }
+    void c.offsetWidth;
+    if(!jump) c.classList.remove("jump");
+  }
+  function tourCursorClick(){
+    var c = _tour && _tour.cursor;
+    if(!c) return;
+    c.classList.remove("click");
+    void c.offsetWidth;
+    c.classList.add("click");
+  }
+
+  /* ---------- card ---------- */
+  function tourMake(tag, cls, parent, text){
+    var el = document.createElement(tag);
+    if(cls) el.className = cls;
+    if(text) el.textContent = text;
+    if(parent) parent.appendChild(el);
+    return el;
+  }
   function tourRender(){
-    var s = _tour.steps[_tour.i], last = _tour.i === _tour.steps.length - 1;
+    var s = _tour.steps[_tour.i], last = _tour.i === _tour.steps.length - 1, env = _tour.env;
     _tour.titleEl.textContent = t(s.title);
-    _tour.bodyEl.innerHTML = t(s.body); // trusted constant strings (may contain <kbd>/<b>)
+    _tour.bodyEl.innerHTML = t(typeof s.body === "function" ? s.body(env) : s.body); // trusted constants (<b>/<kbd>)
     _tour.counter.textContent = t("tourCounter").replace("{n}", _tour.i + 1).replace("{total}", _tour.steps.length);
+    _tour.replay.style.display = tourStepHasDemo(s) ? "" : "none";
+    _tour.skip.style.display = last ? "none" : "";
     _tour.prev.style.visibility = _tour.i === 0 ? "hidden" : "visible";
     _tour.next.textContent = t(last ? "tourDone" : "tourNext");
-    _tour.skip.style.display = last ? "none" : "";
-    tourLayout();
+    var login = !!s.login;
+    _tour.login.style.display = login ? "" : "none";
+    _tour.next.className = "btn btn-sm " + (login ? "btn-ghost" : "btn-primary");
+    _tour.cardVer++;
+    tourLayout(true);
     _tour.card.classList.remove("tour-in");
     void _tour.card.offsetWidth;
     _tour.card.classList.add("tour-in");
+  }
+
+  // Enter (or replay) the current step: cancel the previous demo, clear the scene, prepare, play.
+  function tourEnterStep(){
+    var runId = tourRunNew(), s = _tour.steps[_tour.i], ctx = tourMakeCtx(runId), has = tourStepHasDemo(s);
+    _tour.cursor.classList.remove("show");
+    tourResetUi();
+    _tour.focus = typeof s.sel === "function" ? s.sel(_tour.env) : (s.sel || null);
+    tourRender();
+    try{
+      if(s.prep && (has || !s.needs)) s.prep(ctx); else tourPrepNeutral();
+    }catch(e){ if(typeof console !== "undefined") console.warn("tour prep", e); }
+    if(!_tour) return;
+    tourSetFocus(_tour.focus);
+    tourRefocus();
+    if(!has) return;
+    var p;
+    try{ p = s.demo(ctx); }catch(e){ return; }
+    Promise.resolve(p).then(function(){
+      if(!tourRunAlive(runId)) return;
+      _tour.cursor.classList.remove("show");
+      tourRefocus();
+    }, function(){});
   }
 
   function tourGo(d){
@@ -250,16 +254,20 @@
     if(n >= _tour.steps.length){ endTour(); return; }
     if(n < 0) return;
     _tour.i = n;
-    tourRender();
+    tourEnterStep();
   }
+  function tourReplay(){ if(_tour) tourEnterStep(); }
 
   function tourKey(e){
     if(!_tour) return;
     var k = e.key;
-    if(k === "Escape" || k === "ArrowLeft" || k === "ArrowRight" || k === "Enter"){
+    e.stopPropagation();
+    if(k === "Escape" || k === "ArrowLeft" || k === "ArrowRight") e.preventDefault();
+    if(k === "Enter"){
+      var a = document.activeElement;
+      if(a && a !== _tour.next && _tour.card.contains(a)) return; // a focused card button takes its own Enter
       e.preventDefault();
     }
-    e.stopPropagation();
     if(k === "Escape") endTour();
     else if(k === "ArrowLeft") tourGo(-1);
     else if(k === "ArrowRight" || k === "Enter") tourGo(1);
@@ -267,56 +275,60 @@
 
   function endTour(){
     if(!_tour) return;
+    var tour = _tour;
+    _tour = null;          // running demos stop here: tourRunAlive() is false from now on
+    tourRunNew();
     document.removeEventListener("keydown", tourKey, true);
-    window.removeEventListener("resize", tourLayout);
-    window.removeEventListener("scroll", tourLayout, true);
-    if(_tour.root.parentNode) _tour.root.parentNode.removeChild(_tour.root);
-    _tour = null;
+    window.removeEventListener("resize", tourOnResize);
+    if(tour.raf) cancelAnimationFrame(tour.raf);
+    if(tour.root.parentNode) tour.root.parentNode.removeChild(tour.root);
+    try{ tourRestoreUi(tour.snap); }catch(e){ if(typeof console !== "undefined") console.warn("tour restore", e); }
   }
 
-  function tourMake(tag, cls, parent){
-    var el = document.createElement(tag);
-    if(cls) el.className = cls;
-    if(parent) parent.appendChild(el);
-    return el;
-  }
-
-  function startTour(kind){
+  // Not a parameter-driven tour any more: always the site introduction (old callers may still pass a kind).
+  function startTour(){
     if(_tour) endTour();
-    var signedIn = typeof authCurrentUser !== "undefined" && !!authCurrentUser;
-    if(kind === "full" && !signedIn) kind = "basic";
-    var steps = tourStepsFor(kind || "basic");
+    var env = tourStepEnv(), steps = tourStepsFor(env);
+    if(!steps.length) return;
+    var snap = tourSnapshot();
     var root = tourMake("div", "tour-root", document.body);
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
-    var dim = tourMake("div", "tour-dim", root);
+    tourMake("div", "tour-dim", root);
     var hole = tourMake("div", "tour-hole", root);
+    var cursor = tourMake("div", "tour-cursor", root);
     var card = tourMake("div", "tour-card", root);
     var titleEl = tourMake("div", "tour-title", card);
     var bodyEl = tourMake("div", "tour-body", card);
     var foot = tourMake("div", "tour-foot", card);
-    var counter = tourMake("span", "tour-counter", foot);
+    var meta = tourMake("span", "tour-meta", foot);
+    var counter = tourMake("span", "tour-counter", meta);
+    var replay = tourMake("button", "btn btn-ghost btn-sm tour-replay", meta, "↻ " + t("tourReplay"));
     var btns = tourMake("span", "tour-btns", foot);
-    var skip = tourMake("button", "btn btn-ghost btn-sm tour-skip", btns);
-    var prev = tourMake("button", "btn btn-ghost btn-sm", btns);
+    var skip = tourMake("button", "btn btn-ghost btn-sm tour-skip", btns, t("tourSkip"));
+    var prev = tourMake("button", "btn btn-ghost btn-sm", btns, t("tourPrev"));
     var next = tourMake("button", "btn btn-primary btn-sm", btns);
-    [skip, prev, next].forEach(function(b){ b.type = "button"; });
-    skip.textContent = t("tourSkip");
-    prev.textContent = t("tourPrev");
-    _tour = { steps:steps, i:0, root:root, dim:dim, hole:hole, card:card, titleEl:titleEl, bodyEl:bodyEl,
-              counter:counter, prev:prev, next:next, skip:skip };
+    var login = tourMake("button", "btn btn-primary btn-sm tour-login", btns, t("tourLogin"));
+    [replay, skip, prev, next, login].forEach(function(b){ b.type = "button"; });
+    _tour = { steps: steps, i: 0, env: env, snap: snap, root: root, hole: hole, cursor: cursor, card: card, titleEl: titleEl, bodyEl: bodyEl,
+              counter: counter, replay: replay, prev: prev, next: next, skip: skip, login: login, focus: null, layoutKey: "", cardVer: 0, raf: 0 };
     skip.addEventListener("click", endTour);
     prev.addEventListener("click", function(){ tourGo(-1); });
     next.addEventListener("click", function(){ tourGo(1); });
+    replay.addEventListener("click", tourReplay);
+    login.addEventListener("click", function(){ // sign-in popup must start inside this click (popup blockers)
+      endTour();
+      if(typeof authLogin === "function") authLogin();
+    });
     document.addEventListener("keydown", tourKey, true);
-    window.addEventListener("resize", tourLayout);
-    window.addEventListener("scroll", tourLayout, true);
-    tourRender();
+    window.addEventListener("resize", tourOnResize);
+    tourEnterStep();
+    _tour.raf = requestAnimationFrame(tourTick);
     next.focus();
   }
 
-  /* ---------- auto trigger ---------- */
-  var _tourAutoDone = { guest:false, user:false };
+  /* ---------- auto trigger (first visit only) ---------- */
+  var _tourAutoDone = { guest: false, user: false };
 
   function maybeStartTour(user){
     var key = user ? "user" : "guest";
@@ -331,7 +343,7 @@
         return;
       }
       writeTourSeen(decision);
-      startTour(decision.kind);
+      startTour();
     };
     setTimeout(function(){ attempt(true); }, 600);
   }
