@@ -14,6 +14,7 @@
   // Data-model key lists. Defined here (not in 02) because normalizeDB() runs at
   // load time of this file, before 02 is loaded. Labels / colors live in 02.
   var MAX_VIDEOS = 3;                       // B9: videos per trick
+  var MAX_INFO_LINKS = 3, INFO_LINK_TITLE_MAX = 12, INFO_LINK_URL_MAX = 500; // v0.17.2 info.links
   // 握持手勢: two levels, still ONE value per trick. A category key ("ken" / "tama" / "ito", the old
   // flat values) means "category, sub-grip unspecified"; a sub key (ken_sara...) is a specific grip.
   var GRIP_GROUPS = [

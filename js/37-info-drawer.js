@@ -2,9 +2,9 @@
 
   /* ============================================================
      INFO DRAWER (v0.17) — an info item opens in the same #detailDrawer card as a trick
-     (same slide animation / close button). View: prefix + title, content, image.
-     Edit mode (when allowed): icon / prefix / three titles, content, image, remove.
-     Image UI comes from js/46-info-image.js; the title grid builders from js/31.
+     (same slide animation / close button). View: prefix + title, content, links.
+     Edit mode (when allowed): icon / prefix / three titles, content, links, remove.
+     Links come from js/38-info-links.js; the title grid builders from js/31.
   ============================================================ */
   addStrings({
     zh: { infoContentLabel:"內容", noInfoContent:"（沒有內容）", savedInfo:"資訊已儲存", deletedInfo:"資訊已刪除",
@@ -70,14 +70,14 @@
   }
 
   function buildInfoViewBody(info, body){
-    var hasImage = !!(info.image && typeof buildInfoImageView === "function");
-    if(info.content || !hasImage){
+    var hasLinks = !!(typeof buildInfoLinkSlots === "function" && (info.links || []).some(function(l){ return l && isSafeHttpUrl(l.url); }));
+    if(info.content || !hasLinks){
       var c = document.createElement("div");
       c.className = "info-content";
       c.textContent = info.content || t("noInfoContent");
       body.appendChild(c);
     }
-    if(hasImage) body.appendChild(buildInfoImageView(info.image));
+    if(hasLinks) buildInfoLinkSlots(info, false, body);
   }
 
   function buildInfoEditBody(info, body, paintTitle){
@@ -90,17 +90,7 @@
     ta.value = info.content || "";
     ta.addEventListener("input", function(){ info.content = ta.value; saveDB(); });
     body.appendChild(ta);
-    if(typeof infoImageAllowed === "function" && infoImageAllowed()){
-      body.appendChild(makeLabel(t("addImageLabel")));
-      body.appendChild(buildInfoImageEditor({ image: info.image, deferred: false, info: info, onChange: function(img){
-        var rec = getInfo(info.id); // the upload may outlive this drawer (undo / sync swap the records)
-        if(!rec) return;
-        if(img) rec.image = img; else delete rec.image;
-        saveDB();
-      } }));
-    } else if(info.image && typeof buildInfoImageView === "function"){
-      body.appendChild(buildInfoImageView(info.image));
-    }
+    if(typeof buildInfoLinkSlots === "function") buildInfoLinkSlots(info, true, body);
   }
 
   // Edit mode footer: just the remove button (same look as the trick drawer's).

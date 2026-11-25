@@ -225,25 +225,6 @@ service cloud.firestore {
         request.resource.data.updatedAt == request.time;
     }
 
-    // infoImages/{imgId}: one admin-added picture per info item (v0.17), immutable (a new picture =
-    // a new doc). Single get is public (guests read the shared base); only admins list / create / delete.
-    // data is a data:image/(webp|jpeg|png);base64 URL, <= 150000 chars (client keeps it <= ~100 KB binary).
-    // Only the first 40 chars are pattern-checked (cheap); the client validates the whole string on load.
-    match /infoImages/{imgId} {
-      allow get: if true;
-      allow list: if isAdmin();
-      allow create: if isAdmin() &&
-        imgId.matches('^[0-9A-Za-z_-]{1,40}$') &&
-        request.resource.data.keys().hasOnly(['data', 'by', 'createdAt']) &&
-        request.resource.data.data is string &&
-        request.resource.data.data.size() >= 40 && request.resource.data.data.size() <= 150000 &&
-        request.resource.data.data[0:40].matches('^data:image/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$') &&
-        request.resource.data.by == request.auth.uid &&
-        request.resource.data.createdAt == request.time;
-      allow update: if false;
-      allow delete: if isAdmin();
-    }
-
     // Everything else stays locked down by default.
     match /{document=**} {
       allow read, write: if false;

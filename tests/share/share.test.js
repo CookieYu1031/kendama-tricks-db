@@ -342,24 +342,27 @@ test("prefix sanitize: bad / long values cleaned; single-trick share has none", 
   assert.deepStrictEqual(J(c.shareSanitizePayload(tp, 0).tricks[0].placements), []);
 });
 
-test("info prefix: shared and applied, image never shared; empty prefix leaves no field", () => {
+test("info prefix: shared and applied, links shared and cleaned; empty prefix leaves no field", () => {
   const c = setup();
   const inf = c.db.infos[0];
   inf.prefix = " 3-1 ";
-  inf.image = { id: "img1", w: 800, h: 600, size: 50000 };
+  inf.links = [{ url: "https://a.example/x", title: "A" }];
   c.invalidateDbIndex();
   const p = J(c.shareBuildFolderPayload("folder", "c1"));
   assert.strictEqual(p.infos[0].prefix, "3-1");
-  assert.ok(JSON.stringify(p).indexOf("img1") === -1 && !("image" in p.infos[0]));
+  assert.deepStrictEqual(p.infos[0].links, [{ url: "https://a.example/x", title: "A" }]);
   p.infos[0].image = { id: "sneaky", w: 1, h: 1, size: 1 };
+  p.infos[0].links.push({ url: "javascript:alert(1)", title: "x" });
   const s = c.shareSanitizePayload(p, 1);
   assert.strictEqual(s.infos[0].prefix, "3-1");
   assert.ok(!("image" in s.infos[0]));
+  assert.deepStrictEqual(J(s.infos[0].links), [{ url: "https://a.example/x", title: "A" }]);
   const res = c.shareApply(p, "U_ip");
   assert.strictEqual(res.ok, true);
   const copy = c.db.infos.find((x) => x.id !== "i000001");
   assert.strictEqual(copy.prefix, "3-1");
   assert.ok(!("image" in copy));
+  assert.deepStrictEqual(J(copy.links), [{ url: "https://a.example/x", title: "A" }]);
   const c2 = setup();
   const q = J(c2.shareBuildFolderPayload("folder", "c1"));
   assert.ok(!("prefix" in q.infos[0]));

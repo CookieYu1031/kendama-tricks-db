@@ -9,7 +9,6 @@
     zh:{ addTypeTrick:"招式", addTypeFolder:"清單", addTypeInfo:"資訊", addTitleBtn:"新增",
          addNameLabel:"名稱", addLinkNote:"將連結既有招式：",
          addVideoLabel:"影片連結（選填）", addTagsLabel:"標籤", addNoTags:"（尚無標籤）",
-         addImageLabel:"圖片",
          addErrName:"請至少輸入一種語言的名稱", addErrVideo:"影片連結必須以 http:// 或 https:// 開頭",
          addErrLinkMissing:"找不到這個招式 ID", addErrLinkDup:"此招式已在這個位置", addErrLinkCycle:"不能把招式放進它自己或它的延伸招式底下",
          addErrLinkLevel:"超過層級上限，無法放到這裡", addErrLinkPerm:"此分區不能使用 ID 連結", addErrNotAllowed:"這裡不能新增此類型",
@@ -18,7 +17,6 @@
     jp:{ addTypeTrick:"技", addTypeFolder:"リスト", addTypeInfo:"情報", addTitleBtn:"追加",
          addNameLabel:"名前", addLinkNote:"既存の技をリンクします：",
          addVideoLabel:"動画リンク（任意）", addTagsLabel:"タグ", addNoTags:"（タグなし）",
-         addImageLabel:"画像",
          addErrName:"少なくとも1つの言語で名前を入力してください", addErrVideo:"動画リンクは http:// または https:// で始めてください",
          addErrLinkMissing:"この技IDは見つかりません", addErrLinkDup:"この技はすでにここにあります", addErrLinkCycle:"技を自分自身や派生技の下には置けません",
          addErrLinkLevel:"階層の上限を超えるため、ここには置けません", addErrLinkPerm:"この区画ではIDリンクを使えません", addErrNotAllowed:"ここではこの種類を追加できません",
@@ -27,7 +25,6 @@
     en:{ addTypeTrick:"Trick", addTypeFolder:"List", addTypeInfo:"Info", addTitleBtn:"Add",
          addNameLabel:"Name", addLinkNote:"Will link existing trick: ",
          addVideoLabel:"Video link (optional)", addTagsLabel:"Tags", addNoTags:"(No tags yet)",
-         addImageLabel:"Image",
          addErrName:"Enter a name in at least one language", addErrVideo:"Video link must start with http:// or https://",
          addErrLinkMissing:"No trick with this ID", addErrLinkDup:"This trick is already here", addErrLinkCycle:"A trick can't go under itself or its own variants",
          addErrLinkLevel:"Level limit exceeded; it can't go here", addErrLinkPerm:"ID linking isn't available in this table", addErrNotAllowed:"This type can't be added here",
@@ -144,15 +141,13 @@
     db.categories.push(rec);
     return rec;
   }
-  // f: { zh, jp, en, content, icon, color, prefix, image } (image = { id, w, h, size } already uploaded)
+  // f: { zh, jp, en, content, icon, color, prefix }
   function createInfoRecord(parentId, spaceId, f){
     var pid = getSpace(parentId) ? null : (parentId == null ? null : parentId);
     if(!db.infos) db.infos = [];
     var rec = { id: newItemId(), parentId: pid, spaceId: spaceId, title: addNameObj(f), content: f.content || "",
       order: getInfosIn(pid).length, icon: f.icon || "", color: f.color || "default" };
     setCategoryPrefix(rec, f.prefix);
-    var im = normalizeInfoImage(f.image);
-    if(im) rec.image = im;
     db.infos.push(rec);
     return rec;
   }
@@ -265,19 +260,6 @@
     gripHost.appendChild(buildGripPicker({ value: tr.grip, onChange: function(v){ tr.grip = v; } }));
   }
 
-  // Info type: image field (admin only), rebuilt on every open; the file uploads when saving (deferred).
-  function buildAddImage(){
-    var host = addEl("addImageHost"), field = addEl("addImageField");
-    host.innerHTML = "";
-    addForm.imageEd = null;
-    var allowed = typeof infoImageAllowed === "function" && infoImageAllowed() && typeof buildInfoImageEditor === "function";
-    field.hidden = !allowed;
-    if(!allowed) return;
-    addEl("addImageLabel").textContent = t("addImageLabel");
-    addForm.imageEd = buildInfoImageEditor({ image: null, deferred: true, onChange: function(){} });
-    host.appendChild(addForm.imageEd);
-  }
-
   function openAddModal(parentId, spaceId){
     // Already open (e.g. the "n" shortcut or a second call): keep what was typed.
     if(addForm && addEl("addModalOverlay").classList.contains("show")) return;
@@ -310,7 +292,6 @@
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
     ["addMainName", "addAlt1", "addAlt2", "addContent", "addPrefix"].forEach(function(id){ addEl(id).value = ""; });
-    buildAddImage();
     addEl("addPrefix").maxLength = PREFIX_MAX;
     addEl("addPrefixLabel").textContent = t("prefixLabel");
     addEl("addIconBtn").title = t("editIconColor");
@@ -338,24 +319,15 @@
     addForm = null;
   }
 
-  // Info: upload the image draft first (the save button stays disabled meanwhile; a failure keeps the
-  // modal open and adds nothing), then create the record and continue in its drawer (edit mode).
+  // Info: create the record and continue in its drawer (edit mode).
   function saveAddInfo(f){
-    var form = addForm, ed = form.imageEd;
-    function finish(img){
-      if(addForm !== form) return; // modal closed meanwhile: abandon
-      f.image = img;
-      var rec = createInfoRecord(form.parentId, form.spaceId, f);
-      showToast(t("savedInfo"));
-      saveDB(); closeAddModal(); state.editMode = true; render(); openInfoDrawer(rec.id);
-    }
-    if(!(ed && ed.hasDraft && ed.hasDraft())){ finish(null); return; }
-    addEl("addSaveBtn").disabled = true;
-    ed.commit().then(finish, function(){ if(addForm === form) addEl("addSaveBtn").disabled = false; });
+    var rec = createInfoRecord(addForm.parentId, addForm.spaceId, f);
+    showToast(t("savedInfo"));
+    saveDB(); closeAddModal(); state.editMode = true; render(); openInfoDrawer(rec.id);
   }
 
   function saveAddModal(){
-    if(!addForm || addEl("addSaveBtn").disabled) return; // disabled while an image uploads
+    if(!addForm || addEl("addSaveBtn").disabled) return;
     var admin = isAdminNow();
     var type = addForm.type, parentId = addForm.parentId, spaceId = addForm.spaceId;
     if(!addForm.types[type]) return addShowError("addErrNotAllowed");
