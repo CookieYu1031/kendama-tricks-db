@@ -58,7 +58,7 @@
       searchToggle:"搜尋", backHome:"回到首頁", settings:"設定", settingsClose:"關閉",
       settingsAdminSoon:"管理員面板（即將推出）", comingSoon:"即將推出",
       themeSystem:"跟隨系統", themeDark:"暗色", themeLight:"亮色",
-      settingsGuide:"操作介紹", settingsNotices:"通知與近期更新",
+      settingsNotices:"通知與近期更新",
       settingsSubmit:"招式投稿／申請協助者", settingsSubmitNote:"欲大量投稿可申請成為協助者",
       settingsReport:"問題回報"
     },
@@ -116,7 +116,7 @@
       searchToggle:"検索", backHome:"ホームへ", settings:"設定", settingsClose:"閉じる",
       settingsAdminSoon:"管理者パネル（近日公開）", comingSoon:"近日公開",
       themeSystem:"システムに合わせる", themeDark:"ダーク", themeLight:"ライト",
-      settingsGuide:"操作ガイド", settingsNotices:"お知らせと最近の更新",
+      settingsNotices:"お知らせと最近の更新",
       settingsSubmit:"技の投稿／協力者の申請", settingsSubmitNote:"大量に投稿したい場合は協力者に申請できます",
       settingsReport:"問題を報告"
     },
@@ -174,7 +174,7 @@
       searchToggle:"Search", backHome:"Home", settings:"Settings", settingsClose:"Close",
       settingsAdminSoon:"Admin panel (coming soon)", comingSoon:"Coming soon",
       themeSystem:"Follow system", themeDark:"Dark", themeLight:"Light",
-      settingsGuide:"How to use", settingsNotices:"Notices & recent updates",
+      settingsNotices:"Notices & recent updates",
       settingsSubmit:"Submit tricks / Apply as helper", settingsSubmitNote:"To submit many tricks, apply to become a helper",
       settingsReport:"Report a problem"
     }

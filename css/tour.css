@@ -1,4 +1,4 @@
-/* Interactive tour (js/18-shell-tour.js) */
+/* Site introduction tour (js/18-shell-tour.js, js/18-tour-demo.js, js/18-tour-steps.js) */
 .tour-root{ position:fixed; inset:0; z-index:200; }
 .tour-dim{ position:absolute; inset:0; background:transparent; }
 .tour-root.tour-nohole .tour-dim{ background: var(--overlay-bg); }
@@ -7,13 +7,28 @@
   box-shadow: 0 0 0 9999px var(--overlay-bg), 0 0 0 2px var(--lacquer);
   transition: left .18s var(--ease), top .18s var(--ease), width .18s var(--ease), height .18s var(--ease);
 }
+/* Scripted cursor: moves over the real page, then the real click is fired on the target. */
+.tour-cursor{
+  position:absolute; left:0; top:0; width:22px; height:22px; margin:-11px 0 0 -11px; border-radius:50%;
+  background: rgba(var(--lacquer-rgb), .85); border:2px solid var(--paper); box-shadow: var(--shadow-lg);
+  pointer-events:none; opacity:0;
+  transition: transform .55s var(--ease), opacity .2s var(--ease);
+}
+.tour-cursor.show{ opacity:1; }
+.tour-cursor.jump{ transition: opacity .2s var(--ease); }
+.tour-cursor::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%; border:2px solid var(--lacquer-bright); opacity:0;
+}
+.tour-cursor.click::after{ animation: tourRipple .5s var(--ease); }
+@keyframes tourRipple{ from{ opacity:.9; transform: scale(1); } to{ opacity:0; transform: scale(2.8); } }
 .tour-card{
-  position:absolute; box-sizing:border-box; padding:16px 18px;
+  position:absolute; box-sizing:border-box; padding:16px 18px; max-width:100%;
   background: linear-gradient(180deg, var(--surface-modal-a), var(--surface-modal-b));
   border:1px solid var(--glass-border); border-radius: var(--radius);
   -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-lg), var(--glass-highlight);
   color: var(--paper); font-family: var(--font-body);
+  transition: left .2s var(--ease), top .2s var(--ease);
 }
 .tour-card.tour-in{ animation: tourIn .18s var(--ease); }
 @keyframes tourIn{ from{ opacity:0; transform: scale(.97); } to{ opacity:1; transform:none; } }
@@ -25,10 +40,23 @@
   font-family: var(--font-mono); font-size:12px; color: var(--paper);
   background: var(--glass-2); border:1px solid var(--glass-border); border-radius: var(--radius-sm);
 }
-.tour-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; }
-.tour-counter{ font-family: var(--font-mono); font-size:12px; color: var(--paper-dim); }
-.tour-btns{ display:flex; gap:6px; }
+.tour-foot{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; }
+.tour-meta{ display:flex; align-items:center; gap:8px; min-width:0; }
+.tour-counter{ font-family: var(--font-mono); font-size:12px; color: var(--paper-dim); white-space:nowrap; }
+.tour-btns{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-left:auto; }
+.tour-foot .btn{ white-space:nowrap; }
+.tour-replay{ padding-left:8px; padding-right:8px; }
+/* Big target on a phone: card squeezed so less of the page is covered. */
+.tour-card.tour-compact{ padding:10px 12px; }
+.tour-compact .tour-title{ font-size:14px; margin-bottom:4px; }
+.tour-compact .tour-body{ font-size:12.5px; line-height:1.5; }
+.tour-compact .tour-foot{ margin-top:8px; gap:6px; }
+@media (max-width: 380px){
+  .tour-card{ padding:12px 12px; }
+  .tour-foot .btn{ padding:6px 9px; }
+}
 @media (prefers-reduced-motion: reduce){
   .tour-card.tour-in{ animation:none; }
-  .tour-hole{ transition:none; }
+  .tour-card, .tour-hole, .tour-cursor{ transition:none; }
+  .tour-cursor.click::after{ animation:none; }
 }

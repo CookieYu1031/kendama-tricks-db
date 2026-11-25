@@ -1,0 +1,35 @@
+/* 導覽與快捷鍵 (v0.18) — overlay built by js/19-shell-guide.js; reuses .tool-card / .tut-* / .btn */
+  /* menu and key list share one fixed size (content scrolls inside) so switching never jumps */
+  .guide-modal{ height: min(600px, var(--modal-avail-h, 86vh)); }
+  .guide-modal .settings-head{ align-items:flex-start; }
+  .guide-modal .settings-head > div:first-child{ flex:1 1 auto; min-width:0; }
+  .guide-modal .modal-sub{ margin-bottom:0; min-height:19px; }
+  .guide-group-head{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:4px 0 8px; }
+  .guide-group-head:not(:first-of-type){ margin-top:18px; }
+  .guide-group-title{ font-family: var(--font-display); font-size:15px; font-weight:700; }
+  .guide-tag{
+    font-size:12px; font-family: var(--font-mono); color: var(--accent-text);
+    border:1px solid var(--glass-border-strong); border-radius:999px; padding:2px 9px; white-space:nowrap;
+  }
+  .guide-list{ display:flex; flex-direction:column; gap:8px; }
+  .guide-row{
+    display:flex; align-items:center; gap:12px; padding:10px 12px;
+    border:1px solid var(--glass-border); border-radius:var(--radius-sm);
+    background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
+  }
+  .guide-keys{ flex:0 0 132px; display:flex; flex-wrap:wrap; align-items:center; gap:3px; min-width:0; }
+  .guide-keys kbd{
+    display:inline-block; min-width:22px; padding:1px 7px; text-align:center;
+    font-family: var(--font-mono); font-size:12px; color: var(--paper);
+    background: var(--glass-2); border:1px solid var(--glass-border-strong); border-radius:var(--radius-xs);
+  }
+  .guide-plus, .guide-then{ font-size:12px; color: var(--paper-faint); }
+  .guide-gesture{
+    font-size:12px; font-weight:600; color: var(--accent-text); line-height:1.4;
+    background: rgba(var(--lacquer-rgb),0.16); border-radius:999px; padding:3px 10px;
+  }
+  .guide-text{ flex:1 1 auto; min-width:0; font-size:13px; line-height:1.55; color: var(--paper-dim); }
+  @media (max-width:600px){
+    .guide-row{ flex-direction:column; align-items:flex-start; gap:6px; }
+    .guide-keys{ flex-basis:auto; }
+  }
