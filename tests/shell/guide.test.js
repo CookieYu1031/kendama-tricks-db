@@ -42,6 +42,13 @@ test("guideItems: 電腦為鍵盤、觸控為手勢", () => {
   c.guideItems(true).forEach((grp) => grp.items.forEach((i) => assert.ok(i.gesture && !i.keys)));
 });
 
+test("guideItems：電腦有滴管／油漆快捷鍵（Ctrl 不隨平台變 ⌘），觸控有滴管／油漆列", () => {
+  const c = ctx();
+  const ids = c.guideItems(false)[1].items.filter((i) => i.keys).map((i) => i.keys.join("+"));
+  assert.ok(ids.includes("Ctrl+Alt+C") && ids.includes("Ctrl+Alt+V"));
+  assert.ok(c.guideItems(true)[1].items.some((i) => i.textKey === "guideTouchStyle"));
+});
+
 test("每個 textKey / gesture 三語皆有字串", () => {
   const c = ctx();
   const keys = new Set(["guideTitle", "guideSub", "guideClose", "guideBack", "guideTourName", "guideTourDesc",

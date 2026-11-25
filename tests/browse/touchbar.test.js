@@ -73,3 +73,44 @@ test("count: selection, else clipboard; press-move cancel", () => {
   assert.ok(c.touchbarPressMoved(9, 0));
   assert.ok(c.touchbarPressMoved(0, -9));
 });
+
+test("style clip alone shows the bar with count 0; dropper / paint follow js/25-browse-style", () => {
+  const c = setup();
+  const st0 = c.touchbarState(Object.assign({}, base, { items: [], styleClip: { icon: "x", color: "red", type: "trick" } }));
+  assert.deepStrictEqual({ v: st0.visible, m: st0.mode, d: st0.drop, p: st0.paint }, { v: true, m: "style", d: false, p: false });
+  assert.strictEqual(c.touchbarCount(st0, null), 0);
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], styleClip: null })).visible, false);
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], styleClip: {}, guest: true })).visible, false);
+  // without the style module (typeof guard) the buttons stay off; with it they follow its answers
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("a000000") })).drop, false);
+  c.styleCanCopy = () => true; c.styleCanApply = (items, pid, adm) => items.length === 1 && adm === true;
+  const on = c.touchbarState(Object.assign({}, base, { items: sel("a000000"), admin: true }));
+  assert.deepStrictEqual({ d: on.drop, p: on.paint }, { d: true, p: true });
+  const off = c.touchbarState(Object.assign({}, base, { items: sel("a000000"), admin: false }));
+  assert.deepStrictEqual({ d: off.drop, p: off.paint }, { d: true, p: false });
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("a000000"), styleClip: {} })).mode, "sel");
+});
+
+test("Shift+click multi-selection (mouse) shows the bar; mouse paste target = always valid", () => {
+  const c = setup();
+  const st = c.touchbarState(Object.assign({}, base, { items: sel("u000000"), hasClip: true, hasTarget: true }));
+  assert.ok(st.visible && st.mode === "sel" && st.paste);
+  // tbContext: Shift selection (swipeSelActive false) -> mouse -> hasTarget true without any long-press target
+  c.state.editMode = true;
+  c.isGuest = () => false; c.isAdminNow = () => false;
+  c.multiSel = { parentId: "c1", space: "t00", items: sel("u000000") };
+  c.swipeSelActive = false;
+  const cx = c.tbContext();
+  assert.strictEqual(cx.hasTarget, true);
+  assert.strictEqual(cx.items.length, 1);
+  c.swipeSelActive = true;
+  assert.strictEqual(c.tbContext().hasTarget, false); // touch: needs a long-pressed level
+});
+
+test("tooltip shortcut labels: Mac shows ⌘ for C/X/V only", () => {
+  const c = setup();
+  c.guideModKey = (p) => (/mac/i.test(p) ? "⌘" : "Ctrl");
+  assert.deepStrictEqual(["cut", "copy", "paste", "del", "drop", "paint", "close"].map((a) => c.touchbarKeyLabel(a, "Win32")),
+    ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Delete", "Ctrl+Alt+C", "Ctrl+Alt+V", "Esc"]);
+  assert.deepStrictEqual(["cut", "paste", "drop"].map((a) => c.touchbarKeyLabel(a, "MacIntel")), ["⌘X", "⌘V", "Ctrl+Alt+C"]);
+});

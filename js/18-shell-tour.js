@@ -100,39 +100,14 @@
     return r && r.right > 4 && r.bottom > 4 && r.left < window.innerWidth / z - 4 && r.top < window.innerHeight / z - 4 ? r : null;
   }
 
-  function tourOverlap(x, y, w, h, R){
-    var ox = Math.min(x + w, R.r) - Math.max(x, R.l), oy = Math.min(y + h, R.b) - Math.max(y, R.t);
-    return ox > 0 && oy > 0 ? ox * oy : 0;
-  }
-  // Card beside the target (below, above, right, left), never over it. Nothing fits (phone, big target):
-  // compact card pinned to the bottom or top, whichever covers less.
-  function tourPlaceCard(rect, card){
-    var z = tourZoom(), vw = window.innerWidth / z, vh = window.innerHeight / z, G = vw < 600 ? 10 : 16;
-    var cw = Math.min(340, vw - G * 2), x, y, ch;
+  // The card never follows the spotlight: docked bottom-centre for the whole tour (anchored by its bottom
+  // edge, so the buttons stay put) and compact on phones. Only the hole and the cursor move.
+  function tourPlaceCard(card){
+    var z = tourZoom(), vw = window.innerWidth / z, G = vw < 600 ? 10 : 20;
+    var cw = Math.min(vw < 600 ? 420 : 460, vw - G * 2);
+    card.classList.toggle("tour-compact", vw < 600);
     card.style.width = cw + "px";
-    card.classList.remove("tour-compact");
-    ch = card.offsetHeight;
-    var cl = function(v, lo, hi){ return Math.max(lo, Math.min(v, hi)); };
-    if(!rect){
-      x = (vw - cw) / 2; y = (vh - ch) / 2;
-    } else {
-      var R = { l: rect.left - 8, t: rect.top - 8, r: rect.right + 8, b: rect.bottom + 8 }, cx = cl(rect.left + rect.width / 2 - cw / 2, G, vw - cw - G),
-          cy = cl(rect.top + rect.height / 2 - ch / 2, G, vh - ch - G);
-      if(R.b + ch + G <= vh){ x = cx; y = R.b; }
-      else if(R.t - ch >= G){ x = cx; y = R.t - ch; }
-      else if(R.r + cw + G <= vw){ x = R.r; y = cy; }
-      else if(R.l - cw >= G){ x = R.l - cw; y = cy; }
-      else {
-        card.classList.add("tour-compact");
-        ch = card.offsetHeight;
-        x = (vw - cw) / 2;
-        var yb = vh - ch - G;
-        y = tourOverlap(x, G, cw, ch, R) < tourOverlap(x, yb, cw, ch, R) ? G : yb;
-      }
-    }
-    x = Math.max(G, Math.min(x, vw - cw - G)); y = Math.max(G, Math.min(y, vh - ch - G)); // a target sliding in from off-screen must not drag the card out
-    card.style.left = Math.round(x) + "px";
-    card.style.top = Math.round(y) + "px";
+    card.style.left = Math.round((vw - cw) / 2) + "px";
   }
 
   function tourLayout(force){
@@ -155,7 +130,7 @@
       hole.style.display = "none";
       _tour.root.classList.add("tour-nohole");
     }
-    tourPlaceCard(rect, _tour.card);
+    tourPlaceCard(_tour.card);
   }
   // Follows slide-in animations and viewport changes (also across the 860px breakpoint).
   function tourTick(){
