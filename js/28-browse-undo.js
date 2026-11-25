@@ -144,7 +144,8 @@
     var multi = typeof multiSelItems === "function" ? multiSelItems() : [];
     if(multi.length){
       if(!deleteKeyBatchAllowed(ctx, multi.length)) return false;
-      requestDeleteBatch(multi, multiSel.parentId);
+      if(multiSelMixed()) showToast(t("styleOnlyMixed"), "error");
+      else requestDeleteBatch(multi, multiSel.parentId);
       return true;
     }
     var sel = typeof clipSelection === "function" ? clipSelection() : null;

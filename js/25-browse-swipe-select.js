@@ -60,7 +60,7 @@
   function swipeSelToggle(row){
     var info = clipRowInfo(row);
     multiSelValid();
-    multiSel = multiSelNext(multiSel, info, null, state.activeSpace);
+    multiSel = multiSelNext(multiSel, info, null, state.activeSpace, multiSelWide());
     if(typeof clipInvalidate === "function") clipInvalidate();
     multiSelSyncRows();
     swipeSelActive = !!multiSel;

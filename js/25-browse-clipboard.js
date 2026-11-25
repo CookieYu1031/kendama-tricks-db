@@ -280,6 +280,7 @@
     var multi = typeof multiSelItems === "function" ? multiSelItems() : [];
     var sel = multi.length ? { type: multi[0].type, id: multi[0].id, parentId: multiSel.parentId } : clipSelection();
     if(!sel || !sel.type) return clipToast("clipNoSelection");
+    if(multi.length && multiSelMixed()) return clipToast("styleOnlyMixed");
     var list = multi.length ? multi : [{ type: sel.type, id: sel.id }];
     var admin = isAdminNow(), kept = [], skipped = 0;
     for(var i = 0; i < list.length; i++){
@@ -350,7 +351,8 @@
       var row = tg && tg.closest ? tg.closest(".item") : null;
       if(ev.shiftKey && typeof multiSelHandleClick === "function" && multiSelHandleClick(ev, row)) return;
       clipInvalidate();
-      if(typeof multiSelClear === "function") multiSelClear();
+      // a held style (滴管) keeps the selection, so other levels can be added before painting
+      if(typeof multiSelClear === "function" && !(typeof styleClip !== "undefined" && styleClip)) multiSelClear();
       var rows = wrap.querySelectorAll(".item");
       for(var i = 0; i < rows.length; i++) if(rows[i]._kbd && typeof kbdClear === "function") kbdClear([rows[i]]);
       if(row && row.dataset.itemType) { clipLastClick = clipRowInfo(row); return; }

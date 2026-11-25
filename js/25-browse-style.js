@@ -11,11 +11,11 @@
   ============================================================ */
   addStrings({
     zh:{ styleCopied:"已複製圖示與顏色", styleCopiedImg:"圖片不會複製，只複製顏色",
-         styleNone:"先用滴管選一個項目", styleNeedOne:"滴管一次只能複製一個項目", styleAppliedN:"已套用 {n} 項" },
+         styleNone:"先用滴管選一個項目", styleNeedOne:"滴管一次只能複製一個項目", styleAppliedN:"已套用 {n} 項", styleOnlyMixed:"跨欄選取只能套用圖示與顏色" },
     jp:{ styleCopied:"アイコンと色をコピーしました", styleCopiedImg:"画像はコピーされず、色だけコピーします",
-         styleNone:"先にスポイトで項目を選んでください", styleNeedOne:"スポイトで一度にコピーできるのは1件です", styleAppliedN:"{n} 件に適用しました" },
+         styleNone:"先にスポイトで項目を選んでください", styleNeedOne:"スポイトで一度にコピーできるのは1件です", styleAppliedN:"{n} 件に適用しました", styleOnlyMixed:"列をまたぐ選択はアイコンと色の適用のみ可能です" },
     en:{ styleCopied:"Copied icon and color", styleCopiedImg:"Images aren't copied, only the color",
-         styleNone:"Pick an item with the eyedropper first", styleNeedOne:"The eyedropper copies one item at a time", styleAppliedN:"Applied to {n}" }
+         styleNone:"Pick an item with the eyedropper first", styleNeedOne:"The eyedropper copies one item at a time", styleAppliedN:"Applied to {n}", styleOnlyMixed:"A selection across columns can only be painted" }
   });
 
   var styleClip = null;
@@ -26,7 +26,7 @@
   // Current selection (same meaning as Ctrl+C): multi-select, else the last clicked item.
   function styleItems(){
     var multi = typeof multiSelItems === "function" ? multiSelItems() : [];
-    if(multi.length) return { items: multi.map(function(x){ return { type: x.type, id: x.id }; }), parentId: multiSel.parentId };
+    if(multi.length) return { items: multi, parentId: multiSel.parentId };
     var sel = typeof clipSelection === "function" ? clipSelection() : null;
     if(sel && sel.type) return { items: [{ type: sel.type, id: sel.id }], parentId: sel.parentId };
     return { items: [], parentId: null };
@@ -44,12 +44,14 @@
     if(it.type === "category" && isFixedFavFolder(it.id)) return false;
     return !!canModifyItem(it, parentId, admin);
   }
+  // Cross-column selections (js/25-browse-multisel.js): an item of another column carries its own parentId.
+  function styleParentOf(x, parentId){ return x.hasOwnProperty("parentId") ? x.parentId : parentId; }
   // Pure: a style is held and at least one selected item may be painted.
   function styleCanApply(items, parentId, admin){
     if(!styleClip || !items || !items.length) return false;
     for(var i = 0; i < items.length; i++){
       var it = clipItemOf(items[i].type, items[i].id);
-      if(it && styleAllowed(it, parentId, admin)) return true;
+      if(it && styleAllowed(it, styleParentOf(items[i], parentId), admin)) return true;
     }
     return false;
   }
@@ -96,7 +98,7 @@
     var admin = isAdminNow(), ok = [], skipped = 0;
     s.items.forEach(function(x){
       var it = clipItemOf(x.type, x.id);
-      if(it && styleAllowed(it, s.parentId, admin)) ok.push(it); else skipped++;
+      if(it && styleAllowed(it, styleParentOf(x, s.parentId), admin)) ok.push(it); else skipped++;
     });
     if(!ok.length){ styleToast(t("clipNoPerm"), "error"); return false; }
     // Nothing would change: no undo step, no save (no pending dots).

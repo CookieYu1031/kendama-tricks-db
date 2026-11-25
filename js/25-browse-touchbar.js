@@ -53,6 +53,7 @@
         if(!canDragItem(it, ctx.parentId, ctx.admin) || (it.type === "category" && isFixedFavFolder(it.id))) ct = false;
         if(!batchDeleteAllowed(it, ctx.parentId, ctx.admin)) dl = false;
       });
+      if(items.some(function(x){ return x.hasOwnProperty("parentId"); })) cp = ct = dl = false; // cross-column: paint only
       out.copy = cp; out.cut = ct; out.del = dl;
       out.drop = typeof styleCanCopy === "function" && !!styleCanCopy(items, ctx.parentId);
       out.paint = typeof styleCanApply === "function" && !!styleCanApply(items, ctx.parentId, ctx.admin);

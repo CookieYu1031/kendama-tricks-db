@@ -1,9 +1,7 @@
 /* 導覽與快捷鍵 (v0.18) — overlay built by js/19-shell-guide.js; reuses .tool-card / .tut-* / .btn */
-  /* menu and key list share one fixed size (content scrolls inside) so switching never jumps */
-  .guide-modal{ height: min(600px, var(--modal-avail-h, 86vh)); }
+  /* sized by its content like the tutorial (js/19-shell-tutorial.js); a long list scrolls inside */
   .guide-modal .settings-head{ align-items:flex-start; }
   .guide-modal .settings-head > div:first-child{ flex:1 1 auto; min-width:0; }
-  .guide-modal .modal-sub{ margin-bottom:0; min-height:19px; }
   .guide-group-head{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:4px 0 8px; }
   .guide-group-head:not(:first-of-type){ margin-top:18px; }
   .guide-group-title{ font-family: var(--font-display); font-size:15px; font-weight:700; }
