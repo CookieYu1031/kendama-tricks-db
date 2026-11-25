@@ -173,3 +173,16 @@ test("握有樣式時可跨欄、跨類型選取並一次套用；跨欄不可�
   assert.strictEqual(c.db.categories.find((x) => x.id === "c2").color, "red");
   assert.strictEqual(c.multiSelNext(s, info("trick", "a000000", "c9"), null, "t00").items.length, 1); // no style: restarts
 });
+
+test("styleBarItems: 滴管／油漆用過的點擊不再算，之後新點的項目才算", () => {
+  const c = setup();
+  c.clipLastClick = { type: "category", id: "c1", parentId: null };
+  assert.strictEqual(c.styleBarItems().items.length, 0); // no style held
+  assert.strictEqual(c.styleCopy(), true);
+  assert.strictEqual(c.styleBarItems().items.length, 0); // the source itself
+  c.clipLastClick = { type: "trick", id: "b000000", parentId: "c1" };
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.styleBarItems().items)), [{ type: "trick", id: "b000000" }]);
+  assert.strictEqual(c.styleApply(), true);
+  assert.strictEqual(c.getTrick("b000000").icon, "🔥");
+  assert.strictEqual(c.styleBarItems().items.length, 0);
+});

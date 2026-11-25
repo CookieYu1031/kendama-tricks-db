@@ -14,7 +14,7 @@
     })(),
     editMode: false,
     path: [],            // array of category ids (drill-down chain)
-    colSort: {},         // per-column display sort { colKey: "asc"|"desc" }, memory only (js/29)
+    colSort: {},         // per-column display order { colKey: "desc" }, memory only (js/29)
     colSortSpace: null,
     searchQuery: "",
     detailTrickId: null,

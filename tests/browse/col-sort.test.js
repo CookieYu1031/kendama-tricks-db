@@ -13,31 +13,20 @@ function setup(){
 const names = (arr) => arr.map((x) => x.name.zh);
 const mkItems = (list) => list.map((n, i) => ({ type: "category", id: "c" + i, name: { zh: n }, ref: { order: i } }));
 
-test("cycle: default -> asc -> desc -> default", () => {
+test("toggle: default <-> desc", () => {
   const ctx = setup();
-  assert.strictEqual(ctx.nextColSortMode("default"), "asc");
-  assert.strictEqual(ctx.nextColSortMode("asc"), "desc");
+  assert.strictEqual(ctx.nextColSortMode("default"), "desc");
   assert.strictEqual(ctx.nextColSortMode("desc"), "default");
 });
 
-test("asc/desc with numbers, Chinese, Japanese", () => {
+test("desc = the custom order reversed, names and prefixes never matter", () => {
   const ctx = setup();
-  const items = mkItems(["item10", "item2", "banana", "Apple"]);
-  assert.deepStrictEqual(names(ctx.applyColSort(items, "asc", null)), ["Apple", "banana", "item2", "item10"]);
-  assert.deepStrictEqual(names(ctx.applyColSort(items, "desc", null)), ["item10", "item2", "banana", "Apple"]);
-  ctx.state.lang = "jp";
-  const jp = mkItems(["さ", "あ", "か"]);
-  assert.deepStrictEqual(names(ctx.applyColSort(jp, "asc", null)), ["あ", "か", "さ"]);
-  ctx.state.lang = "zh";
-  const zh = mkItems(["乙", "甲", "丙"]);
-  assert.strictEqual(ctx.applyColSort(zh, "asc", null).length, 3);
-});
-
-test("same name keeps default order (stable), both directions", () => {
-  const ctx = setup();
-  const items = mkItems(["a", "a", "a"]);
-  assert.deepStrictEqual(ctx.applyColSort(items, "asc", null).map((x) => x.id), ["c0", "c1", "c2"]);
-  assert.deepStrictEqual(ctx.applyColSort(items, "desc", null).map((x) => x.id), ["c0", "c1", "c2"]);
+  const items = mkItems(["b", "c", "a"]);
+  assert.deepStrictEqual(names(ctx.applyColSort(items, "default", null)), ["b", "c", "a"]);
+  assert.deepStrictEqual(names(ctx.applyColSort(items, "desc", null)), ["a", "c", "b"]);
+  const tied = mkItems(["z", "a", "m"]);
+  tied.forEach((x) => { x.ref.order = 1; });
+  assert.deepStrictEqual(names(ctx.applyColSort(tied, "default", null)), ["z", "a", "m"]); // ties: insertion order
 });
 
 test("default equals sortColumnItems and does not mutate input", () => {
@@ -60,19 +49,11 @@ test("sort bar kind: 2+ items button, 1 item fixed label, empty / collapsed blan
 test("prune removes keys not in chain; space change clears all", () => {
   const ctx = setup();
   ctx.pruneColSort(["__root__", "a", "b"]);
-  ctx.state.colSort = { __root__: "asc", a: "desc", b: "asc" };
+  ctx.state.colSort = { __root__: "desc", a: "desc", b: "desc" };
   ctx.pruneColSort(["__root__", "a"]);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.state.colSort)), { __root__: "asc", a: "desc" });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.state.colSort)), { __root__: "desc", a: "desc" });
   ctx.state.activeSpace = "other";
   ctx.pruneColSort(["__root__", "a"]);
   assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.state.colSort)), {});
   assert.strictEqual(ctx.colSortMode("a"), "default");
-});
-
-test("asc/desc: prefix first (numeric 2<10), then name; no-prefix after; desc is reverse", () => {
-  const ctx = setup();
-  const mk = (id, n, p) => ({ type: "category", id, name: { zh: n }, ref: p ? { order: 0, prefix: p } : { order: 0 } });
-  const items = [mk("a", "zzz"), mk("b", "b", "10"), mk("c", "c", "2"), mk("d", "a", "2"), mk("e", "aaa")];
-  assert.deepStrictEqual(ctx.applyColSort(items, "asc", null).map((x) => x.id), ["d", "c", "b", "e", "a"]);
-  assert.deepStrictEqual(ctx.applyColSort(items, "desc", null).map((x) => x.id), ["a", "e", "b", "c", "d"]);
 });

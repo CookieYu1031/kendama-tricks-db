@@ -47,9 +47,7 @@
 
   function sortColumnItems(items, parentId){
     return items.slice().sort(function(a,b){
-      var diff = getItemOrderValue(a, parentId) - getItemOrderValue(b, parentId);
-      if(diff !== 0) return diff;
-      return localize(a.name).localeCompare(localize(b.name));
+      return getItemOrderValue(a, parentId) - getItemOrderValue(b, parentId); // ties keep insertion order (never by text)
     });
   }
 
