@@ -32,6 +32,59 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192-white.png" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+/* boot splash: painted before any stylesheet or script arrives (js/10-shell-splash.js removes it) */
+html{ background:#1B2A37; }
+#bootSplash{ position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  background:#121212; color:#F0EDE6; font-family:"Noto Sans TC","Noto Sans JP",system-ui,sans-serif; transition:opacity .28s ease; }
+#bootSplash.light{ background:#D9DCE1; color:#1A1D22; }
+#bootSplash.done{ opacity:0; pointer-events:none; }
+#bootSplash img{ width:64px; height:64px; object-fit:contain; }
+#bootSplash.light img{ filter:brightness(.22) saturate(1.4); }
+#bootSplash .bs-title{ font-size:20px; font-weight:700; letter-spacing:.04em; }
+#bootSplash .bs-bar{ width:160px; height:4px; border-radius:999px; overflow:hidden; background:rgba(128,128,128,.28); }
+#bootSplash .bs-bar i{ display:block; width:40%; height:100%; border-radius:999px; background:#3E9BE0; animation:bsMove 1.1s ease-in-out infinite; }
+@keyframes bsMove{ 0%{ transform:translateX(-110%); } 100%{ transform:translateX(260%); } }
+#bootSplash .bs-text{ font-size:13px; opacity:.75; min-height:20px; text-align:center; padding:0 24px; }
+#bootSplash .bs-reload{ display:none; padding:9px 20px; border:1px solid currentColor; border-radius:999px; background:transparent; color:inherit; font:inherit; font-size:14px; cursor:pointer; }
+#bootSplash.failed .bs-bar{ display:none; }
+#bootSplash.failed .bs-reload{ display:block; }
+@media (prefers-reduced-motion: reduce){ #bootSplash .bs-bar i{ animation-duration:2.6s; } }
+</style>
+</head>
+<body>
+<div id="bootSplash" role="status" aria-live="polite">
+  <img src="assets/brand-icon.png" alt="" fetchpriority="high" />
+  <div class="bs-title"></div>
+  <div class="bs-bar"><i></i></div>
+  <div class="bs-text"></div>
+  <button type="button" class="bs-reload"></button>
+</div>
+<script>
+(function(){
+  var L = "zh", T = "system";
+  try{ L = localStorage.getItem("kendama-lang-v1") || "zh"; T = localStorage.getItem("kendama-theme-v1") || "system"; }catch(e){}
+  var S = {
+    zh:["劍玉招式庫","載入中…","連線較慢，請稍候…","載入失敗，請檢查網路後重新整理","重新整理"],
+    jp:["けん玉技データベース","読み込み中…","接続に時間がかかっています…","読み込みに失敗しました。通信環境を確認して再読み込みしてください","再読み込み"],
+    en:["Kendama Tricks DB","Loading…","Slow connection, please wait…","Couldn't load. Check your connection and reload","Reload"]
+  }[L] || null;
+  if(!S) return;
+  var el = document.getElementById("bootSplash"), tx = el.querySelector(".bs-text"), rb = el.querySelector(".bs-reload");
+  if(T === "light" || (T !== "dark" && window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches)){
+    el.classList.add("light"); document.documentElement.style.background = "#D6DEE6";
+  }
+  el.querySelector(".bs-title").textContent = S[0]; tx.textContent = S[1]; rb.textContent = S[4];
+  rb.onclick = function(){ location.reload(); };
+  window.__bootTimers = [
+    setTimeout(function(){ tx.textContent = S[2]; }, 5000),
+    setTimeout(function(){ // the app never started (a script did not load)
+      if(window.__appBooted) return;
+      tx.textContent = S[3]; el.classList.add("failed");
+    }, 20000)
+  ];
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/variables-and-base.css">
 <link rel="stylesheet" href="css/shell-topbar-rail.css">
@@ -58,8 +111,6 @@
 <link rel="stylesheet" href="css/random.css">
 <link rel="stylesheet" href="css/practice.css">
 <link rel="stylesheet" href="css/safe-area.css">
-</head>
-<body>
 <div id="app">
   <header class="topbar">
     <div class="topbar-side topbar-side-left">
@@ -584,6 +635,7 @@
 <script src="js/07-id.js"></script>
 <script src="js/08-loc-code.js"></script>
 <script src="js/09-names.js"></script>
+<script src="js/10-shell-splash.js"></script>
 <script src="js/10-shell-breadcrumb.js"></script>
 <script src="js/12-shell-rail.js"></script>
 <script src="js/14-shell-settings.js"></script>
@@ -623,6 +675,7 @@
 <script src="js/37-info-drawer.js"></script>
 <script src="js/38-info-links.js"></script>
 <script src="js/40-modal-confirm-toast.js"></script>
+<script src="js/40-modal-guard.js"></script>
 <script src="js/41-modal-video.js"></script>
 <script src="js/41-video-loop.js"></script>
 <script src="js/41-video-range.js"></script>

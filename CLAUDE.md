@@ -89,6 +89,7 @@
 | 極簡 XLSX 讀寫（STORED zip 寫、deflate-raw 讀，無依賴） | `js/79-xlsx.js` |
 | rail 底部編輯鈕（編輯／完成編輯 切換） | `js/12-shell-rail.js` |
 | 項目列圖示與名稱／前綴區塊 `buildItemVisual`（清單／招式／資訊共用） | `js/21-browse-item-visual.js` |
+| 載入畫面（最先顯示、有快取立即消失、載入失敗提示重新整理；樣式與文字內嵌在 `index.html` body 開頭，stylesheet 連結放在它後面） | `js/10-shell-splash.js`、`index.html`（收起時機在 `js/90`、`js/59`） |
 | 麵包屑、頂欄 | `js/10-shell-breadcrumb.js` |
 | 左欄（space rail、長按排序） | `js/12-shell-rail.js` |
 | 設定頁（齒輪、帳號列、語言、導覽與快捷鍵、新手教學入口、網站製作者列（顯示 @cookie_yu_1031，連到 IG）、底部隱私說明連結；標題列圖示鈕：管理員面板（限管理員）、通知、用戶統計（敬請期待）、×） | `js/14-shell-settings.js` |
@@ -129,6 +130,7 @@
 | 統一新增介面（欄位右下「+」開啟：招式／清單／資訊、ID 連結既有招式） | `js/47-modal-add.js` |
 | 確認框和 toast、影片、媒體、類別、space、招式刪除確認（`js/45`，招式編輯在抽屜）；圖示與顏色選擇器（8 欄、自訂色面板、還原預設）在 `js/43-modal-category.js` | `js/40`–`js/45` |
 | 影片關鍵段落（YouTube；`media[].loop`；檢視模式有 loop 只播關鍵段落並鎖在 A↔B、編輯模式手動輸入起始／結束 mm:ss（只打數字自動補「:」、結束可空＝到結尾、◇ 填入目前時間、清除設定）；編輯模式標題直接改；`normalizeLoop` 在 `js/01-data-storage.js`） | `js/41-video-loop.js`（播放器包裝、開關）、`js/41-video-range.js`（起始／結束輸入列、`maskLoopDigits`／`parseLoopTime`／`formatMmSs`）、`js/41-modal-video.js`、`css/buttons-and-modals.css` |
+| 視窗共用防呆：點背景關閉要按下與放開都在背景（拖曳選字不關）、編輯清單／分區／圖示／顏色時 Enter＝完成 | `js/40-modal-guard.js` |
 | 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |

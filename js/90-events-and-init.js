@@ -106,7 +106,7 @@
   // Delete button or a multi-line <textarea>.
   function bindEnterToSave(overlayId, saveFn){
     document.getElementById(overlayId).addEventListener("keydown", function(ev){
-      if(ev.key !== "Enter") return;
+      if(ev.key !== "Enter" || ev.isComposing || ev.keyCode === 229) return; // not while an IME is composing
       var tag = ev.target.tagName;
       if(tag !== "INPUT" && tag !== "SELECT") return;
       ev.preventDefault();
@@ -145,3 +145,8 @@
   backfillPlatforms(db);
   if(typeof rebuildReadingDict === "function") rebuildReadingDict(db.tricks);
   render();
+
+  // Boot splash: the app is up. Cached data shows at once; otherwise js/59 ends it after the first load.
+  window.__appBooted = true;
+  if(bootHasCache(userCache, db)) bootSplashDone();
+  else setTimeout(bootSplashDone, BOOT_SPLASH_MAX);

@@ -21,7 +21,7 @@
         renderAuthUI();
         maybeShowBaseUpdateBanner();
         if(typeof shareOnAuth === "function") shareOnAuth();
-      });
+      }).then(bootSplashDone, bootSplashDone); // new device: nothing cached to show before this
     } else {
       hideBaseUpdateBanner();
       _currentViewingVersion = null; // no per-account pin once logged out
@@ -37,7 +37,7 @@
       // whatever's currently latest (see loadGuestSpaceIndexBase above).
       loadGuestSpaceIndexBase().then(function(){
         render();
-      });
+      }).then(bootSplashDone, bootSplashDone);
       if(typeof shareOnGuest === "function") shareOnGuest(); // pending ?s=&i= share link: ask to sign in
     }
     if(typeof practiceOnAuth === "function") practiceOnAuth(user);
