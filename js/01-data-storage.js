@@ -36,9 +36,16 @@
       try{
         localStorage.setItem(USER_CACHE_PREFIX + userCache.uid, JSON.stringify(payload));
         return true;
-      }catch(e2){ return false; }
+      }catch(e2){
+        if(!_cacheFullToasted && typeof showToast === "function" && typeof t === "function"){
+          _cacheFullToasted = true; // once per page load
+          try{ showToast(t("localCacheFull"), "error"); }catch(e3){ /* ignore */ }
+        }
+        return false;
+      }
     }
   }
+  var _cacheFullToasted = false;
   function emptyDB(){
     return normalizeDB({ categories: [], tricks: [] });
   }

@@ -76,7 +76,7 @@
       var realItems = ghosts.length ? items.filter(function(x){ return !x.ghost; }) : items;
 
       var itemsWrap = document.createElement("div");
-      itemsWrap.className = "col-items";
+      itemsWrap.className = "col-items" + (items.length > 60 ? " long" : ""); // long: off-screen rows skip layout (css)
 
       colEl.appendChild(buildColSortBar(key, colSortBarKind(items.length, collapsed))); // always present: placeholder keeps rows aligned
       if(items.length === 0){

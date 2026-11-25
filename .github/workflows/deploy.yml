@@ -22,11 +22,14 @@ jobs:
       - name: Run local tests
         run: node scripts/test.js --all
 
+      - name: Build dist (hashed + minified)
+        run: node scripts/build-dist.js --minify
+
       - name: Deploy hosting + Firestore rules
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          npx --yes firebase-tools@15 deploy --only hosting,firestore:rules --project kendama-tricks-db --non-interactive
+          npx --yes firebase-tools@15 deploy --only hosting,firestore:rules --config firebase.deploy.json --project kendama-tricks-db --non-interactive
           rm -f "$RUNNER_TEMP/sa.json"

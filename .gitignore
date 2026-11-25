@@ -24,3 +24,7 @@ Thumbs.db
 
 # Spec doc (kept local only)
 *.docx
+
+# Deploy build output (scripts/build-dist.js)
+dist/
+firebase.deploy.json

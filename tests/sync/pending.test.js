@@ -50,7 +50,7 @@ function setup(store) {
   const toasts = [];
   const ctx = load(
     ["js/01-data-model.js", "js/01-data-storage.js", "js/02-constants-colors-icons.js", "js/04-state.js", "js/05-data-helpers.js", "js/05-data-ops.js", "js/05-data-util.js",
-      "js/50-sync-core.js", "js/51-shared-base.js", "js/53-sync-chunks.js", "js/56-pending.js"],
+      "js/50-sync-core.js", "js/51-base-cache.js", "js/51-shared-base.js", "js/53-sync-chunks.js", "js/56-pending.js"],
     {
       localize: (n) => n && (n.zh || n.en),
       addStrings: () => {},

@@ -85,6 +85,11 @@
     transition: background .16s var(--ease), border-color .16s var(--ease), box-shadow .16s var(--ease), padding .3s var(--ease), gap .3s var(--ease), width .3s var(--ease), margin .3s var(--ease);
     position:relative;
   }
+  /* Long lists: rows off screen skip layout / paint (fixed row height, so scrolling stays exact).
+     Not while a row paints outside its box (drop line, swipe check, drag). */
+  .col-items.long > .item:not(.swipe-live):not(.drop-before):not(.drop-after):not(.dragging){
+    content-visibility:auto; contain-intrinsic-size: auto var(--item-h, 58px);
+  }
   /* user-made (custom:true) tricks: faint wood tint, same family as --wood */
   :root{ --item-custom-bg: var(--wood-tint); }
   .item.custom{ background: var(--item-custom-bg); }
