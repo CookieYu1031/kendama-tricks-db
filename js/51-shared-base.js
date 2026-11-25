@@ -45,7 +45,8 @@
       };
     }).catch(function(err){
       console.error("Shared base pointer fetch failed:", err);
-      return { latestVersion: 0, latestNote: "", latestLabel: "", publishedAt: null };
+      // failed:true lets the guest loader tell "read failed" from "version 0" (others still see 0).
+      return { latestVersion: 0, latestNote: "", latestLabel: "", publishedAt: null, failed: true };
     });
   }
 
@@ -82,28 +83,45 @@
       _sharedBaseLabels = {};
       return Promise.resolve(empty);
     }
-    return fbStore.doc(sharedVersionPath(version)).get()
-      .then(function(snap){
-        var d = snap.exists ? snap.data() : {};
-        if(typeof d.chunks === "number"){
-          return readChunkedPayload(sharedVersionPath(version), d.chunks).then(function(str){
-            if(str === null) throw new Error("shared base chunks missing");
-            return normalizeBaseSnapshot(d.version || version, JSON.parse(str));
-          });
-        }
-        return normalizeBaseSnapshot(d.version || version, d); // old inline layout
-      })
-      .then(function(normalized){
-        baseDataCache[cacheKey] = normalized;
-        _sharedBaseLabels = normalized.labels || {};
-        return normalized;
-      })
-      .catch(function(err){
-        console.error("Shared base version fetch failed:", err);
-        // Deliberately not cached, so a transient failure can be retried
-        // (e.g. on the next render) instead of getting stuck on "empty".
-        return emptyBase(version);
-      });
+    var done = function(normalized){
+      baseDataCache[cacheKey] = normalized;
+      _sharedBaseLabels = normalized.labels || {};
+      return normalized;
+    };
+    // 1) device cache (js/51-base-cache.js), bad data is dropped; 2) network, then stored.
+    return baseCacheGet(version).then(function(raw){
+      if(raw === null) return null;
+      try{
+        var parsed = JSON.parse(raw);
+        if(baseRawLooksValid(parsed)) return normalizeBaseSnapshot(version, parsed);
+      }catch(e){ /* fall through */ }
+      baseCacheDelete(version);
+      return null;
+    }).then(function(cached){
+      if(cached) return done(cached);
+      return fbStore.doc(sharedVersionPath(version)).get()
+        .then(function(snap){
+          var d = snap.exists ? snap.data() : {};
+          if(typeof d.chunks === "number"){
+            return readChunkedPayload(sharedVersionPath(version), d.chunks).then(function(str){
+              if(str === null) throw new Error("shared base chunks missing");
+              return { ver: d.version || version, raw: str, data: JSON.parse(str) };
+            });
+          }
+          return { ver: d.version || version, raw: JSON.stringify(d), data: d }; // old inline layout
+        })
+        .then(function(got){
+          var normalized = normalizeBaseSnapshot(got.ver, got.data);
+          if(baseRawLooksValid(got.data)) baseCachePut(version, got.raw);
+          return done(normalized);
+        })
+        .catch(function(err){
+          console.error("Shared base version fetch failed:", err);
+          // Deliberately not cached, so a transient failure can be retried
+          // (e.g. on the next render) instead of getting stuck on "empty".
+          return emptyBase(version);
+        });
+    });
   }
 
   function fetchUserViewingVersion(uid){
@@ -157,8 +175,13 @@
   function loadGuestSpaceIndexBase(){
     return fetchSharedBasePointer().then(function(pointer){
       _lastSeenPointer = pointer;
-      if(!pointer.latestVersion) return;
-      return fetchSharedBaseVersion(pointer.latestVersion).then(function(base){
+      var ver = pointer.latestVersion;
+      // Pointer unreadable (offline): fall back to the last version this device saw.
+      if(pointer.failed) ver = lastBaseVersion();
+      if(!ver) return;
+      return fetchSharedBaseVersion(ver).then(function(base){
+        if(!baseDataCache[SHARED_BASE_TABLE_ID + "@" + ver]) return; // fetch failed: keep what we have
+        if(!pointer.failed) rememberBaseVersion(ver);
         // Replace only the tables this snapshot covers (old versions: t00 only).
         var covered = base.tables || ["t00"];
         var otherCats = db.categories.filter(function(c){ return covered.indexOf(c.spaceId) === -1; });
@@ -225,6 +248,8 @@
         // save below (which needs this version's base) doesn't need a
         // network round-trip to read back what we just sent.
         baseDataCache[SHARED_BASE_TABLE_ID + "@" + newVersion] = normalizeBaseSnapshot(newVersion, snapshot);
+        baseCachePut(newVersion, JSON.stringify(snapshot)); // overwrite any stale device copy
+        rememberBaseVersion(newVersion);
         _lastSeenPointer = { latestVersion: newVersion, latestNote: note, latestLabel: label, publishedAt: null };
         _currentViewingVersion = newVersion;
         result = { ok: true, version: newVersion, label: label };

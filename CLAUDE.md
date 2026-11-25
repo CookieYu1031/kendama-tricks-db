@@ -18,7 +18,7 @@
 
 ## 架構（沿用，不換）
 
-- 純 JS、無 build、無 npm 依賴。`index.html` 依序載入 `js/NN-*.js`，全部共用全域作用域。
+- 純 JS、無 npm 依賴；開發時無 build（本機直接開 repo 根目錄），只有部署時 CI 跑 `scripts/build-dist.js --minify`（逐檔壓縮 JS＋檔名雜湊、CSS 併一檔，輸出 `dist/`）。`index.html` 依序載入 `js/NN-*.js`，全部共用全域作用域。
 - 風格：`"use strict"`、`var`、`function`，跟現有檔案一致。
 - 檔案依功能細分；單檔超過約 400 行就拆。
 - 檔名編號（A4）：
@@ -50,7 +50,7 @@
 ## 分支與部署
 
 - 每個版本開一個分支 `vX.Y`。完成並經我確認後合回 `main`。
-- push 到 `main` 會觸發 `.github/workflows/deploy.yml`：先跑測試，再部署 Hosting 和 Firestore rules。
+- push 到 `main` 會觸發 `.github/workflows/deploy.yml`：先跑測試，再建置 `dist/`，用 `firebase.deploy.json`（建置產生）部署 Hosting 和 Firestore rules。新增根目錄要上線的檔案時，同步更新 `scripts/build-dist.js` 的複製白名單。
 - 正式網址：https://kendama-tricks-db.web.app 。舊網址 `cookieyu1031.github.io/kendama-tricks-db` 由 `gh-pages` 分支跳轉過去，不要在那個分支放 app 程式碼。
 - 本機預覽：`firebase serve --only hosting -p 5000`。一律用 5000：Firebase API 金鑰限制來源，其他 port 會 `auth/requests-from-referer-...-are-blocked` 無法登入。
 
@@ -134,6 +134,7 @@
 | 視窗共用防呆：點背景關閉要按下與放開都在背景（拖曳選字不關）、編輯清單／分區／圖示／顏色時 Enter＝完成 | `js/40-modal-guard.js` |
 | 自訂顏色小視窗（hex 輸入、內嵌 SV 方塊＋色相條、最近 3 色；hex↔HSV、最近色清單純邏輯；「自訂」膠囊從選擇器開啟） | `js/49-modal-color-custom.js`、`css/buttons-and-modals.css` |
 | 雲端同步核心（base 資料、diff、merge、isAdminAccount） | `js/50-sync-core.js` |
+| 總表存在裝置上（Cache Storage `kdb-base-v1`，已發布版本不可變、留最新 2 版；訪客離線備援；改格式要加 `BASE_CACHE_SCHEMA`） | `js/51-base-cache.js` |
 | 總表版本、發布、更新通知 | `js/51-shared-base.js` |
 | 登入、登出、暱稱、帳號選單（含同步時間與手動同步鈕） | `js/52-auth.js` |
 | 雲端分塊（切塊、批次、讀寫 users 雲端資料） | `js/53-sync-chunks.js` |
@@ -159,6 +160,6 @@
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |
 | Firestore 規則 | `firestore.rules` |
-| 部署 | `firebase.json`、`.github/workflows/deploy.yml` |
+| 部署（建置、雜湊、壓縮） | `firebase.json`（本機）、`scripts/build-dist.js`、`.github/workflows/deploy.yml`、`search-index.yml` |
 | 測試、截圖、console 檢查 | `tests/_load.js`、`tests/<類別>/*.test.js`、`scripts/test.js`（依改動挑測試）、`scripts/shot.sh`、`scripts/console.sh` |
 

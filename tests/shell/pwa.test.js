@@ -66,6 +66,24 @@ test("swRouteFor routes", () => {
   assert.strictEqual(c.swRouteFor("https://fonts.gstatic.com/s/x.woff2", "GET"), "cache-first");
 });
 
+test("swRouteFor: hashed /a/ files are cache-first, other same-origin stays network-first", () => {
+  const c = swCtx();
+  const o = "https://kendama-tricks-db.web.app";
+  assert.strictEqual(c.swRouteFor(o + "/a/21-browse-columns.0123456789.js", "GET", "no-cors"), "cache-first");
+  assert.strictEqual(c.swRouteFor(o + "/a/app.abcdef0123.css", "GET", "no-cors"), "cache-first");
+  assert.strictEqual(c.swRouteFor(o + "/a/app.css", "GET", "no-cors"), "network-first");
+  assert.strictEqual(c.swRouteFor(o + "/sw.js", "GET", "no-cors"), "network-first");
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.swHashedFile("/a/x.y.0123456789.js"))), { stem: "x.y", ext: "js" });
+  assert.strictEqual(c.swHashedFile("/a/x.js"), null);
+});
+
+test("sw: precache has no hashed names, keeps kdb-base caches, version bumped", () => {
+  const c = swCtx();
+  assert.ok(c.SW_PRECACHE.every((p) => !/^\/?a\//.test(p)));
+  assert.strictEqual(c.SW_KEEP_PREFIX, "kdb-base");
+  assert.strictEqual(c.CACHE_VERSION, "kdb-v0.19");
+});
+
 test("manifest valid and icons exist", () => {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.webmanifest"), "utf8"));
   assert.strictEqual(m.display, "standalone");

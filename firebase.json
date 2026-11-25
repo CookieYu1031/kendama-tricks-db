@@ -9,7 +9,8 @@
       "**/*.md",
       "**/*.docx",
       "tests/**",
-      "scripts/**"
+      "scripts/**",
+      "dist/**"
     ],
     "headers": [
       {
