@@ -18,6 +18,12 @@
 
   // opts: { value, onChange(value|null), allowNone (default true) }. The element has
   // .setValue(v) to re-sync from outside (class-tag overwrite) and .getValue(); onChange is NOT fired by setValue.
+  // Fixed column for a sub-grip (GRIP_COL_AT, js/01); frame column 1 is the category header.
+  function gripPlaceChip(el, k){
+    var col = typeof GRIP_COL_AT !== "undefined" ? GRIP_COL_AT[k] : 0;
+    if(col) el.style.gridColumn = String(col + 1);
+    return el;
+  }
   function isGripSub(k){ return GRIP_KEYS.indexOf(k) !== -1 && !isGripCategory(k); }
   function buildGripPicker(opts){
     opts = opts || {};
@@ -69,7 +75,7 @@
       grp.appendChild(cat);
       var subs = document.createElement("div");
       subs.className = "grip-subs";
-      g.grips.forEach(function(k){ subs.appendChild(mk(k)); });
+      g.grips.forEach(function(k){ subs.appendChild(gripPlaceChip(mk(k), k)); });
       grp.appendChild(subs);
       frame.appendChild(grp);
     });

@@ -9,11 +9,13 @@
   // bar, cycling language switch) all agree with the CSS.
   var MOBILE_BREAKPOINT = 860;
   function isNarrowViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT; }
-  // Phone (<=600px): one column + swipe-back. Tablet (601-860px): last two columns
-  // side by side. Wider: full miller chain. Mirrors css/browse-columns.css.
+  // One column + swipe-back: <=600px, or a portrait screen up to 860px (portrait tablets).
+  // Tablet (601-860px landscape): last two columns side by side. Wider: full miller chain.
+  // Mirrors css/browse-columns.css / browse-motion.css: (max-width:600px), (max-width:860px) and (orientation:portrait).
   var PHONE_BREAKPOINT = 600;
-  function isPhoneViewport(){ return window.innerWidth <= PHONE_BREAKPOINT; }
-  function isTabletViewport(){ return window.innerWidth > PHONE_BREAKPOINT && window.innerWidth <= MOBILE_BREAKPOINT; }
+  function singleColumnFor(w, h){ return w <= PHONE_BREAKPOINT || (w <= MOBILE_BREAKPOINT && h >= w); }
+  function isPhoneViewport(){ return singleColumnFor(window.innerWidth, window.innerHeight); }
+  function isTabletViewport(){ return window.innerWidth <= MOBILE_BREAKPOINT && !isPhoneViewport(); }
   function visibleColumnCount(){ return isPhoneViewport() ? 1 : (isTabletViewport() ? 2 : 0); } // 0 = all
 
   // Lazily-built lookup index (id -> record, parentId -> categories/infos,

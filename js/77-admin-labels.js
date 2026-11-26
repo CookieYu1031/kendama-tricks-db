@@ -117,7 +117,7 @@
       cat.style.gridRow = "span " + Math.ceil(g.grips.length / GRIP_COLS);
       grp.appendChild(cat);
       var subs = document.createElement("div"); subs.className = "grip-subs";
-      g.grips.forEach(function(k){ subs.appendChild(labelChip("grip", k, "", true)); });
+      g.grips.forEach(function(k){ subs.appendChild(gripPlaceChip(labelChip("grip", k, "", true), k)); });
       grp.appendChild(subs);
       frame.appendChild(grp);
     });

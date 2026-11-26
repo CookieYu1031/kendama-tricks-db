@@ -1,6 +1,6 @@
-/* Phone browse motion (v0.14.8): drill-down slide, swipe-back reveal. Phone only (<=600px). */
+/* Phone browse motion (v0.14.8): drill-down slide, swipe-back reveal. One-column layout only (<=600px, or portrait <=860px). */
 @property --swipe-x{ syntax:'<length>'; inherits:true; initial-value:0px; }
-@media (max-width: 600px){
+@media (max-width: 600px), (max-width: 860px) and (orientation: portrait){
   /* Horizontal gestures go to JS (js/27); vertical scroll stays native. */
   .miller-wrap .m-col.mobile-active, .miller-wrap .m-col.mobile-active .col-items{ touch-action: pan-y; }
 

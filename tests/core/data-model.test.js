@@ -154,10 +154,12 @@ test("removeTag strips tagIds", () => {
 
 test("grip groups: categories + subs are valid, helpers map sub -> category", () => {
   const ctx = setup();
-  assert.strictEqual(ctx.GRIP_KEYS.length, 3 + 8 + 2 + 4);
+  assert.strictEqual(ctx.GRIP_KEYS.length, 3 + 8 + 3 + 4);
   ["ken", "tama", "ito", "ken_sara", "tama_stunt", "ito_tornado"].forEach((k) => assert.ok(ctx.GRIP_KEYS.indexOf(k) !== -1, k));
   assert.strictEqual(ctx.gripCategoryOf("ken_down"), "ken");
   assert.strictEqual(ctx.gripCategoryOf("tama_stunt"), "tama");
+  assert.strictEqual(ctx.gripCategoryOf("tama_twohand"), "tama");             // 雙手 (v0.19.3)
+  assert.strictEqual(ctx.GRIP_COL_AT.tama_twohand, 4);                         // under 殺, column 3 left empty
   assert.strictEqual(ctx.gripCategoryOf("ito"), "ito");
   assert.strictEqual(ctx.gripCategoryOf("nope"), null);
   assert.strictEqual(ctx.isGripCategory("tama"), true);
