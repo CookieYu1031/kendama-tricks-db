@@ -62,7 +62,11 @@
       ["Stuntplane grip", [5], {
         zh:["重力機手勢", "反向持球，球洞朝下", "部分玩家會將線放在大拇指指甲底部的位置，增加線的穩定"],
         jp:["スタントプレーン持ち", "玉を逆向きに持ち、玉の穴を下に向ける", "糸を安定させるため、糸を親指の爪の付け根に置く人もいる"],
-        en:["Stuntplane grip", "Hold the ball the other way round, ball hole down", "Some players rest the string at the base of the thumbnail for stability"] }]
+        en:["Stuntplane grip", "Hold the ball the other way round, ball hole down", "Some players rest the string at the base of the thumbnail for stability"] }],
+      ["Two-hand grip", [], {
+        zh:["雙手持", "一手持劍、一手持球，兩手分別抓住", "少數招式才會用到"],
+        jp:["両手持ち", "片手でけん、もう片方の手で玉を持つ", "一部の技でのみ使う"],
+        en:["Two-hand grip", "One hand holds the ken, the other holds the ball", "Only a few tricks start this way"] }]
     ],
     ito: [
       ["Hanging grip", [], {

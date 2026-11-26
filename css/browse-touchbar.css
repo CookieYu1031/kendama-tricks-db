@@ -16,22 +16,23 @@
   /* paste target column */
   .m-col.paste-target{ box-shadow: inset 0 0 0 2px var(--lacquer-bright), var(--shadow-sm), var(--glass-highlight); }
 
-  /* the capsule: frosted glass like .modal */
+  /* the capsule: same height and glass as the search button (.search-toggle, 36px), centred in the
+     64px top bar (top = (64 - 36) / 2) so it reads as part of the bar */
   .touchbar{
-    position:fixed; z-index:50; top: calc(var(--safe-t, 0px) + 5px); left:50%; height:54px;
+    position:fixed; z-index:50; top: calc(var(--safe-t, 0px) + 14px); left:50%; height:36px;
     max-width: calc((100vw / var(--ui-zoom)) - 16px);
-    display:flex; align-items:center; gap:14px; padding: 0 6px 0 16px;
-    border:1px solid var(--glass-border-strong); border-radius:999px; color: var(--paper);
-    background: linear-gradient(165deg, var(--surface-modal-a), var(--surface-modal-b));
+    display:flex; align-items:center; gap:12px; padding: 0 3px 0 14px;
+    border:1px solid var(--glass-border); border-radius:999px; color: var(--paper-dim);
+    background: var(--glass-2);
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: var(--shadow-lg), var(--glass-highlight);
+    box-shadow: var(--glass-highlight);
     transform: translate(-50%, calc(-100% - var(--safe-t, 0px) - 12px)); opacity:0; visibility:hidden;
     transition: transform .25s var(--ease), opacity .25s var(--ease), visibility 0s linear .25s;
   }
   .touchbar.show{ transform: translate(-50%, 0); opacity:1; visibility:visible; transition-delay: 0s; }
-  .tb-text{ flex:0 0 auto; width:72px; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tb-text{ flex:0 0 auto; width:72px; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   /* hint state (edit mode, nothing picked): one line of text, no buttons, width follows the text */
-  .touchbar.tb-hint{ padding:0 18px; }
+  .touchbar.tb-hint{ padding:0 14px; }
   .touchbar.tb-hint .tb-group{ display:none; }
   .touchbar.tb-hint .tb-text{ width:auto; overflow:visible; text-overflow:clip; text-align:center; animation: tbHintIn .25s var(--ease); }
   @keyframes tbHintIn{ from{ opacity:0; } to{ opacity:1; } }
@@ -39,10 +40,10 @@
 
   /* flat icon buttons: no border / fill; a round soft disc appears on hover / press */
   .tb-btn{
-    --tb-d:34px;
-    position:relative; flex:0 1 40px; min-width:24px; width:40px; height:42px; padding:0;
+    --tb-d:30px;
+    position:relative; flex:0 1 40px; min-width:24px; width:40px; height:34px; padding:0;
     display:flex; align-items:center; justify-content:center;
-    border:0; border-radius:999px; background:transparent; color: var(--paper); cursor:pointer;
+    border:0; border-radius:999px; background:transparent; color: var(--paper-dim); cursor:pointer;
     -webkit-tap-highlight-color: transparent; transition: color .18s var(--ease), opacity .18s var(--ease);
   }
   .tb-btn::before{
@@ -50,18 +51,20 @@
     width:min(var(--tb-d), 100%); height:var(--tb-d); border-radius:50%;
     background:transparent; transition: background .18s var(--ease);
   }
-  .tb-btn svg{ position:relative; width:19px; height:19px; display:block; flex:0 0 auto; }
+  .tb-btn svg{ position:relative; width:17px; height:17px; display:block; flex:0 0 auto; }
   .tb-btn:focus-visible{ outline:2px solid var(--lacquer-bright); outline-offset:-2px; }
   .tb-btn.tb-off{ opacity:.35; cursor:default; }
   .tb-btn:not(.tb-off):active::before, .tb-btn.tb-active::before{ background: var(--glass-3); }
+  .tb-btn:not(.tb-off):active, .tb-btn.tb-active{ color: var(--paper); }
   .tb-btn.tb-danger:not(.tb-off):active{ color: var(--danger-bright); }
   @media (hover:hover){
     .tb-btn:not(.tb-off):hover::before{ background: var(--glass-3); }
+    .tb-btn:not(.tb-off):hover{ color: var(--paper); }
     .tb-btn.tb-danger:not(.tb-off):hover{ color: var(--danger-bright); }
   }
   /* dropper: color of the copied style */
   .tb-dot{
-    position:absolute; right:calc(50% - 15px); bottom:6px; width:9px; height:9px; border-radius:50%;
+    position:absolute; right:calc(50% - 14px); bottom:3px; width:8px; height:8px; border-radius:50%;
     border:1.5px solid var(--glass-border-strong); box-sizing:border-box;
   }
   .tb-dot[hidden]{ display:none; }
@@ -82,15 +85,15 @@
 
   @media (min-width:861px){ .tb-btn{ flex-basis:44px; width:44px; } }
   @media (max-width:600px){
-    .touchbar{ gap:10px; padding:0 4px 0 12px; }
-    .tb-text{ width:70px; }
-    .tb-btn{ flex-basis:34px; width:34px; --tb-d:32px; }
+    .touchbar{ gap:8px; padding:0 3px 0 12px; }
+    .tb-text{ width:70px; font-size:13px; }
+    .tb-btn{ flex-basis:34px; width:34px; --tb-d:30px; }
   }
   @media (max-width:380px){
     .touchbar{ gap:6px; padding:0 3px 0 9px; }
     .tb-text{ width:64px; font-size:12px; }
     .tb-btn{ flex-basis:30px; width:30px; --tb-d:28px; }
-    .tb-btn svg{ width:18px; height:18px; }
+    .tb-btn svg{ width:16px; height:16px; }
   }
   /* bigger UI size: pack tighter (buttons may also shrink, min 24px) */
   @media (max-width:600px){

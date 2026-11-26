@@ -19,9 +19,12 @@
   // flat values) means "category, sub-grip unspecified"; a sub key (ken_sara...) is a specific grip.
   var GRIP_GROUPS = [
     { key:"ken",  grips:["ken_ken","ken_sara","ken_candle","ken_gun","ken_space","ken_stall","ken_swivel","ken_down"] },
-    { key:"tama", grips:["tama_tama","tama_stunt"] },
+    { key:"tama", grips:["tama_tama","tama_stunt","tama_twohand"] },
     { key:"ito",  grips:["ito_hang","ito_lighthouse","ito_spike","ito_tornado"] }
   ];
+  // Picker layout (js/36, js/77): sub-grip -> its column (1-4) when it should not just follow the previous chip.
+  // 雙手 sits under 殺 (column 4), leaving column 3 of the 持球 row empty.
+  var GRIP_COL_AT = { tama_twohand: 4 };
   // Every valid grip value (3 categories + all subs); normalization / share / forms validate against it.
   var GRIP_KEYS = GRIP_GROUPS.reduce(function(a, g){ return a.concat([g.key], g.grips); }, []);
   // "ken" | "tama" | "ito" for any grip value (a category maps to itself); null for unknown.

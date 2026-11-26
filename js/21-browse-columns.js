@@ -27,6 +27,7 @@
   // Tree navigation (path change only): rail, chrome and drawer don't depend on it.
   var RENDER_COLUMNS_ONLY = { columns: true };
 
+  var browseLastColCount = 0;
   function renderColumns(){
     var wrap = document.getElementById("millerWrap");
     if(typeof beginPendingRender === "function") beginPendingRender(); // admin red dots / ghost rows (56)
@@ -43,7 +44,7 @@
 
     var columns = buildColumnChain();
     var isMobile = isPhoneViewport();
-    var isTablet = isTabletViewport(), focusIdx = findFocusColumnIndex(columns);
+    var isTablet = isTabletViewport();
     var motion = browseMotionPlan(wrap, columns.length, isMobile); // phone slide in / out (js/27)
     pruneColSort(columns.map(function(c){ return c.parentId===null ? "__root__" : c.parentId; })); // per-level sort (js/29)
 
@@ -65,8 +66,8 @@
       colEl.innerHTML = "";
 
       // Tablet: only the last two levels stay open; earlier ones fold to the icon strip (tap to jump up).
-      var collapsed = isTablet ? colIndex <= columns.length - 3
-        : (!isMobile && focusIdx !== -1 && colIndex <= focusIdx - 2);
+      // Desktop never folds (at most 4 levels, each width-capped; the wrap scrolls sideways if needed).
+      var collapsed = isTablet && colIndex <= columns.length - 3;
       colEl.className = "m-col" + (collapsed ? " collapsed" : "") + (isMobile && colIndex === columns.length-1 ? " mobile-active" : "") + (isMobile && columns.length > 1 && colIndex === columns.length-2 ? " mobile-under" : "");
 
       // Removed-but-unpublished items stay in place as ghost rows (56); drag/reorder only sees real rows.
@@ -106,6 +107,11 @@
     });
 
     while(wrap.children.length > columns.length) wrap.removeChild(wrap.lastChild);
+    // Desktop: a new deeper level that doesn't fit is scrolled into view (the wrap scrolls sideways).
+    if(!isMobile && !isTablet && columns.length > browseLastColCount && wrap.scrollWidth > wrap.clientWidth){
+      wrap.scrollLeft = wrap.scrollWidth;
+    }
+    browseLastColCount = columns.length;
     browseMotionRun(wrap, motion);
     if(typeof syncSwipeBack === "function") syncSwipeBack(columns.length, true);
 
@@ -299,3 +305,12 @@
 
     return row;
   }
+
+  // Desktop: when the column area gets narrower (drawer slides in, window shrinks) keep the deepest level in view.
+  (function bindBrowseWrapResize(){
+    var w = typeof document !== "undefined" && document.getElementById ? document.getElementById("millerWrap") : null;
+    if(!w || typeof ResizeObserver === "undefined") return;
+    new ResizeObserver(function(){
+      if(!isNarrowViewport() && w.scrollWidth > w.clientWidth + 1) w.scrollLeft = w.scrollWidth;
+    }).observe(w);
+  })();

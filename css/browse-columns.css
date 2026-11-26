@@ -4,7 +4,7 @@
     display:flex;
     align-items:stretch;
     gap: 14px;
-    overflow-x:hidden;
+    overflow-x:auto;
     overflow-y:hidden;
     min-height: 0;
     padding: 14px 14px 16px;
@@ -12,7 +12,7 @@
   /* Column width grows with the viewport (vw divided by --ui-zoom so zoom doesn't double-scale). */
   .miller-wrap{ --col-w: clamp(260px, calc(21vw / var(--ui-zoom)), 320px); }
   .m-col{
-    flex: 0 0 var(--col-w);
+    flex: 0 1 var(--col-w); /* may shrink to min-width before the wrap scrolls sideways */
     min-width: 200px;
     max-width: 320px;
     width: auto;
@@ -179,7 +179,7 @@
 
 
   /* Tablet: last two levels side by side; earlier levels stay as icon strips. Drawer still slides in. */
-  @media (min-width: 601px) and (max-width: 860px){
+  @media (min-width: 601px) and (max-width: 860px) and (orientation: landscape){
     .m-col:not(.collapsed){ flex: 1 1 0; min-width:0; max-width:none; }
     .m-col.collapsed:hover{ flex: 0 0 76px; min-width:76px; max-width:76px; padding:12px 8px; box-shadow: var(--shadow-sm), var(--glass-highlight); z-index:auto; }
     /* No hover re-open on tablet (touch hover sticks): strips keep the collapsed look. */
@@ -189,7 +189,8 @@
     .m-col.collapsed .col-empty div, .m-col.collapsed .col-add-fab{ opacity:0; max-width:0; pointer-events:none; }
   }
 
-  @media (max-width: 600px){
+  /* One column: phones, and portrait screens up to 860px (js/05 singleColumnFor). */
+  @media (max-width: 600px), (max-width: 860px) and (orientation: portrait){
     .miller-wrap{ overflow-x:hidden; }
     .m-col{ display:none; flex: 1 1 100%; width:100%; min-width:0; max-width:100%; border-right:none; padding: 12px; }
     .m-col.mobile-active{ display:flex; position:relative; z-index:1; will-change:transform; }
