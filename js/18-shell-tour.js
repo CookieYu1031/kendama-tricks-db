@@ -100,12 +100,34 @@
     return r && r.right > 4 && r.bottom > 4 && r.left < window.innerWidth / z - 4 && r.top < window.innerHeight / z - 4 ? r : null;
   }
 
-  // The card never follows the spotlight: docked bottom-centre for the whole tour (anchored by its bottom
-  // edge, so the buttons stay put) and compact on phones. Only the hole and the cursor move.
-  function tourPlaceCard(card){
-    var z = tourZoom(), vw = window.innerWidth / z, G = vw < 600 ? 10 : 20;
-    var cw = Math.min(vw < 600 ? 420 : 460, vw - G * 2);
-    card.classList.toggle("tour-compact", vw < 600);
+  // The card never follows the spotlight. Wide: docked bottom-centre (anchored by its bottom edge, so the
+  // buttons stay put). <=860px: a tab hanging off the right edge, lower-middle (CSS .tour-side); <=600px also compact.
+  function tourCardMode(vw){ return { side: vw <= 860, compact: vw <= 600 }; }
+  // Pure: side-tab card centre (px from top) that keeps clear of a small spotlight, or null = CSS default (62%).
+  // hole: {top,bottom} | null; ch: card height; vh: viewport height (all in zoomed CSS px).
+  function tourSideTop(hole, ch, vh){
+    var def = vh * 0.62, G = 12;
+    if(!hole || hole.bottom - hole.top > vh * 0.5) return null;
+    if(def + ch / 2 < hole.top - G || def - ch / 2 > hole.bottom + G) return null;
+    if(hole.bottom + G + ch <= vh - G) return Math.round(hole.bottom + G + ch / 2);
+    if(hole.top - G - ch >= G) return Math.round(hole.top - G - ch / 2);
+    return null;
+  }
+  function tourSideDodge(card, rect, vh){
+    var y = tourSideTop(rect ? { top: rect.top - 6, bottom: rect.bottom + 6 } : null, card.offsetHeight, vh);
+    card.style.top = y === null ? "" : y + "px";
+  }
+  function tourPlaceCard(card, rect){
+    var z = tourZoom(), vw = window.innerWidth / z, m = tourCardMode(vw);
+    card.classList.toggle("tour-compact", m.compact);
+    card.classList.toggle("tour-side", m.side);
+    if(m.side){
+      card.style.left = ""; card.style.width = "";
+      tourSideDodge(card, rect, window.innerHeight / z);
+      return;
+    }
+    card.style.top = "";
+    var G = 20, cw = Math.min(460, vw - G * 2);
     card.style.width = cw + "px";
     card.style.left = Math.round((vw - cw) / 2) + "px";
   }
@@ -130,7 +152,7 @@
       hole.style.display = "none";
       _tour.root.classList.add("tour-nohole");
     }
-    tourPlaceCard(_tour.card);
+    tourPlaceCard(_tour.card, rect);
   }
   // Follows slide-in animations and viewport changes (also across the 860px breakpoint).
   function tourTick(){
@@ -190,9 +212,6 @@
     _tour.skip.style.display = last ? "none" : "";
     _tour.prev.style.visibility = _tour.i === 0 ? "hidden" : "visible";
     _tour.next.textContent = t(last ? "tourDone" : "tourNext");
-    var login = !!s.login;
-    _tour.login.style.display = login ? "" : "none";
-    _tour.next.className = "btn btn-sm " + (login ? "btn-ghost" : "btn-primary");
     _tour.cardVer++;
     tourLayout(true);
     _tour.card.classList.remove("tour-in");
@@ -283,18 +302,13 @@
     var skip = tourMake("button", "btn btn-ghost btn-sm tour-skip", btns, t("tourSkip"));
     var prev = tourMake("button", "btn btn-ghost btn-sm", btns, t("tourPrev"));
     var next = tourMake("button", "btn btn-primary btn-sm", btns);
-    var login = tourMake("button", "btn btn-primary btn-sm tour-login", btns, t("tourLogin"));
-    [replay, skip, prev, next, login].forEach(function(b){ b.type = "button"; });
+    [replay, skip, prev, next].forEach(function(b){ b.type = "button"; });
     _tour = { steps: steps, i: 0, env: env, snap: snap, root: root, hole: hole, cursor: cursor, card: card, titleEl: titleEl, bodyEl: bodyEl,
-              counter: counter, replay: replay, prev: prev, next: next, skip: skip, login: login, focus: null, layoutKey: "", cardVer: 0, raf: 0 };
+              counter: counter, replay: replay, prev: prev, next: next, skip: skip, focus: null, layoutKey: "", cardVer: 0, raf: 0 };
     skip.addEventListener("click", endTour);
     prev.addEventListener("click", function(){ tourGo(-1); });
     next.addEventListener("click", function(){ tourGo(1); });
     replay.addEventListener("click", tourReplay);
-    login.addEventListener("click", function(){ // sign-in popup must start inside this click (popup blockers)
-      endTour();
-      if(typeof authLogin === "function") authLogin();
-    });
     document.addEventListener("keydown", tourKey, true);
     window.addEventListener("resize", tourOnResize);
     tourEnterStep();

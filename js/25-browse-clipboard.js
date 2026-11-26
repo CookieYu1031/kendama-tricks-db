@@ -79,7 +79,7 @@
 
     var targetKey = clipKey(targetParentId, tSpace);
     if(clip.mode === "cut"){
-      if(!canModifyItem(it, clip.srcParent, env.admin) ||
+      if(!canPlaceItem(it, clip.srcParent, env.admin) ||
          !(canEditTable(clip.srcSpace) || env.admin)) return { ok:false, err:"clipNoPerm" };
       if(clipKey(clip.srcParent, clip.srcSpace) === targetKey) return { ok:false, err:"clipSame" };
       return { ok:true, op:"move" };

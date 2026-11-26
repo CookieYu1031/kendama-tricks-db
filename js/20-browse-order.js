@@ -116,9 +116,18 @@
     if(it.type === "category" && isFixedFavFolder(it.id)) return false;
     return canModifyItem(it, parentId, isAdmin);
   }
+  // Placement only (remove from this column, reorder, drag / cut elsewhere): canModifyItem, plus a
+  // trick whose content is locked (official, linked by @ID) sitting in the user's own unlocked table.
+  function canPlaceItem(it, parentId, isAdmin){
+    if(canModifyItem(it, parentId, isAdmin)) return true;
+    if(isGuest() || it.type !== "trick" || parentId === FAV_STARRED_ID || (it.ref && it.ref.virtual)) return false;
+    var key = (parentId == null || getSpace(parentId)) ? (parentId || state.activeSpace) : parentId;
+    var sp = getSpace(getSpace(key) ? key : containerSpaceId(key));
+    return !!sp && !sp.locked && (it.ref.categoryIds || []).indexOf(key) !== -1;
+  }
   // Reorder / reparent drag: same rule, but custom tricks in a locked table stay put for non-admins.
   function canDragItem(it, parentId, isAdmin){
-    if(!canModifyItem(it, parentId, isAdmin)) return false;
+    if(!canPlaceItem(it, parentId, isAdmin)) return false;
     return canEditTable(state.activeSpace) || !!isAdmin;
   }
 

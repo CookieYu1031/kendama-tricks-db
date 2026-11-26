@@ -248,7 +248,8 @@
         actions.appendChild(editBtn);
         row.appendChild(actions);
       }
-
+    }
+    if(state.editMode){
       // Long-press (0.5s) to pick up and drag-reorder — no dedicated handle button.
       // Supports cross-level moves: dropping on a different column reparents the
       // item onto that column's container instead of just resorting siblings.

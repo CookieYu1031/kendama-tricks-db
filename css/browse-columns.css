@@ -192,10 +192,10 @@
   @media (max-width: 600px){
     .miller-wrap{ overflow-x:hidden; }
     .m-col{ display:none; flex: 1 1 100%; width:100%; min-width:0; max-width:100%; border-right:none; padding: 12px; }
-    .m-col.mobile-active{ display:block; position:relative; z-index:1; will-change:transform; }
+    .m-col.mobile-active{ display:flex; position:relative; z-index:1; will-change:transform; }
     /* Parent level, rendered under the current one so the swipe-back can reveal it. */
     .miller-wrap{ position:relative; }
-    .m-col.mobile-under{ display:block; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto; visibility:hidden; pointer-events:none; }
+    .m-col.mobile-under{ display:flex; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto; visibility:hidden; pointer-events:none; }
   }
 
   /* Cross-column drag target: highlights the whole column when a long-pressed

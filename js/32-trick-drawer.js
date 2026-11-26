@@ -185,6 +185,6 @@
     drawer.appendChild(head);
     drawer.appendChild(body);
     drawer.appendChild(buildDrawerRateFoot(tr));
-    var editFoot = buildDrawerEditFoot(tr, canEditTrick);
+    var editFoot = buildDrawerEditFoot(tr, canEditTrick, prefixOnly ? key : null);
     if(editFoot) drawer.appendChild(editFoot);
   }

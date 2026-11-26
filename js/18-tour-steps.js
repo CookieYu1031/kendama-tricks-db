@@ -4,12 +4,12 @@
      TOUR STEPS — strings and the step table of the site introduction (engine: js/18-shell-tour.js,
      demo toolkit: js/18-tour-demo.js).
      Step: { id, title, body (key or fn(env)), sel (selector or fn(env)), skip?(env), needs?: "trick"|"search"|"video",
-             login?, prep?(ctx), demo?(ctx) -> Promise }.
+             prep?(ctx), demo?(ctx) -> Promise }.
      env = { signedIn, touch, standalone }. Demos stop on the result screen; nothing here writes data.
   ============================================================ */
   addStrings({
     zh:{
-      tourPrev:"上一步", tourNext:"下一步", tourDone:"完成", tourSkip:"略過", tourReplay:"重播", tourLogin:"登入", tourCounter:"{n} / {total}",
+      tourPrev:"上一步", tourNext:"下一步", tourDone:"完成", tourSkip:"略過", tourReplay:"重播", tourCounter:"{n} / {total}",
       tourWelcomeTitle:"歡迎來到劍玉招式庫",
       tourWelcomeBody:"查招式、看影片、記錄自己的成招率。接下來會自動示範主要功能，約一分鐘，隨時可以按「略過」。",
       tourBrowseTitle:"分區與清單",
@@ -26,15 +26,16 @@
       tourEditBody:"登入後可建立自己的招式表：新增、改名、排序、整理清單，都在編輯模式完成。",
       tourEditBodyIn:"點這顆鈕進入編輯模式，可以新增、改名、排序招式和清單，建立自己的招式表。",
       tourSettingsTitle:"設定",
-      tourSettingsBody:"在這裡切換語言與主題。電腦版的<b>快捷鍵</b>，或想再看一次導覽，都點「導覽與快捷鍵」。",
-      tourSettingsBodyTouch:"在這裡切換語言與主題。手機的<b>手勢</b>，或想再看一次導覽，都點「導覽與快捷鍵」。",
+      tourSettingsBody:"在這裡可以切換<b>主題</b>、調整<b>介面大小</b>、切換<b>語言</b>。",
+      tourGuideTitle:"重看導覽",
+      tourGuideBody:"想再看一次導覽，點「重播導覽」。",
       tourPwaTitle:"加到主畫面",
       tourPwaBody:"把網站加到主畫面，像 App 一樣開啟，離線也能看。點這一列就能安裝。",
-      tourLoginTitle:"登入，記錄你的進度",
-      tourLoginBody:"登入後可以<b>記錄成招率</b>、<b>收藏招式</b>、建立<b>自訂招式表</b>，並在不同裝置間同步。"
+      tourLoginTitle:"登入，保留你的進度",
+      tourLoginBody:"可以從這裡登入。登入後就能<b>保留練習紀錄</b>、<b>收藏招式</b>、<b>新增自訂表格</b>。"
     },
     jp:{
-      tourPrev:"戻る", tourNext:"次へ", tourDone:"完了", tourSkip:"スキップ", tourReplay:"もう一度", tourLogin:"ログイン", tourCounter:"{n} / {total}",
+      tourPrev:"戻る", tourNext:"次へ", tourDone:"完了", tourSkip:"スキップ", tourReplay:"もう一度", tourCounter:"{n} / {total}",
       tourWelcomeTitle:"けん玉技データベースへようこそ",
       tourWelcomeBody:"技を調べて、動画を見て、自分の成功率を記録できます。主な機能を自動でご紹介します（約1分）。いつでも「スキップ」できます。",
       tourBrowseTitle:"区分とリスト",
@@ -51,15 +52,16 @@
       tourEditBody:"ログインすると自分の技表を作れます。追加・名前変更・並べ替え・リストの整理は編集モードで行います。",
       tourEditBodyIn:"このボタンで編集モードに入り、技やリストの追加・名前変更・並べ替えをして、自分の技表を作れます。",
       tourSettingsTitle:"設定",
-      tourSettingsBody:"言語とテーマの切り替えはここ。PCの<b>ショートカット</b>や、もう一度ガイドを見たいときは「ガイドとショートカット」へ。",
-      tourSettingsBodyTouch:"言語とテーマの切り替えはここ。スマホの<b>ジェスチャー</b>や、もう一度ガイドを見たいときは「ガイドとショートカット」へ。",
+      tourSettingsBody:"ここで<b>テーマ</b>の切り替え、<b>画面サイズ</b>の調整、<b>言語</b>の切り替えができます。",
+      tourGuideTitle:"ガイドをもう一度",
+      tourGuideBody:"もう一度ガイドを見たいときは「ガイドを再生」をタップ。",
       tourPwaTitle:"ホーム画面に追加",
       tourPwaBody:"ホーム画面に追加すると、アプリのように開けてオフラインでも見られます。この行をタップしてインストール。",
       tourLoginTitle:"ログインして記録しよう",
-      tourLoginBody:"ログインすると<b>成功率の記録</b>、<b>お気に入り</b>、<b>カスタム技表</b>が使え、端末間で同期されます。"
+      tourLoginBody:"ここからログインできます。ログインすると<b>練習記録の保存</b>、<b>技のお気に入り</b>、<b>カスタム表の追加</b>ができます。"
     },
     en:{
-      tourPrev:"Back", tourNext:"Next", tourDone:"Done", tourSkip:"Skip", tourReplay:"Replay", tourLogin:"Sign in", tourCounter:"{n} / {total}",
+      tourPrev:"Back", tourNext:"Next", tourDone:"Done", tourSkip:"Skip", tourReplay:"Replay", tourCounter:"{n} / {total}",
       tourWelcomeTitle:"Welcome to the Kendama Tricks DB",
       tourWelcomeBody:"Look up tricks, watch videos and track your own landing rate. The main features are shown automatically in about a minute. Skip any time.",
       tourBrowseTitle:"Tables and lists",
@@ -76,12 +78,13 @@
       tourEditBody:"Sign in to build your own trick tables: adding, renaming, reordering and organising lists all happen in edit mode.",
       tourEditBodyIn:"Tap this button for edit mode: add, rename and reorder tricks and lists to build your own table.",
       tourSettingsTitle:"Settings",
-      tourSettingsBody:"Switch language and theme here. For the desktop <b>shortcuts</b>, or to replay this tour, open \"Tour & shortcuts\".",
-      tourSettingsBodyTouch:"Switch language and theme here. For the phone <b>gestures</b>, or to replay this tour, open \"Tour & shortcuts\".",
+      tourSettingsBody:"Switch the <b>theme</b>, adjust the <b>interface size</b> and change the <b>language</b> here.",
+      tourGuideTitle:"Replay the tour",
+      tourGuideBody:"To watch this tour again, tap \"Replay tour\".",
       tourPwaTitle:"Add to Home Screen",
       tourPwaBody:"Add the site to your Home Screen to open it like an app, even offline. Tap this row to install.",
       tourLoginTitle:"Sign in to keep your progress",
-      tourLoginBody:"Signed in, you can <b>track landing rates</b>, <b>favourite tricks</b>, build <b>your own tables</b> and sync across devices."
+      tourLoginBody:"You can sign in here. Signed in, you can <b>keep your practice records</b>, <b>favourite tricks</b> and <b>add your own tables</b>."
     }
   });
 
@@ -154,7 +157,7 @@
   function tourDemoSettings(ctx){
     return ctx.seq([
       function(){ return ctx.tap("#settingsBtn", { focus: true }); },
-      function(){ ctx.focus("#settingsGuideBtn"); return ctx.wait(300); }
+      function(){ ctx.focus("#settingsPrefs"); return ctx.wait(300); }
     ]);
   }
 
@@ -180,10 +183,10 @@
       body:function(env){ return env.signedIn ? "tourEditBodyIn" : "tourEditBody"; },
       sel:function(env){ return env.signedIn ? ".rail-edit-toggle" : "#spaceRail"; }, prep:tourPrepNeutral },
     { id:"settings", title:"tourSettingsTitle",
-      body:function(env){ return env.touch ? "tourSettingsBodyTouch" : "tourSettingsBody"; },
-      sel:"#settingsBtn", prep:tourPrepNeutral, demo:tourDemoSettings },
+      body:"tourSettingsBody", sel:"#settingsPrefs", prep:tourPrepNeutral, demo:tourDemoSettings },
+    { id:"guide", title:"tourGuideTitle", body:"tourGuideBody", sel:"#settingsGuideBtn", prep:tourPrepSettings },
     { id:"pwa", title:"tourPwaTitle", body:"tourPwaBody", sel:"#settingsInstallBtn",
       skip:function(env){ return !env.touch || env.standalone; }, prep:tourPrepSettings },
-    { id:"login", title:"tourLoginTitle", body:"tourLoginBody", sel:"#authLoginBtn", login:true,
+    { id:"login", title:"tourLoginTitle", body:"tourLoginBody", sel:"#authLoginBtn",
       skip:function(env){ return env.signedIn; }, prep:tourPrepSettings }
   ];

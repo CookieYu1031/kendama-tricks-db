@@ -31,7 +31,7 @@ test("tour: seen flag read / write", () => {
 test("tour: steps by visitor kind", () => {
   const ctx = tourCtx();
   const ids = (env) => Array.from(ctx.tourStepsFor(env).map((s) => s.id));
-  const base = ["welcome", "browse", "search", "drawer", "video", "tools", "edit", "settings"];
+  const base = ["welcome", "browse", "search", "drawer", "video", "tools", "edit", "settings", "guide"];
   assert.deepStrictEqual(ids({ signedIn:false, touch:false, standalone:false }), base.concat(["login"]));
   assert.deepStrictEqual(ids({ signedIn:true, touch:false, standalone:false }), base);
   assert.deepStrictEqual(ids({ signedIn:true, touch:true, standalone:false }), base.concat(["pwa"]));
@@ -59,4 +59,14 @@ test("tour: isTouchDevice", () => {
   assert.strictEqual(ctx.isTouchDevice({ matchMedia: null, maxTouchPoints:0 }), false);
   assert.strictEqual(ctx.isTouchDevice({}), false);
   assert.strictEqual(ctx.isTouchDevice(), false);
+});
+
+test("tourSideTop: side card moves off a small spotlight, else keeps the CSS default", () => {
+  const c = tourCtx();
+  const vh = 800, ch = 120; // default centre 496 -> spans 436..556
+  assert.strictEqual(c.tourSideTop(null, ch, vh), null);
+  assert.strictEqual(c.tourSideTop({ top: 100, bottom: 200 }, ch, vh), null);        // no overlap
+  assert.strictEqual(c.tourSideTop({ top: 50, bottom: 700 }, ch, vh), null);         // big target: leave it
+  assert.strictEqual(c.tourSideTop({ top: 420, bottom: 500 }, ch, vh), 572);         // below: 500+12+60
+  assert.strictEqual(c.tourSideTop({ top: 560, bottom: 760 }, ch, vh), 488);         // no room below -> above: 560-12-60
 });
