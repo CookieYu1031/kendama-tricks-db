@@ -19,7 +19,7 @@
   }
   .m-col.m-enter{ animation: mColIn .26s cubic-bezier(.2,.8,.2,1) both; }
   .m-col.m-leaving{
-    display:block; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto;
+    display:flex; position:absolute; top:14px; bottom:16px; left:14px; right:14px; width:auto;
     z-index:3; pointer-events:none; will-change:transform;
     animation: mColOut .26s cubic-bezier(.2,.8,.2,1) both;
   }

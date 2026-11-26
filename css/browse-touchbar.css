@@ -30,6 +30,11 @@
   }
   .touchbar.show{ transform: translate(-50%, 0); opacity:1; visibility:visible; transition-delay: 0s; }
   .tb-text{ flex:0 0 auto; width:72px; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* hint state (edit mode, nothing picked): one line of text, no buttons, width follows the text */
+  .touchbar.tb-hint{ padding:0 18px; }
+  .touchbar.tb-hint .tb-group{ display:none; }
+  .touchbar.tb-hint .tb-text{ width:auto; overflow:visible; text-overflow:clip; text-align:center; animation: tbHintIn .25s var(--ease); }
+  @keyframes tbHintIn{ from{ opacity:0; } to{ opacity:1; } }
   .tb-group{ display:flex; align-items:center; gap:0; min-width:0; }
 
   /* flat icon buttons: no border / fill; a round soft disc appears on hover / press */
@@ -94,4 +99,5 @@
   }
   @media (prefers-reduced-motion: reduce){
     .touchbar{ transition:none; }
+    .touchbar.tb-hint .tb-text{ animation:none; }
   }

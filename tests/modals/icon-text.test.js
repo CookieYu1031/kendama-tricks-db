@@ -60,3 +60,12 @@ test("addArrowTarget: textarea only on last/first line", () => {
   assert.strictEqual(ctx.addArrowTarget({ ...base, key: "ArrowUp", selStart: 1, selEnd: 1 }), 0);
   assert.strictEqual(ctx.addArrowTarget({ ...base, key: "ArrowDown", selStart: 4, selEnd: 5 }), -1);
 });
+test("addArrowTarget: Right / Left move only from the end / start of the text", () => {
+  const f = { multiline: false, value: "abc", idx: 1, count: 4, composing: false };
+  assert.strictEqual(ctx.addArrowTarget({ ...f, key: "ArrowRight", selStart: 3, selEnd: 3 }), 2);
+  assert.strictEqual(ctx.addArrowTarget({ ...f, key: "ArrowRight", selStart: 1, selEnd: 1 }), -1);
+  assert.strictEqual(ctx.addArrowTarget({ ...f, key: "ArrowLeft", selStart: 0, selEnd: 0 }), 0);
+  assert.strictEqual(ctx.addArrowTarget({ ...f, key: "ArrowLeft", selStart: 2, selEnd: 2 }), -1);
+  assert.strictEqual(ctx.addArrowTarget({ ...f, key: "ArrowRight", selStart: 0, selEnd: 3 }), -1);
+  assert.strictEqual(ctx.addArrowTarget({ ...f, value: "", key: "ArrowRight", selStart: 0, selEnd: 0 }), 2);
+});

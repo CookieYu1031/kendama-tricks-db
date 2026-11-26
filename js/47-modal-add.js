@@ -114,15 +114,21 @@
     return (d.kind === "link" && !(alt1 || "").trim() && !(alt2 || "").trim()) ? d.id : null;
   }
 
-  // ArrowUp/Down between text fields. Returns the target index, or -1 to leave the key alone.
+  // Arrow keys between text fields: Down / Right = next, Up / Left = previous.
+  // Returns the target index, or -1 to leave the key alone.
   // f: { key, multiline, value, selStart, selEnd, idx, count, composing }
-  // Textareas only hand focus over when the caret sits on the first (Up) / last (Down) line.
+  // Right / Left only hand focus over when the caret sits at the very end / start (no selection);
+  // textareas hand Up / Down over only from the first / last line.
   function addArrowTarget(f){
-    if(f.composing || (f.key !== "ArrowDown" && f.key !== "ArrowUp")) return -1;
-    var down = f.key === "ArrowDown";
-    if(f.multiline){
+    var k = f.key;
+    if(f.composing || ["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].indexOf(k) === -1) return -1;
+    var down = k === "ArrowDown" || k === "ArrowRight";
+    var v = String(f.value || "");
+    if(k === "ArrowRight" || k === "ArrowLeft"){
       if(f.selStart !== f.selEnd) return -1;
-      var v = String(f.value || "");
+      if(down ? f.selEnd < v.length : f.selStart > 0) return -1;
+    } else if(f.multiline){
+      if(f.selStart !== f.selEnd) return -1;
       if(down && v.indexOf("\n", f.selEnd) !== -1) return -1;
       if(!down && v.slice(0, f.selStart).indexOf("\n") !== -1) return -1;
     }

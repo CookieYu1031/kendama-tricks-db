@@ -256,9 +256,12 @@
 
   // Bottom row: [share trick] [+ variant] [delete]. Share: any signed-in user (guests: hidden);
   // variant + delete: only when canEdit (edit mode and permitted). Returns null when empty.
-  function buildDrawerEditFoot(tr, canEdit){
+  // placeKey (prefix-only drawers): container of a linked official trick in the user's own table ->
+  // a remove button that only drops this placement.
+  function buildDrawerEditFoot(tr, canEdit, placeKey){
     var canShare = !isGuest() && typeof shareRun === "function";
-    if(!canEdit && !canShare) return null;
+    var canUnlink = !canEdit && placeKey != null;
+    if(!canEdit && !canShare && !canUnlink) return null;
     var foot = document.createElement("div");
     foot.className = "drawer-foot";
     if(canShare){
@@ -279,6 +282,12 @@
       delB.addEventListener("click", function(){ requestDeleteTrick(tr.id, "*"); });
       foot.appendChild(addVarB);
       foot.appendChild(delB);
+    } else if(canUnlink){
+      var unB = document.createElement("button");
+      unB.className = "col-add-btn col-add-btn-danger col-add-btn-del";
+      unB.innerHTML = removeBtnHtml();
+      unB.addEventListener("click", function(){ requestDeleteTrick(tr.id, placeKey); });
+      foot.appendChild(unB);
     }
     return foot;
   }

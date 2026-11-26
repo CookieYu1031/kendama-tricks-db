@@ -51,12 +51,24 @@
 .tour-compact .tour-title{ font-size:14px; margin-bottom:4px; }
 .tour-compact .tour-body{ font-size:12.5px; line-height:1.5; }
 .tour-compact .tour-foot{ margin-top:8px; gap:6px; }
+/* <=860px (JS tourCardMode, zoom-aware, so no media query here): a tab pulled out of the right edge,
+   lower-middle, slightly see-through. */
+  .tour-card.tour-side{
+    left:auto; right:0; bottom:auto; top:62%; transform: translateY(-50%);
+    width: min(300px, calc(100vw / var(--ui-zoom, 1) - 56px));
+    padding-right: calc(12px + env(safe-area-inset-right, 0px));
+    border-right:none; border-top-left-radius: var(--radius); border-bottom-left-radius: var(--radius); border-top-right-radius:0; border-bottom-right-radius:0;
+    /* gradient stacked on its own end colour: ~.8-.9 opaque, blur kept */
+    background: linear-gradient(180deg, var(--surface-modal-a), var(--surface-modal-b)) padding-box, var(--surface-modal-b);
+  }
+  .tour-card.tour-side.tour-in{ animation: tourInSide .2s var(--ease); }
+@keyframes tourInSide{ from{ opacity:0; transform: translate(40px,-50%); } to{ opacity:1; transform: translateY(-50%); } }
 @media (max-width: 380px){
   .tour-card{ padding:12px 12px; }
   .tour-foot .btn{ padding:6px 9px; }
 }
 @media (prefers-reduced-motion: reduce){
-  .tour-card.tour-in{ animation:none; }
+  .tour-card.tour-in, .tour-card.tour-side.tour-in{ animation:none; }
   .tour-hole, .tour-cursor{ transition:none; }
   .tour-cursor.click::after{ animation:none; }
 }

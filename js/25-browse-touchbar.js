@@ -15,15 +15,18 @@
     zh:{ tbCut:"剪下", tbCopy:"複製", tbPaste:"貼上", tbClose:"關閉",
          tbDropper:"滴管：複製圖示與顏色", tbPaint:"油漆：套用圖示與顏色",
          tbSelected:"已選({n})", tbCutHint:"已剪下 {n} 項，長按空白處選擇貼上位置", tbCopyHint:"已複製 {n} 項，長按空白處選擇貼上位置",
-         tbMouseHint:"點選要貼上的清單，再按貼上或 Ctrl+V" },
+         tbMouseHint:"點選要貼上的清單，再按貼上或 Ctrl+V",
+         tbHintTouch:"左滑以選取項目", tbHintMouse:"使用 Shift+左鍵選取項目" },
     jp:{ tbCut:"切り取り", tbCopy:"コピー", tbPaste:"貼り付け", tbClose:"閉じる",
          tbDropper:"スポイト：アイコンと色をコピー", tbPaint:"ペンキ：アイコンと色を適用",
          tbSelected:"選択({n})", tbCutHint:"{n} 件を切り取りました。余白を長押しして貼り付け先を選択", tbCopyHint:"{n} 件をコピーしました。余白を長押しして貼り付け先を選択",
-         tbMouseHint:"貼り付け先のリストをクリックして、貼り付けまたは Ctrl+V" },
+         tbMouseHint:"貼り付け先のリストをクリックして、貼り付けまたは Ctrl+V",
+         tbHintTouch:"左にスワイプして項目を選択", tbHintMouse:"Shift+クリックで項目を選択" },
     en:{ tbCut:"Cut", tbCopy:"Copy", tbPaste:"Paste", tbClose:"Close",
          tbDropper:"Dropper: copy icon and color", tbPaint:"Paint: apply icon and color",
          tbSelected:"Picked({n})", tbCutHint:"Cut {n}. Long-press a blank spot to choose where", tbCopyHint:"Copied {n}. Long-press a blank spot to choose where",
-         tbMouseHint:"Click the list to paste into, then press Paste or Ctrl+V" }
+         tbMouseHint:"Click the list to paste into, then press Paste or Ctrl+V",
+         tbHintTouch:"Swipe an item left to select", tbHintMouse:"Shift+click to select items" }
   });
 
   var TB_PRESS_MS = 500;
@@ -35,7 +38,7 @@
   var tbEl = null, tbShown = false;
   var tbBlockClickUntil = 0;   // swallow the click that follows a blank-spot long-press
 
-  // Pure: what the toolbar shows. ctx: { items:[{type,id}], parentId, admin, hasClip, hasTarget, touchClip, editMode, guest, styleClip }.
+  // Pure: what the toolbar shows. ctx: { items:[{type,id}], parentId, admin, hasClip, hasTarget, touchClip, editMode, guest, styleClip, touch }.
   // Cut / delete need permission on EVERY selected item; copy needs a selection; paste needs a clipboard + a target
   // (touch: a chosen level; mouse: always, like Ctrl+V); dropper / paint ask js/25-browse-style.js.
   function touchbarState(ctx){
@@ -43,8 +46,10 @@
     var out = { visible: false, mode: "none", count: n, cut: false, copy: false, del: false, paste: false, drop: false, paint: false, styled: false };
     if(!ctx.editMode || ctx.guest) return out;
     out.styled = !!ctx.styleClip;
-    out.visible = n > 0 || !!ctx.touchClip || out.styled;
-    out.mode = n > 0 ? "sel" : (ctx.touchClip ? "clip" : (out.styled ? "style" : "none"));
+    out.mode = n > 0 ? "sel" : (ctx.touchClip ? "clip" : (out.styled ? "style" : "hint"));
+    out.visible = true; // nothing picked yet: the capsule only shows how to select (mode "hint")
+    if(out.mode === "hint") out.hint = ctx.touch ? "tbHintTouch" : "tbHintMouse";
+
     if(n > 0){
       var cp = true, ct = true, dl = true;
       items.forEach(function(x){
@@ -77,6 +82,17 @@
     return Math.abs(dx) > TB_PRESS_MOVE || Math.abs(dy) > TB_PRESS_MOVE;
   }
 
+  // Touch device? Same test as the tour (js/18): coarse pointer, else touch points.
+  function tbIsTouch(){
+    try {
+      if(typeof window !== "undefined" && typeof window.matchMedia === "function") return !!window.matchMedia("(pointer: coarse)").matches;
+    } catch(e){}
+    return typeof navigator !== "undefined" && ((navigator.maxTouchPoints || 0) > 0);
+  }
+  // Pure: modifier key label for shortcuts. plat = navigator.platform.
+  function touchbarModKey(plat){
+    return /mac|iphone|ipad|ipod/i.test(plat || "") ? "⌘" : "Ctrl";
+  }
   function tbStyleClip(){ return typeof styleClip !== "undefined" ? styleClip : null; }
   function tbContext(){
     var items = [];
@@ -85,7 +101,7 @@
     else tbMouse = !swipeSelActive; // swipe = touch; Shift+click = mouse
     return { items: items, parentId: items.length && multiSel ? multiSel.parentId : null, admin: isAdminNow(),
       hasClip: !!clipboardItem, hasTarget: tbMouse || tbTarget !== undefined, touchClip: tbClip,
-      editMode: !!state.editMode, guest: isGuest(), styleClip: tbStyleClip(),
+      editMode: !!state.editMode, guest: isGuest(), styleClip: tbStyleClip(), touch: tbIsTouch(),
       styleBar: typeof styleBarItems === "function" ? styleBarItems() : null };
   }
 
@@ -138,7 +154,8 @@
         if(dot){ dot.hidden = !(sc && sc.color); if(sc && sc.color) dot.style.background = colorHex(sc.color); }
       }
     });
-    el.querySelector(".tb-text").textContent = t("tbSelected").replace("{n}", touchbarCount(st, clipboardItem));
+    el.classList.toggle("tb-hint", st.mode === "hint");
+    el.querySelector(".tb-text").textContent = st.mode === "hint" ? t(st.hint) : t("tbSelected").replace("{n}", touchbarCount(st, clipboardItem));
   }
   function tbSetShown(on){
     tbShown = on;
@@ -253,7 +270,7 @@
   /* ---------------- hover / focus tooltip (name + shortcut), mouse only ---------------- */
   // Pure: shortcut label for a button. plat = navigator.platform. Mac shows ⌘ for the plain C/X/V keys.
   function touchbarKeyLabel(act, plat){
-    var mod = typeof guideModKey === "function" ? guideModKey(plat) : "Ctrl";
+    var mod = touchbarModKey(plat);
     var base = { cut: "X", copy: "C", paste: "V" };
     if(base[act]) return mod === "Ctrl" ? "Ctrl+" + base[act] : mod + base[act];
     return { del: "Delete", drop: "Ctrl+Alt+C", paint: "Ctrl+Alt+V", close: "Esc" }[act] || "";

@@ -30,8 +30,25 @@ test("hidden outside edit mode / for guests, or with nothing selected and no tou
   const c = setup();
   assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("a000000"), editMode: false })).visible, false);
   assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("a000000"), guest: true })).visible, false);
-  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [] })).visible, false);
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], editMode: false })).visible, false);
   assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], touchClip: true })).visible, true);
+});
+
+test("hint mode: edit mode, nothing picked -> visible with the select hint (touch / mouse wording)", () => {
+  const c = setup();
+  const h = (x) => c.touchbarState(Object.assign({}, base, { items: [] }, x));
+  assert.deepStrictEqual({ v: h({}).visible, m: h({}).mode, k: h({}).hint }, { v: true, m: "hint", k: "tbHintMouse" });
+  assert.strictEqual(h({ touch: true }).hint, "tbHintTouch");
+  assert.strictEqual(h({ guest: true }).visible, false);
+  assert.strictEqual(h({ touchClip: true }).mode, "clip");
+  assert.strictEqual(h({ styleClip: { icon: "x" } }).mode, "style");
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("u000000") })).mode, "sel");
+  for (const k of ["tbHintTouch", "tbHintMouse"]) assert.ok(c.t(k) && c.t(k) !== k);
+});
+
+test("touchbarModKey: Mac / iOS = ⌘, others Ctrl", () => {
+  const c = setup();
+  assert.deepStrictEqual(["MacIntel", "iPhone", "iPad", "Win32", "Linux x86_64", ""].map(c.touchbarModKey), ["⌘", "⌘", "⌘", "Ctrl", "Ctrl", "Ctrl"]);
 });
 
 test("locked table: non-admin cannot cut / delete official tricks, but may copy; admin can do all", () => {
@@ -79,7 +96,7 @@ test("style clip alone shows the bar with count 0; dropper / paint follow js/25-
   const st0 = c.touchbarState(Object.assign({}, base, { items: [], styleClip: { icon: "x", color: "red", type: "trick" } }));
   assert.deepStrictEqual({ v: st0.visible, m: st0.mode, d: st0.drop, p: st0.paint }, { v: true, m: "style", d: false, p: false });
   assert.strictEqual(c.touchbarCount(st0, null), 0);
-  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], styleClip: null })).visible, false);
+  assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], styleClip: null })).mode, "hint");
   assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: [], styleClip: {}, guest: true })).visible, false);
   // without the style module (typeof guard) the buttons stay off; with it they follow its answers
   assert.strictEqual(c.touchbarState(Object.assign({}, base, { items: sel("a000000") })).drop, false);
@@ -109,7 +126,6 @@ test("Shift+click multi-selection (mouse) shows the bar; mouse paste target = al
 
 test("tooltip shortcut labels: Mac shows ⌘ for C/X/V only", () => {
   const c = setup();
-  c.guideModKey = (p) => (/mac/i.test(p) ? "⌘" : "Ctrl");
   assert.deepStrictEqual(["cut", "copy", "paste", "del", "drop", "paint", "close"].map((a) => c.touchbarKeyLabel(a, "Win32")),
     ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Delete", "Ctrl+Alt+C", "Ctrl+Alt+V", "Esc"]);
   assert.deepStrictEqual(["cut", "paste", "drop"].map((a) => c.touchbarKeyLabel(a, "MacIntel")), ["⌘X", "⌘V", "Ctrl+Alt+C"]);

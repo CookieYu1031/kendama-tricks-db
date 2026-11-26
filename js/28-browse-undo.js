@@ -66,7 +66,7 @@
     if(!ctx.editMode || ctx.guest || ctx.inField || ctx.modalOpen || ctx.ctrl) return false;
     var it = typeof clipItemOf === "function" ? clipItemOf(sel.type, sel.id) : null;
     if(!it) return false;
-    return !!canModifyItem(it, sel.parentId, admin);
+    return !!canPlaceItem(it, sel.parentId, admin);
   }
 
   // ---- batch delete (multi-select, touch toolbar, Delete key) ----
@@ -74,7 +74,7 @@
   function batchDeleteAllowed(it, parentId, admin){
     if(!it || it.ref.virtual) return false;
     if(it.type === "category" && isFixedFavFolder(it.id)) return false;
-    return !!canModifyItem(it, parentId, admin);
+    return !!canPlaceItem(it, parentId, admin);
   }
   // Splits items ([{type,id}]) into the removable ones and a skipped count.
   function batchDeletePlan(items, parentId, admin){
