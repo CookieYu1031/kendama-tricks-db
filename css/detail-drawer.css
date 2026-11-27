@@ -201,6 +201,13 @@
   .rate-info-row{ display:flex; align-items:center; gap:12px; }
   .rate-info-chip{ flex:0 0 96px; border-radius: var(--radius-xs); cursor:default; }
   .rate-info-hint{ font-size:13px; color: var(--paper-dim); }
+  /* Part info page (js/48-modal-part-info.js) */
+  #partInfoOverlay{ z-index: 75; }
+  .part-info-row{ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; }
+  .part-info-name{ flex:0 0 130px; font-size:13px; color: var(--paper); }
+  .part-info-name small{ display:block; font-size:12px; color: var(--paper-faint); }
+  .part-info-arrow{ color: var(--paper-faint); }
+  .part-info-more{ color: var(--paper-faint); padding-left:4px; }
 
   /* Mobile: full-width panel under the top bar, slides in from the right
      (spec 3.4). Body scrolls; the proficiency / guest foot stays pinned. */
@@ -227,6 +234,8 @@
 
   /* Part diagram (js/35): theme-driven; parts the trick has light up in the accent */
   .part-diagram-box{ display:flex; justify-content:center; margin: 0 0 14px; }
+  .part-diagram-box.has-info{ flex-direction:column; align-items:center; }
+  .part-diagram-box .part-info-title{ align-self:flex-start; }
   /* edit mode: diagram on top, grip picker (js/36) full width below */
   .drawer-parts-edit{ display:flex; flex-direction:column; align-items:stretch; gap:12px; margin: 0 0 14px; }
   .drawer-parts-edit .part-diagram-box{ margin:0; }

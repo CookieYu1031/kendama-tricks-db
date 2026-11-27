@@ -44,7 +44,7 @@
     if(trickGrip === wanted) return true;
     return isGripCategory(wanted) && gripCategoryOf(trickGrip) === wanted;
   }
-  // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球面; "junction" (交界) is a pseudo-part.
+  // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球; "junction" (交界) is a pseudo-part.
   var PART_GROUPS = [
     { key:"ken",  parts:["kenchou","kensaki","sara","saraEdge","junction","kenBody","suberidome","chuzara","chuzaraEdge"] },
     { key:"ito",  parts:["string"] },

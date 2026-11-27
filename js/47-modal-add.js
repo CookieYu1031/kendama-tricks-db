@@ -278,7 +278,7 @@
     addEl("addPartsLabel").textContent = t("formPartsGrip");
     var diagHost = addEl("addDiagramHost"), gripHost = addEl("addGrips");
     diagHost.innerHTML = ""; gripHost.innerHTML = "";
-    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){
+    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, info: true, onToggle: function(key){
       togglePart(tr, key); diagram.update(tr.parts);
     } });
     diagHost.appendChild(diagram);

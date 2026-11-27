@@ -78,7 +78,7 @@
     return svg + '</svg>';
   }
 
-  // Reusable component. opts: { selected: [keys], interactive: bool, onToggle: fn(key) }.
+  // Reusable component. opts: { selected: [keys], interactive: bool, onToggle: fn(key), info: bool (adds the 部位 ⓘ title) }.
   // Returns a div.part-diagram-box with:
   //   .update(selected)  re-colors the existing svg in place (no DOM replacement) and remembers the list
   //   .selected          the current key list (array copy)
@@ -91,6 +91,18 @@
     box.className = "part-diagram-box";
     box.selected = (opts.selected || []).slice();
     box.innerHTML = partDiagramSvg(box.selected, !!opts.interactive);
+    if(opts.info){ // "部位 ⓘ" title above the drawing (opens js/48-modal-part-info.js)
+      var info = document.createElement("button");
+      info.type = "button";
+      info.className = "grip-info-link grip-info-title part-info-title";
+      info.textContent = t("partTitle") + " ⓘ";
+      info.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        if(typeof openPartInfo === "function") openPartInfo();
+      });
+      box.classList.add("has-info");
+      box.insertBefore(info, box.firstChild);
+    }
     box.update = function(selected){
       box.selected = (selected || []).slice();
       var groups = box.querySelectorAll("[data-part]");
@@ -102,6 +114,7 @@
     };
     if(opts.interactive && opts.onToggle){
       var fire = function(ev){
+        if(ev.target.closest && ev.target.closest(".part-info-title")) return;
         var g = ev.target.closest ? ev.target.closest("[data-part]") : null;
         if(g) opts.onToggle(g.getAttribute("data-part"));
       };
@@ -114,6 +127,6 @@
   }
 
   // Back-compat wrapper (drawer view mode).
-  function buildPartDiagram(tr, interactive, onToggle){
-    return createPartDiagram({ selected: tr.parts || [], interactive: interactive, onToggle: onToggle });
+  function buildPartDiagram(tr, interactive, onToggle, info){
+    return createPartDiagram({ selected: tr.parts || [], interactive: interactive, onToggle: onToggle, info: !!info });
   }

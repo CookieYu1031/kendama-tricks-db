@@ -124,6 +124,7 @@
 | 握持手勢選擇器（兩層：持劍／持球／持線＋子手勢，單選；搜尋、抽屜編輯、新增介面共用；樣式在 `css/grip.css`）；握持資料與 `gripMatches` 在 `js/01-data-model.js` | `js/36-grip-picker.js`、`css/grip.css` |
 | 起始手勢說明頁（ⓘ 開啟，三張表＋註解，三語） | `js/48-modal-grip-info.js`、`css/grip.css` |
 | 成功率說明頁（抽屜「成功率 ⓘ」整個標籤可點開啟，五個等級＋約略比例，三語） | `js/48-modal-rate-info.js`、`css/detail-drawer.css` |
+| 部位說明頁（部位圖上方「部位 ⓘ」開啟，三個範例；`createPartDiagram` 的 `opts.info`；搜尋、抽屜、新增介面、投稿表單有，隨機抽招與標籤管理沒有） | `js/48-modal-part-info.js`、`js/35-part-diagram.js`、`css/detail-drawer.css` |
 | 部位圖（SVG 劍玉、可點部位、與文字 chips 同步；`partDiagramSvg`） | `js/35-part-diagram.js` |
 | 抽屜標籤列（招式類別／文字標籤兩列、符合類別建議、套用組合鈕）；標籤種類純邏輯（tagKind、classTagSuggestions、createTag…）在 `js/30-drawer-logic.js` | `js/33-drawer-tags.js`、`css/tags.css` |
 | 管理員標籤管理（三分頁皆小標籤：握持手勢＋部位改三語名稱 `db.labels`（握持排版同 grip picker，`js/77-admin-labels.js`）／招式類別／文字標籤；點標籤編輯、拖曳排序 `moveTag`） | `js/77-admin-tags.js`、`js/77-admin-labels.js`、`css/tags.css`、`css/admin-panel.css`（入口鈕在 `js/70-admin-panel.js`；名稱覆寫在 `js/03-i18n.js` 的 `t()`） |

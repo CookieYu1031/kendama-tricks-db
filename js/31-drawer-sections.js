@@ -211,7 +211,7 @@
     var picker = buildGripPicker({ value: tr.grip, onChange: function(v){
       tr.grip = v; saveDB(); refreshDrawerTags();
     } });
-    var diagram = createPartDiagram({ selected: tr.parts || [], interactive: true, onToggle: function(k){
+    var diagram = createPartDiagram({ selected: tr.parts || [], interactive: true, info: true, onToggle: function(k){
       togglePart(tr, k); saveDB(); refreshDrawerGripParts(tr); refreshDrawerTags();
     } });
     row.appendChild(diagram); row.appendChild(picker);

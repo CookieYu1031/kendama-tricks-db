@@ -64,7 +64,7 @@
   function buildSearchDiagram(){
     var host = spEl("searchPartsRow");
     host.innerHTML = "";
-    searchDiagram = createPartDiagram({ selected: searchFilters.parts, interactive: true, onToggle: function(k){
+    searchDiagram = createPartDiagram({ selected: searchFilters.parts, interactive: true, info: true, onToggle: function(k){
       var i = searchFilters.parts.indexOf(k);
       if(i === -1) searchFilters.parts.push(k); else searchFilters.parts.splice(i, 1);
       searchTouch();
