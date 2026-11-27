@@ -20,7 +20,7 @@ test("PART_GROUPS order and PART_KEYS flatten", () => {
   assert.deepStrictEqual(g[1].parts, ["string"]);
   assert.deepStrictEqual(arr(c.PART_KEYS), [
     "kenchou", "kensaki", "sara", "saraEdge", "junction", "kenBody", "suberidome", "chuzara", "chuzaraEdge",
-    "string", "tamaTop", "tamaPoint", "ana"]);
+    "string", "tamaTop", "tamaPoint", "anaHole", "ana"]);
 });
 
 
