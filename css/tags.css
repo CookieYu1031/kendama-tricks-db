@@ -1,8 +1,29 @@
 /* Tags (v0.9.2): class-tag chips in the drawer, suggestion chips, tag manager. Reuses .drawer-chip. */
-  .drawer-chip.tag-class{
-    background: rgba(var(--lacquer-rgb), 0.14); border-color: rgba(var(--lacquer-rgb), 0.5); color: var(--accent-text);
+  /* Tag colors: grip / parts = blue (lacquer), trick class = yellow, text tag = green. */
+  :root{
+    --tag-class-rgb: 230,184,60; --tag-class-bright: #FFD866;
+    --tag-text-rgb: 76,175,110; --tag-text-bright: #7FE0A0;
   }
-  .drawer-chip.tag-class:hover{ border-color: var(--lacquer-bright); color: var(--accent-text); }
+  :root[data-theme="light"]{
+    --tag-class-rgb: 184,134,11; --tag-class-bright: #B8860B;
+    --tag-text-rgb: 34,139,80; --tag-text-bright: #1E7A45;
+  }
+  .drawer-chip.tag-class{
+    background: rgba(var(--tag-class-rgb), 0.14); border-color: rgba(var(--tag-class-rgb), 0.5); color: var(--tag-class-bright);
+  }
+  .drawer-chip.tag-class:hover{ border-color: var(--tag-class-bright); color: var(--tag-class-bright); }
+  .drawer-chip.tag-class.active{
+    background: linear-gradient(165deg, rgba(var(--tag-class-rgb),0.32), rgba(var(--tag-class-rgb),0.14));
+    border-color: var(--tag-class-bright); color: var(--paper);
+  }
+  .drawer-chip.tag-text{
+    background: rgba(var(--tag-text-rgb), 0.14); border-color: rgba(var(--tag-text-rgb), 0.5); color: var(--tag-text-bright);
+  }
+  .drawer-chip.tag-text:hover{ border-color: var(--tag-text-bright); color: var(--tag-text-bright); }
+  .drawer-chip.tag-text.active{
+    background: linear-gradient(165deg, rgba(var(--tag-text-rgb),0.32), rgba(var(--tag-text-rgb),0.14));
+    border-color: var(--tag-text-bright); color: var(--paper);
+  }
   .drawer-chip.tag-suggest{ border-style: dashed; background: transparent; }
 
   .tagmgr-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }

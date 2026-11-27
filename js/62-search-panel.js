@@ -197,7 +197,7 @@
         input.focus();
         onSearchInput();
       });
-      if(tagKind(g) === "class") chipEl.classList.add("tag-class");
+      chipEl.classList.add(tagKind(g) === "class" ? "tag-class" : "tag-text");
       box.appendChild(chipEl);
     });
     box.classList.add("show");

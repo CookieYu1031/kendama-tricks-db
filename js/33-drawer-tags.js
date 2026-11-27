@@ -16,6 +16,7 @@
   function makeTagChip(label, kind, onClick, extraClass){
     var b = makeChip(label, false, onClick);
     if(kind === "class") b.classList.add("tag-class");
+    else if(kind === "text") b.classList.add("tag-text");
     if(extraClass) b.classList.add(extraClass);
     return b;
   }
@@ -40,6 +41,7 @@
             saveDB(); refreshDrawerTags();
           })
         : makeTagChip(c.label, "class", null);
+      chip.classList.add("active");
       if(canEditTrick) chip.title = t("removeTagFromTrick");
       wrap.appendChild(chip);
     });
@@ -78,12 +80,13 @@
     tagChips.forEach(function(c){
       var chip;
       if(canEditTrick){
-        chip = makeChip(c.label + " ×", false, function(){
+        chip = makeTagChip(c.label + " ×", "text", function(){
           tr.tagIds = (tr.tagIds || []).filter(function(x){ return x !== c.id; });
           saveDB(); refreshDrawerTags();
         });
         chip.title = t("removeTagFromTrick");
-      } else chip = makeChip(c.label, false);
+      } else chip = makeTagChip(c.label, "text", null);
+      chip.classList.add("active");
       tagWrap.appendChild(chip);
     });
     if(canEditTrick){
@@ -99,7 +102,7 @@
       pickRow.className = "drawer-chip-row";
       // Pick only: tags are created / deleted in the admin tag manager (js/77).
       availableTagChips(tr, "text").forEach(function(c){
-        pickRow.appendChild(makeChip("+ " + c.label, false, function(){
+        pickRow.appendChild(makeTagChip("+ " + c.label, "text", function(){
           tr.tagIds = (tr.tagIds || []).concat([c.id]);
           saveDB(); refreshDrawerTags();
         }));
@@ -132,10 +135,14 @@
   // no labels or separate rows. Nothing is rendered when there is nothing to show.
   function buildDrawerFlowChips(tr, parent){
     var chips = [];
-    trickTagChips(tr, "class").forEach(function(c){ chips.push(makeTagChip(c.label, "class", null)); });
-    trickTagChips(tr, "text").forEach(function(c){ chips.push(makeChip(c.label, false)); });
     if(tr.grip) chips.push(makeChip(t("grip_" + tr.grip), true));
     (tr.parts || []).forEach(function(k){ chips.push(makeChip(t("part_" + k), true)); });
+    trickTagChips(tr, "class").forEach(function(c){
+      var b = makeTagChip(c.label, "class", null); b.classList.add("active"); chips.push(b);
+    });
+    trickTagChips(tr, "text").forEach(function(c){
+      var b = makeTagChip(c.label, "text", null); b.classList.add("active"); chips.push(b);
+    });
     if(!chips.length) return;
     var row = document.createElement("div");
     row.className = "drawer-chip-row drawer-flow";

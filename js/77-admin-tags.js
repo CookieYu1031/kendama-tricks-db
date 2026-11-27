@@ -178,7 +178,7 @@
     list.className = "drawer-chip-row tagmgr-list";
     tags.forEach(function(g){
       var chip = makeChip(resolveDisplayName(g.name).text || g.id, tagMgr.editing === g.id, function(){ tagMgrOpenEdit(g); });
-      chip.classList.add("tagmgr-chip");
+      chip.classList.add("tagmgr-chip", kind === "class" ? "tag-class" : "tag-text");
       chip.dataset.tagId = g.id;
       chip.addEventListener("click", function(ev){
         if(chip.dataset.suppressClick === "1"){ ev.stopPropagation(); ev.preventDefault(); }
