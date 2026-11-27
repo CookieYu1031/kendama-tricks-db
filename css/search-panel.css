@@ -38,8 +38,8 @@
   .search-class-box{ display:flex; flex-direction:column; gap:6px; min-width:0; }
   .search-class-row{ align-content:flex-start; max-height:200px; overflow-y:auto; overscroll-behavior:contain; }
   .search-class-row .drawer-chip.tag-class.active{
-    background: linear-gradient(165deg, rgba(var(--lacquer-rgb),0.55), rgba(var(--lacquer-rgb),0.3));
-    border-color: var(--lacquer-bright); color: var(--paper);
+    background: linear-gradient(165deg, rgba(var(--tag-class-rgb),0.55), rgba(var(--tag-class-rgb),0.3));
+    border-color: var(--tag-class-bright); color: var(--paper);
   }
   .search-panel .part-diagram-box{ width:200px; margin:0; }
   .search-panel .part-diagram{ display:block; width:100%; height:auto; }

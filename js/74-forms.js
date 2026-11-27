@@ -300,7 +300,7 @@
     if(!allTags.length) tagBox.innerHTML = '<span class="field-hint">' + escapeHtml(t("formNoTags")) + '</span>';
     allTags.forEach(function(g){
       var b = document.createElement("button");
-      b.type = "button"; b.className = "drawer-chip"; b.textContent = resolveDisplayName(g.name).text;
+      b.type = "button"; b.className = "drawer-chip " + (tagKind(g) === "class" ? "tag-class" : "tag-text"); b.textContent = resolveDisplayName(g.name).text;
       b.addEventListener("click", function(){
         var i = tr.tagIds.indexOf(g.id);
         if(i === -1){ tr.tagIds.push(g.id); overwriteWithClassCombo(tr, g); }
