@@ -21,7 +21,7 @@
 
   // Pure: fresh trick record copied from src, filed only under containerKey.
   function clipDupTrickRaw(src, containerKey, idGen, order){
-    return {
+    var out = {
       id: idGen(),
       name: { zh: (src.name && src.name.zh) || "", jp: (src.name && src.name.jp) || "", en: (src.name && src.name.en) || "" },
       media: (src.media || []).map(function(m){ var c = JSON.parse(JSON.stringify(m)); c.id = idGen(); return c; }),
@@ -29,6 +29,8 @@
       icon: src.icon || "", color: src.color || "default", custom: !!src.custom,
       grip: src.grip || null, parts: (src.parts || []).slice(), tagIds: (src.tagIds || []).slice(), note: src.note || ""
     };
+    if(src.nameUnsure) out.nameUnsure = JSON.parse(JSON.stringify(src.nameUnsure));
+    return out;
   }
 
   // Pure: moves entry (newType,newId) of arr to just after (origType,origId). Returns arr.

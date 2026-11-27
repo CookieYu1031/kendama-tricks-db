@@ -88,7 +88,7 @@
       colSort: Object.assign({}, state.colSort), colSortSpace: state.colSortSpace, // copy: render() prunes the live object
       spaceKey: localStorage.getItem(SPACE_KEY),
       searchOpen: typeof isSearchPanelOpen === "function" && isSearchPanelOpen(),
-      search: f ? { grip: f.grip, parts: f.parts.slice(), partsMode: f.partsMode, classId: searchClassId, interacted: searchInteracted,
+      search: f ? { grip: f.grip, parts: f.parts.slice(), classId: searchClassId, interacted: searchInteracted,
                     query: state.searchQuery, input: inp ? inp.value : "" } : null,
       clip: typeof clipLastClick !== "undefined" ? clipLastClick : null,
       multi: typeof multiSel !== "undefined" ? multiSel : null
@@ -144,7 +144,7 @@
   }
   function tourSearchClean(){
     if(typeof searchFilters === "undefined") return;
-    searchFilters.grip = null; searchFilters.parts = []; searchFilters.partsMode = "any";
+    searchFilters.grip = null; searchFilters.parts = [];
     searchClassId = null; searchInteracted = false; state.searchQuery = "";
     var inp = document.getElementById("searchInput"), clr = document.getElementById("searchClear");
     if(inp) inp.value = "";
@@ -176,7 +176,7 @@
     tourSearchClean();
     if(snap.search && typeof searchFilters !== "undefined"){
       var s = snap.search, inp = document.getElementById("searchInput");
-      searchFilters.grip = s.grip; searchFilters.parts = s.parts.slice(); searchFilters.partsMode = s.partsMode;
+      searchFilters.grip = s.grip; searchFilters.parts = s.parts.slice();
       searchClassId = s.classId; searchInteracted = s.interacted; state.searchQuery = s.query;
       if(inp) inp.value = s.input;
       var clr = document.getElementById("searchClear");

@@ -1,0 +1,17 @@
+/* Trick name "translation to be checked": dot inside the name inputs + grey name in edit mode. */
+.name-unsure-wrap{ position:relative; display:block; width:100%; }
+.name-unsure-wrap > input{ padding-right:30px !important; }
+.name-unsure-dot{
+  position:absolute; right:4px; top:50%; transform:translateY(-50%);
+  width:24px; height:24px; padding:0; border:0; background:transparent; cursor:pointer;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.name-unsure-dot[hidden]{ display:none; }
+.name-unsure-dot::before{
+  content:""; width:10px; height:10px; border-radius:50%;
+  background: var(--paper-faint); transition: background .15s var(--ease), transform .15s var(--ease);
+}
+.name-unsure-dot:hover::before{ transform:scale(1.2); }
+.name-unsure-dot.on::before{ background: var(--danger-bright); }
+.name-unsure-dot:focus-visible{ outline:2px solid var(--lacquer); }
+.name-unsure{ color: var(--paper-faint); }

@@ -105,7 +105,7 @@
     // Title: [prefix] name. Edit mode keeps it on one line (the icon, prefix and names are edited in the body).
     var title = document.createElement("div");
     title.className = "drawer-title" + (canEditTrick ? " single" : "");
-    function paintTitle(){ fillDrawerTitle(title, tr.name, key ? getTrickPrefix(tr, key) : ""); }
+    function paintTitle(){ fillDrawerTitle(title, tr.name, key ? getTrickPrefix(tr, key) : "", tr); }
     paintTitle();
     headLeft.appendChild(title);
     var headActions = document.createElement("div");

@@ -38,6 +38,7 @@ function setup(guest){
   return ctx;
 }
 const run = (c, raw, filters) => Array.from(c.runSearch(c.buildSearchIndex(c.db), raw, filters, c.buildTagLookup(c.db.tags))).sort();
+const ranked = (c, raw, filters) => Array.from(c.runSearch(c.buildSearchIndex(c.db), raw, filters, c.buildTagLookup(c.db.tags))); // result order kept
 
 test("parseSearchQuery: text, tags, underscore, lone #", () => {
   const c = setup();
@@ -70,22 +71,35 @@ test("#tag: any language, substring, AND", () => {
   assert.deepStrictEqual(run(c, "#nope"), []);
 });
 
-test("grip and parts (any / all), conditions-only search", () => {
+test("grip and parts: every picked condition must match, closest first", () => {
   const c = setup();
-  assert.deepStrictEqual(run(c, "", { grip: "ken", parts: [], partsMode: "any" }), ["a000001", "a000003"]);
-  assert.deepStrictEqual(run(c, "", { grip: null, parts: ["sara", "ana"], partsMode: "any" }), ["a000001", "a000002", "a000003"]);
-  assert.deepStrictEqual(run(c, "", { grip: null, parts: ["sara", "kensaki"], partsMode: "all" }), ["a000001"]);
-  assert.deepStrictEqual(run(c, "", { grip: "ken", parts: ["sara"], partsMode: "all" }), ["a000001", "a000003"]);
-  assert.deepStrictEqual(run(c, "cup", { grip: "tama", parts: [], partsMode: "any" }), []);
-  assert.deepStrictEqual(run(c, "", { grip: null, parts: [], partsMode: "any" }), []); // no criteria
+  // a1 ken + sara,kensaki / a2 tama + ana / a3 ken + sara / a4 ito
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken", parts: [] }), ["a000003", "a000001"]);     // fewer extra parts first
+  assert.deepStrictEqual(ranked(c, "", { grip: null, parts: ["sara"] }), ["a000003", "a000001"]);
+  assert.deepStrictEqual(ranked(c, "", { grip: null, parts: ["sara", "ana"] }), []);            // nobody has both
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken", parts: ["sara"] }), ["a000003", "a000001"]); // exact match first
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken", parts: ["sara", "kensaki"] }), ["a000001"]); // a3 lacks 劍尖
+  assert.deepStrictEqual(ranked(c, "", { grip: "tama", parts: ["sara"] }), []);
+  assert.deepStrictEqual(ranked(c, "cup", { grip: "ken", parts: [] }), ["a000001"]);            // name still filters
+  assert.deepStrictEqual(ranked(c, "", { grip: null, parts: [] }), []); // no criteria
+});
+
+test("ranking ignores text tags; #tags still filter", () => {
+  const c = setup();
+  c.db.tricks.find((x) => x.id === "a000003").tagIds = ["g1", "g2"]; // text tags do not make it less exact
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken", parts: ["sara"] }), ["a000003", "a000001"]);
+  assert.deepStrictEqual(ranked(c, "#mid_level", { grip: "ken", parts: ["sara"] }), ["a000003"]);
+  const e = { grip: "ken_ken", parts: ["sara", "chuzara"], tagIds: ["g1"] };
+  assert.deepStrictEqual(Object.assign({}, c.searchScoreEntry(e, { grip: "ken_ken", parts: ["sara", "chuzara"] })), { matched: 3, extra: 0, total: 3 });
+  assert.deepStrictEqual(Object.assign({}, c.searchScoreEntry(e, { grip: null, parts: ["sara"] })), { matched: 1, extra: 2, total: 1 });
 });
 
 test("grip filter: a category matches its sub-grips, a sub is exact", () => {
   const c = setup();
   c.db.tricks.find((x) => x.id === "a000003").grip = "ken_sara";
-  assert.deepStrictEqual(run(c, "", { grip: "ken", parts: [], partsMode: "any" }), ["a000001", "a000003"]);
-  assert.deepStrictEqual(run(c, "", { grip: "ken_sara", parts: [], partsMode: "any" }), ["a000003"]);
-  assert.deepStrictEqual(run(c, "", { grip: "ken_gun", parts: [], partsMode: "any" }), []);
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken", parts: [] }), ["a000003", "a000001"]);
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken_sara", parts: [] }), ["a000003"]);
+  assert.deepStrictEqual(ranked(c, "", { grip: "ken_gun", parts: [] }), []);
 });
 
 test("index entries: format, multi-location, fav not duplicated", () => {

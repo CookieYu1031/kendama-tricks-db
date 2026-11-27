@@ -3,7 +3,7 @@
   /* ============================================================
      PRACTICE LIST — modal UI (opened from the tools sheet, js/80-tools.js).
      Logic: js/83-practice-logic.js. Storage / cloud: js/85-practice-sync.js.
-     Two views in one modal: overview (all lists) and detail (one list).
+     Two views in one modal: overview (lists of one mode; mode bar in js/84-practice-modes.js) and detail (one list).
   ============================================================ */
   addStrings({
     zh:{ pracTitle:"練習清單", pracClose:"關閉", pracBack:"返回", pracNew:"新增清單", pracDefaultName:"練習清單",
@@ -32,7 +32,7 @@
          pracTarget:"Target", pracMinus:"Minus 1", pracPlus:"Plus 1", pracRemove:"Remove from list", pracGoTrick:"Open trick", pracDone:"Done" }
   });
 
-  var prac = { view: "list", listId: null, renaming: false, adding: false, query: "" };
+  var prac = { view: "list", mode: "count", listId: null, renaming: false, adding: false, query: "" };
 
   function pracEl(id){ return document.getElementById(id); }
   function practiceIsOpen(){ var o = pracEl("practiceOverlay"); return !!o && o.classList.contains("show"); }
@@ -64,11 +64,14 @@
   function pracRenderOverview(){
     var data = practiceGet(), body = pracEl("pracBody");
     body.innerHTML = "";
-    var full = data.lists.length >= PRACTICE_MAX_LISTS;
+    body.appendChild(pracBuildModeBar());
+    if(prac.mode === "daily") body.appendChild(pracBuildResetHour());
+    var lists = practiceListsOfMode(data, prac.mode);
+    var full = lists.length >= PRACTICE_MAX_LISTS;
     var add = pracMk("button", "btn btn-primary prac-new", t("pracNew")); add.type = "button";
     add.disabled = full;
     add.addEventListener("click", function(){
-      var l = createPracticeList(data, t("pracDefaultName") + " " + (data.lists.length + 1));
+      var l = createPracticeList(data, t("pracDefaultName") + " " + (lists.length + 1), null, prac.mode);
       if(!l) return;
       practiceChanged();
       prac.view = "detail"; prac.listId = l.id; prac.renaming = true; prac.adding = false; prac.query = "";
@@ -76,14 +79,14 @@
     });
     body.appendChild(add);
     if(full) body.appendChild(pracMk("div", "field-hint", t("pracListsFull")));
-    if(!data.lists.length){ body.appendChild(pracMk("div", "search-empty", t("pracEmpty"))); return; }
+    if(!lists.length){ body.appendChild(pracMk("div", "search-empty", t("pracEmpty"))); return; }
     var host = pracMk("div", "prac-lists");
-    data.lists.forEach(function(l){
-      var p = practiceProgress(l, pracHas);
+    lists.forEach(function(l){
+      var p = practiceProgress(l, pracHas, pracDayKeyFor(l));
       var row = pracMk("button", "prac-list-row" + (p.total && p.done === p.total ? " done" : "")); row.type = "button";
       var txt = pracMk("div", "prac-list-text");
       txt.appendChild(pracMk("div", "prac-list-name", l.name));
-      txt.appendChild(pracMk("div", "prac-list-meta", t("pracProgress").replace("{d}", p.done).replace("{n}", p.total)));
+      txt.appendChild(pracMk("div", "prac-list-meta", (p.total ? t("pracProgress").replace("{d}", p.done).replace("{n}", p.total) : t("pracItemsN").replace("{n}", p.items))));
       row.appendChild(txt);
       var chev = pracMk("span", "prac-chev"); chev.innerHTML = ICON_CHEVRON; row.appendChild(chev);
       row.addEventListener("click", function(){ prac.view = "detail"; prac.listId = l.id; prac.renaming = false; prac.adding = false; prac.query = ""; practiceRender(); });
@@ -96,7 +99,8 @@
   function pracBuildRow(list, it){
     var tr = getTrick(it.trickId);
     if(!tr) return null;
-    var row = pracMk("div", "prac-row" + (practiceItemDone(it) ? " done" : ""));
+    var key = pracDayKeyFor(list), daily = list.mode === "daily", cur = practiceItemCount(it, key);
+    var row = pracMk("div", "prac-row" + (practiceItemDone(it, key) ? " done" : ""));
     row.dataset.trickId = it.trickId;
     var icon = pracIcon(tr); icon.classList.add("prac-icon");
     icon.title = t("pracGoTrick");
@@ -110,17 +114,23 @@
     }));
     var ctl = pracMk("div", "prac-row-ctl");
     function refresh(){ var n = pracBuildRow(list, it); if(n && row.parentNode) row.parentNode.replaceChild(n, row); }
-    ctl.appendChild(pracBtn("btn prac-minus", t("pracMinus"), "−1", function(){ bumpPracticeCount(list, it.trickId, -1); practiceChanged(); refresh(); }));
+    function tap(delta){
+      var r = practiceTap(list, it.trickId, delta, null, practiceGet().dailyResetHour);
+      practiceChanged();
+      if(r && r.removed){ showToast(t("pracGoalReached")); pracRenderRows(list); } else refresh();
+    }
+    ctl.appendChild(pracBtn("btn prac-minus", t("pracMinus"), "−1", function(){ tap(-1); }));
     var cnt = pracMk("div", "prac-count");
-    cnt.appendChild(pracMk("span", "prac-count-n", String(it.count)));
-    cnt.appendChild(pracMk("span", "prac-count-t", " / " + it.target));
+    cnt.appendChild(pracMk("span", "prac-count-n", String(cur)));
+    if(it.target != null) cnt.appendChild(pracMk("span", "prac-count-t", " / " + it.target));
     ctl.appendChild(cnt);
-    var tg = pracMk("label", "prac-target"); tg.appendChild(pracMk("span", null, t("pracTarget")));
-    var inp = pracMk("input"); inp.type = "number"; inp.min = "1"; inp.max = String(PRACTICE_TARGET_MAX); inp.value = it.target;
+    var tg = pracMk("label", "prac-target"); tg.appendChild(pracMk("span", null, t(daily ? "pracTimes" : "pracTarget")));
+    var inp = pracMk("input"); inp.type = "number"; inp.min = "1"; inp.max = String(PRACTICE_TARGET_MAX);
+    inp.value = it.target == null ? "" : it.target; if(!daily) inp.placeholder = t("pracNoGoal");
     inp.setAttribute("inputmode", "numeric");
     inp.addEventListener("change", function(){ setPracticeTarget(list, it.trickId, inp.value); practiceChanged(); refresh(); });
     tg.appendChild(inp); ctl.appendChild(tg);
-    ctl.appendChild(pracBtn("btn btn-primary prac-plus", t("pracPlus"), "+1", function(){ bumpPracticeCount(list, it.trickId, 1); practiceChanged(); refresh(); }));
+    ctl.appendChild(pracBtn("btn btn-primary prac-plus", t("pracPlus"), "+1", function(){ tap(1); }));
     row.appendChild(top); row.appendChild(ctl);
     return row;
   }
@@ -238,8 +248,7 @@
     if(ov) return ov;
     ov = document.createElement("div");
     ov.className = "modal-overlay"; ov.id = "practiceOverlay";
-    ov.innerHTML =
-      '<div class="modal modal-lg practice-modal" role="dialog" aria-modal="true">' +
+    ov.innerHTML = '<div class="modal modal-lg practice-modal" role="dialog" aria-modal="true">' +
         '<div class="settings-head"><button type="button" class="icon-btn" id="pracBack">' + ICON_ARROW_LEFT + '</button>' +
         '<div class="prac-title-box" id="pracTitleBox"></div>' +
         '<button type="button" class="icon-btn settings-close" id="pracClose">' + ICON_X + '</button></div>' +

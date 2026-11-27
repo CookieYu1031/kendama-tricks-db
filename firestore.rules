@@ -55,10 +55,12 @@ service cloud.firestore {
             (!('updatedAt' in request.resource.data) ||
               (request.resource.data.updatedAt is timestamp && request.resource.data.updatedAt == request.time)))
           ||
-          // Practice list (v0.12): personal lists, max 20.
+          // Practice list (v0.12): personal lists, max 20 per mode (count / daily) = 40; v0.20 dailyResetHour.
           (metaId == 'practice' &&
-            request.resource.data.keys().hasOnly(['lists', 'clientUpdatedAt', 'updatedAt']) &&
-            request.resource.data.lists is list && request.resource.data.lists.size() <= 20 &&
+            request.resource.data.keys().hasOnly(['lists', 'dailyResetHour', 'clientUpdatedAt', 'updatedAt']) &&
+            request.resource.data.lists is list && request.resource.data.lists.size() <= 40 &&
+            (!('dailyResetHour' in request.resource.data) ||
+              (request.resource.data.dailyResetHour is int && request.resource.data.dailyResetHour >= 0 && request.resource.data.dailyResetHour <= 23)) &&
             request.resource.data.clientUpdatedAt is number &&
             (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt == request.time))
         );

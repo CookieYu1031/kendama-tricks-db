@@ -22,7 +22,7 @@
   .rail-zone-mid::-webkit-scrollbar{ display:none; }
   .space-btn{
     position:relative;
-    width:40px; height:40px; flex:0 0 auto; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
+    width:var(--rail-btn); height:var(--rail-btn); flex:0 0 auto; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
     background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
     color: var(--paper-dim); font-size:19px; display:flex; align-items:center; justify-content:center;
     line-height:1; text-align:center;
@@ -54,7 +54,7 @@
   .space-edit-badge svg{ width:9px; height:9px; }
   .space-edit-badge:hover{ background: var(--lacquer-bright); }
   .rail-edit-toggle, .rail-tools-btn{
-    width:40px; height:40px; flex:0 0 auto; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
+    width:var(--rail-btn); height:var(--rail-btn); flex:0 0 auto; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
     background: linear-gradient(165deg, var(--glass-2), var(--glass-1));
     color: var(--paper-dim); display:flex; align-items:center; justify-content:center;
     cursor:pointer; transition: transform .15s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);

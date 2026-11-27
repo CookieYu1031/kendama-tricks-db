@@ -229,6 +229,13 @@
     }
     return out;
   }
+  // Trick "translation to be checked" flags: only zh/jp/en keys with value true; null when none.
+  function normalizeNameUnsure(raw){
+    if(!raw || typeof raw !== "object") return null;
+    var out = null;
+    ["zh", "jp", "en"].forEach(function(l){ if(raw[l] === true){ out = out || {}; out[l] = true; } });
+    return out;
+  }
   function normalizeDB(raw){
     var spaces = normalizeSpaces(raw.spaces);
 
@@ -298,6 +305,8 @@
       if(typeof t.sharedFrom === "string" && t.sharedFrom) ot.sharedFrom = t.sharedFrom.slice(0, 120);
       var pm = normalizePrefixMap(t.prefixByCategory);
       if(pm) ot.prefixByCategory = pm;
+      var nu = normalizeNameUnsure(t.nameUnsure);
+      if(nu) ot.nameUnsure = nu;
       return ot;
     });
     return { categories: cats, tricks: tricks, infos: infos, tags: tags, labels: normalizeLabels(raw.labels === undefined && typeof labelsFallback === "function" ? labelsFallback() : raw.labels), spaces: spaces };

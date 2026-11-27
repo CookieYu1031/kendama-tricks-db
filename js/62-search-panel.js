@@ -5,18 +5,15 @@
      results list. Matching logic: js/61-search-index.js.
   ============================================================ */
   addStrings({
-    zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchPartsLabel:"部位",
-         searchModeAny:"其一符合", searchModeAll:"全符合", searchModeAnyShort:"其一", searchModeAllShort:"全部", searchModeSwitch:"點一下切換", searchReset:"清除條件", searchMore:"顯示更多",
+    zh:{ searchPlaceholder:"搜尋招式名稱，或輸入 #標籤…", searchPartsLabel:"部位", searchReset:"清除條件", searchMore:"顯示更多",
          searchHint:"輸入招式名稱，或用 #標籤、握持手勢、部位來篩選", searchEmpty:"找不到符合的招式",
          searchCountN:"{n} 個結果", searchNoTag:"（沒有符合的標籤）",
          searchClassLabel:"招式類別", searchNoClass:"尚無招式類別" },
-    jp:{ searchPlaceholder:"技名、または #タグで検索…", searchPartsLabel:"部位",
-         searchModeAny:"いずれか一致", searchModeAll:"すべて一致", searchModeAnyShort:"どれか", searchModeAllShort:"すべて", searchModeSwitch:"タップで切り替え", searchReset:"条件をクリア", searchMore:"もっと見る",
+    jp:{ searchPlaceholder:"技名、または #タグで検索…", searchPartsLabel:"部位", searchReset:"条件をクリア", searchMore:"もっと見る",
          searchHint:"技名を入力、または #タグ・持ち方・部位で絞り込み", searchEmpty:"該当する技がありません",
          searchCountN:"{n} 件", searchNoTag:"（該当するタグなし）",
          searchClassLabel:"技の分類", searchNoClass:"技の分類はまだありません" },
-    en:{ searchPlaceholder:"Search trick names, or type #tag…", searchPartsLabel:"Parts",
-         searchModeAny:"Match any", searchModeAll:"Match all", searchModeAnyShort:"Any", searchModeAllShort:"All", searchModeSwitch:"Tap to switch", searchReset:"Clear filters", searchMore:"Show more",
+    en:{ searchPlaceholder:"Search trick names, or type #tag…", searchPartsLabel:"Parts", searchReset:"Clear filters", searchMore:"Show more",
          searchHint:"Type a trick name, or filter by #tag, grip and parts", searchEmpty:"No matching tricks",
          searchCountN:"{n} results", searchNoTag:"(no matching tags)",
          searchClassLabel:"Trick class", searchNoClass:"No trick classes yet" }
@@ -25,9 +22,8 @@
   var SEARCH_PAGE = 50;
   var TAG_SUGGEST_MAX = 12;
   var SEARCH_DEFAULT_GRIP = null; // categories are headers only: no default grip
-  // Parts match mode: one pill showing the current mode ("其一 ⇄" / "全部 ⇄"); a tap flips it.
-  function nextPartsMode(m){ return m === "all" ? "any" : "all"; }
-  var searchFilters = { grip: SEARCH_DEFAULT_GRIP, parts: [], partsMode: "any" };
+  // Grip / parts are ranked by closeness (runSearch, js/61); there is no any / all switch any more.
+  var searchFilters = { grip: SEARCH_DEFAULT_GRIP, parts: [] };
   var searchView = { ids: [], limit: SEARCH_PAGE, active: -1 };
   var searchChromeBuilt = false;
   var searchInteracted = false;  // results stay hidden (hint only) until the user interacts
@@ -61,11 +57,6 @@
     searchChromeBuilt = true;
     // Grip picker (js/36): category = matches every sub-grip of it (gripMatches, js/01).
     mountSearchGrip();
-    var modeRow = spEl("searchPartsMode");
-    modeRow.appendChild(spButton("lang-btn active search-mode-toggle", "", function(){
-      searchFilters.partsMode = nextPartsMode(searchFilters.partsMode);
-      searchTouch();
-    }));
     spEl("searchResetBtn").addEventListener("click", resetSearchConditions);
   }
 
@@ -111,19 +102,10 @@
     // Rebuild the picker so chip labels follow the language.
     if(searchGripPicker) mountSearchGrip();
     spEl("searchInput").placeholder = t("searchPlaceholder");
-    paintPartsModeToggle();
   }
 
-  function paintPartsModeToggle(){
-    var mb = spEl("searchPartsMode").firstChild, all = searchFilters.partsMode === "all";
-    if(!mb) return;
-    mb.textContent = t(all ? "searchModeAllShort" : "searchModeAnyShort") + " ⇄";
-    mb.title = t(all ? "searchModeAll" : "searchModeAny") + "（" + t("searchModeSwitch") + "）";
-    mb.setAttribute("aria-label", mb.title);
-  }
   function syncSearchChips(){
     if(searchGripPicker) searchGripPicker.setValue(searchFilters.grip);
-    paintPartsModeToggle();
     Array.prototype.forEach.call(spEl("searchClassRow").children, function(b){
       b.classList.toggle("active", !!searchClassId && b.getAttribute("data-tag") === searchClassId);
     });
@@ -131,7 +113,7 @@
   }
 
   function resetSearchConditions(){
-    searchFilters.grip = SEARCH_DEFAULT_GRIP; searchFilters.parts = []; searchFilters.partsMode = "any";
+    searchFilters.grip = SEARCH_DEFAULT_GRIP; searchFilters.parts = [];
     searchClassId = null;
     searchInteracted = false;
     var input = spEl("searchInput");

@@ -35,7 +35,6 @@
   .search-section{ display:flex; flex-direction:column; gap:12px; }
   .search-grip-group{ min-width:0; }
   .search-parts-block{ position:relative; display:flex; justify-content:center; }
-  .search-parts-block .search-label-row{ position:absolute; top:0; right:0; margin:0; }
   .search-class-box{ display:flex; flex-direction:column; gap:6px; min-width:0; }
   .search-class-row{ align-content:flex-start; max-height:200px; overflow-y:auto; overscroll-behavior:contain; }
   .search-class-row .drawer-chip.tag-class.active{
@@ -55,13 +54,10 @@
     .search-parts-block{ display:contents; }
     .search-grip-group{ grid-column:1; grid-row:1; }
     #searchPartsRow{ grid-column:2; grid-row:1 / span 2; justify-content:center; }
-    .search-parts-block .search-label-row{ position:static; grid-column:1; grid-row:2; justify-self:end; }
-    .search-class-box{ grid-column:1; grid-row:2; padding-top:6px; }
+      .search-class-box{ grid-column:1; grid-row:2; padding-top:6px; }
     .search-class-box .search-label{ min-height:24px; }
     .search-panel .part-diagram-box{ width:250px; }
   }
-  .search-seg-sm{ flex:0 1 auto; width:auto; max-width:100%; flex-wrap:wrap; justify-content:flex-start; }
-  .search-seg-sm .lang-btn{ flex:0 0 auto; white-space:nowrap; font-size:12px; padding:4px 10px; min-width:0; }
   .search-tag-suggest{ flex:0 0 auto; display:none; }
   .search-tag-suggest.show{ display:flex; }
   .search-note{ line-height:1.5; font-size:12px; color: var(--paper-faint); }
