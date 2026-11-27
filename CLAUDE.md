@@ -151,7 +151,7 @@
 | 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`（純邏輯）、`js/58-share-flow.js`（送出／接收、Firestore）、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
-| 搜尋索引、查詢解析、比對（純邏輯；選的握持＋部位都要符合，依「多出的握持／部位越少越前」排序：`searchScoreEntry`，文字標籤不影響排序；`matchEntry` 給隨機抽招（同樣全部符合）） | `js/61-search-index.js` |
+| 搜尋索引、查詢解析、比對（純邏輯；選的握持＋部位都要符合，依「多出的握持／部位越少越前」排序：`searchScoreEntry`，文字標籤不影響排序；點了招式類別＝只列出帶有該類別的招式（不套用它的握持／部位組合）；`matchEntry` 給隨機抽招（同樣全部符合、類別同規則）） | `js/61-search-index.js` |
 | 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
 | 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
 | 小工具（左欄按鈕、面板、TOOLS registry） | `js/80-tools.js`、`css/tools.css` |

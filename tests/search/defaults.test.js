@@ -44,20 +44,14 @@ test("results gated on interaction: empty filters show hint", () => {
   assert.strictEqual(c.searchShouldShowResults(c.parseSearchQuery("abc"), { grip: null, parts: [] }, true), true);
 });
 
-test("class tag overwrites grip and parts (only specified dimensions)", () => {
+test("picked class tag: only tricks carrying it, look-alikes excluded", () => {
   const c = setup();
-  const f = { grip: "ken", parts: ["sara"] };
-  c.searchApplyClassTag(f, { kind: "class", combo: { grip: "tama", parts: ["ana", "tamaTop"] } });
-  assert.strictEqual(f.grip, "tama");
-  assert.deepStrictEqual(Array.from(f.parts), ["ana", "tamaTop"]);
-  c.searchApplyClassTag(f, { kind: "class", combo: { grip: null, parts: ["sara"] } });
-  assert.strictEqual(f.grip, "tama");
-  assert.deepStrictEqual(Array.from(f.parts), ["sara"]);
-  c.searchApplyClassTag(f, { kind: "class", combo: { grip: "ito", parts: [] } });
-  assert.strictEqual(f.grip, "ito");
-  assert.deepStrictEqual(Array.from(f.parts), ["sara"]);
-  c.searchApplyClassTag(f, { kind: "text" });
-  assert.strictEqual(f.grip, "ito");
+  const e = (id, tagIds) => ({ id, names: { zh: "", jp: "", en: "" }, romaji: "", shown: "", grip: "tama_tama", parts: ["sara", "tamaTop"], tagIds, locs: [] });
+  const idx = [e("lunar", ["cMoon"]), e("suidama", [])]; // same grip + parts, only one carries the 月面 class
+  assert.ok(c.searchHasCriteria(c.parseSearchQuery(""), { grip: null, parts: [], classId: "cMoon" }));
+  assert.deepStrictEqual(Array.from(c.runSearch(idx, "", { grip: null, parts: [], classId: "cMoon" }, {})), ["lunar"]);
+  assert.deepStrictEqual(Array.from(c.runSearch(idx, "", { grip: "tama_tama", parts: ["sara"], classId: "cMoon" }, {})), ["lunar"]);
+  assert.deepStrictEqual(Array.from(c.runSearch(idx, "", { grip: "tama_tama", parts: ["sara"] }, {})), ["lunar", "suidama"]);
 });
 
 test("partMatches used: 劍頂 filter matches 劍尖 tricks, 中皿 matches 中皿邊 (match + ranking)", () => {

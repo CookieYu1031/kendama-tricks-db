@@ -5,9 +5,8 @@
 
      conditions: { space, folder|null, grip|null, parts:[] (every part must match),
                    classId|null, rates:[RATE_LEVELS... and/or "none"], count:1..10 }
-     Class tag choice: when classId is set the pool is "tricks carrying that tag id OR (when grip /
-     parts filters are non-empty) tricks matching the grip / parts filters". The UI also copies the
-     tag's combo into grip / parts (like the search panel), so the combo is what the OR side tests.
+     Class tag choice: when classId is set only tricks carrying that tag id are in the pool (grip / parts
+     filters, if any, must match too). The tag's combo is not copied into the filters.
      Rate filter is personal data: callers pass opts.ignoreRate for guests.
   ============================================================ */
   var RANDOM_COND_KEY = "kendama-random-cond-v1";
@@ -60,16 +59,12 @@
   function buildRandomPool(index, conds, opts){
     opts = opts || {};
     var filters = { grip: conds.grip, parts: conds.parts };
-    var hasFilter = !!(conds.grip || conds.parts.length);
     var useRate = !opts.ignoreRate && conds.rates.length < RANDOM_RATE_KEYS.length;
     var out = [];
     (index || []).forEach(function(e){
       if(!randomInScope(opts.locsFor ? opts.locsFor(e) : e.locs, conds)) return;
-      var fOk = matchEntry(e, { text: "", tags: [] }, filters, null);
-      if(conds.classId){
-        var tagged = e.tagIds.indexOf(conds.classId) !== -1;
-        if(!(tagged || (hasFilter && fOk))) return;
-      } else if(!fOk) return;
+      if(!matchEntry(e, { text: "", tags: [] }, filters, null)) return;
+      if(conds.classId && e.tagIds.indexOf(conds.classId) === -1) return;
       if(useRate){
         var r = opts.rateOf ? opts.rateOf(e.id) : null;
         if(conds.rates.indexOf(r || "none") === -1) return;

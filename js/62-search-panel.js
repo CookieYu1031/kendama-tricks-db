@@ -29,7 +29,7 @@
   var searchInteracted = false;  // results stay hidden (hint only) until the user interacts
   var searchDiagram = null;
   var searchGripPicker = null;
-  var searchClassId = null;      // selected class tag chip (deselect keeps grip / parts)
+  var searchClassId = null;      // selected class tag chip: results must carry this tag
 
   function spEl(id){ return document.getElementById(id); }
   function spButton(cls, text, onClick){
@@ -87,7 +87,7 @@
     list.forEach(function(g){
       var b = spButton("drawer-chip tag-class", localize(g.name), function(){
         if(searchClassId === g.id){ searchClassId = null; }
-        else { searchClassId = g.id; searchApplyClassTag(searchFilters, g); }
+        else searchClassId = g.id;
         searchTouch();
       });
       b.setAttribute("data-tag", g.id);
@@ -165,8 +165,9 @@
     searchView.active = -1;
     var raw = spEl("searchInput").value;
     var query = parseSearchQuery(raw);
-    var show = searchShouldShowResults(query, searchFilters, searchInteracted);
-    searchView.ids = show ? runSearch(getSearchIndex(), raw, searchFilters, searchTagLookup()) : [];
+    var filters = { grip: searchFilters.grip, parts: searchFilters.parts, classId: searchClassId };
+    var show = searchShouldShowResults(query, filters, searchInteracted);
+    searchView.ids = show ? runSearch(getSearchIndex(), raw, filters, searchTagLookup()) : [];
     renderTagSuggest(raw);
     renderSearchList(show);
   }
@@ -191,8 +192,7 @@
       var chipEl = spButton("drawer-chip", "#" + label, function(){
         var input = spEl("searchInput");
         input.value = input.value.replace(/#[^\s#]*$/, "#" + label.replace(/\s+/g, "_") + " ");
-        searchApplyClassTag(searchFilters, g); // class tag overwrites grip / parts with its combo
-        if(tagKind(g) === "class") searchClassId = g.id;
+        if(tagKind(g) === "class") searchClassId = g.id; // class tag = must carry it (runSearch)
         syncSearchChips();
         input.focus();
         onSearchInput();

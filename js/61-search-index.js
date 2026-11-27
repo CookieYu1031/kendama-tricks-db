@@ -121,7 +121,7 @@
 
   function searchHasCriteria(query, filters){
     filters = filters || {};
-    return !!(query.text || query.tags.length || filters.grip || (filters.parts && filters.parts.length));
+    return !!(query.text || query.tags.length || filters.grip || (filters.parts && filters.parts.length) || filters.classId);
   }
 
   // Results list shows only after the user interacted (typed / clicked a chip, tag, diagram region, grip, mode);
@@ -130,14 +130,8 @@
     return !!interacted && searchHasCriteria(query, filters);
   }
 
-  // Class tag (kind "class", combo {grip, parts}) picked in the search: OVERWRITES the grip / parts
-  // filters, each only when the combo specifies it. Mutates + returns filters; false-y tag = no-op.
-  function searchApplyClassTag(filters, tag){
-    if(!tag || tag.kind !== "class" || !tag.combo) return filters;
-    if(tag.combo.grip) filters.grip = tag.combo.grip;
-    if(tag.combo.parts && tag.combo.parts.length) filters.parts = tag.combo.parts.slice();
-    return filters;
-  }
+  // A picked class tag (filters.classId) is a hard filter: only tricks carrying that tag are listed. Its
+  // grip / parts combo is NOT copied into the filters (a 月面 pick must not list 吸玉 just because the parts match).
 
   // Search ranking (v0.19.4): grip + parts picked in the panel must all match; closeness orders them.
   // matched = picked conditions the trick has (grip via gripMatches, part via partMatches);
@@ -161,6 +155,7 @@
   // the closest come first (fewest extra grip / parts it has beyond the picked ones). Name text and #tags filter too.
   // Ties: name-prefix hits first, then index order. No criteria = [].
   function runSearch(index, raw, filters, tagLookup){
+    filters = filters || {};
     var query = parseSearchQuery(raw);
     if(!searchHasCriteria(query, filters)) return [];
     if(!tagLookup && typeof db !== "undefined") tagLookup = buildTagLookup(db.tags);
@@ -168,6 +163,7 @@
     var rows = [];
     index.forEach(function(e, i){
       if(!matchEntry(e, query, {}, tagLookup)) return; // name text + #tags only
+      if(filters.classId && e.tagIds.indexOf(filters.classId) === -1) return; // picked class tag
       var sc = searchScoreEntry(e, filters);
       if(sc.matched < sc.total) return; // every picked grip / part must be on the trick
       var prefix = !!first && entryNameFields(e).some(function(f){ return f.indexOf(first) === 0; });
