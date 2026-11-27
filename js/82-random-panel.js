@@ -128,7 +128,7 @@
       classes.forEach(function(g){
         cr.appendChild(rndChip(localize(g.name), c.classId === g.id, function(){
           if(c.classId === g.id) c.classId = null;
-          else { c.classId = g.id; searchApplyClassTag(c, g); }
+          else c.classId = g.id;
           rndChanged();
         }, "tag-class"));
       });

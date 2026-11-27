@@ -63,10 +63,11 @@ test("grip and parts: every part must match", () => {
   assert.deepStrictEqual(pool(c, { parts: ["sara", "kensaki"] }), ["a000003"]);
 });
 
-test("class tag: tagged OR combo match", () => {
+test("class tag: only tricks carrying it (combo look-alikes excluded)", () => {
   const c = setup();
   assert.deepStrictEqual(pool(c, { classId: "g1" }), ["a000001"]);
-  assert.deepStrictEqual(pool(c, { classId: "g1", grip: "tama" }), ["a000001", "a000002"]);
+  assert.deepStrictEqual(pool(c, { classId: "g1", grip: "ken" }), ["a000001"]);
+  assert.deepStrictEqual(pool(c, { classId: "g1", grip: "tama" }), []);
 });
 
 test("rate filter incl. none", () => {
