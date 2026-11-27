@@ -64,7 +64,7 @@
     var uid = practiceUid;
     if(!uid || uid !== practiceCurrentUid() || !practiceIsDirty(uid)) return Promise.resolve(false);
     var data = practiceData, stamp = data.clientUpdatedAt;
-    return practiceDocRef(uid).set({ lists: data.lists, clientUpdatedAt: stamp,
+    return practiceDocRef(uid).set({ lists: data.lists, dailyResetHour: data.dailyResetHour, clientUpdatedAt: stamp,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).then(function(){
       if(practiceData && practiceData.clientUpdatedAt === stamp && practiceUid === uid) practiceSetDirty(uid, false);
       return true;

@@ -116,6 +116,7 @@
 | 社群分享縮圖（OG banner） | `scripts/og-banner.html` → `scripts/build-og-banner.sh` → `assets/og-banner.png` |
 | 資訊項目抽屜（點資訊列開在同一個 `#detailDrawer`；檢視＝前綴＋標題＋內文＋連結；編輯＝圖示／前綴／三語標題／內文／連結／移除；`openInfoDrawer`、`requestDeleteInfo`；`state.detailInfoId` 與 `detailTrickId` 互斥，`drawerIsOpen`／`clearDrawerState` 在 `js/04`，`closeDrawerIfGone` 在 `js/32`） | `js/37-info-drawer.js`、`css/detail-drawer.css` |
 | 資訊連結（抽屜最多 3 槽，每槽網址＋名稱 ≤12 字，只收 http/https，開新分頁；資料 `info.links`，`normalizeInfoLinks` 在 `js/01-data-storage.js`；複製／分享帶 links） | `js/38-info-links.js`、`css/info.css` |
+| 招式名稱「翻譯待確認」標記（`trick.nameUnsure`、輸入框右側小圓點灰↔紅、編輯模式下該語言名稱變灰；`normalizeNameUnsure` 在 `js/01-data-storage.js`、`isNameUnsure`／`toggleNameUnsure`／`nameShownUnsure` 在 `js/30`、圓點 builder 在 `js/31`） | `js/30-drawer-logic.js`、`js/31-drawer-sections.js`、`js/47-modal-add.js`、`css/name-unsure.css` |
 | 招式資訊抽屜：開關、手勢、`renderDrawer()` 組裝 | `js/32-trick-drawer.js` |
 | 抽屜純邏輯（setRate、toggleGrip/Part、滑動判定、標籤、位置碼） | `js/30-drawer-logic.js` |
 | 抽屜各區塊 builder（頭部圖示、持法部位、備註、成功率、編輯底欄、影片列） | `js/31-drawer-sections.js` |
@@ -149,12 +150,12 @@
 | 一鍵分享（`?s=uid&i=id` 連結、`shares/{uid}_{itemId}` 快照、自動複製到 收藏/外部招式；分享鈕在 `js/26`、`js/31`） | `js/58-share.js`（純邏輯）、`js/58-share-flow.js`（送出／接收、Firestore）、`css/share.css` |
 | 登入狀態切換資料來源 | `js/59-auth-state.js` |
 | 搜尋面板開關、跳到招式位置 | `js/60-search-suggest.js` |
-| 搜尋索引、查詢解析、比對（純邏輯） | `js/61-search-index.js` |
+| 搜尋索引、查詢解析、比對（純邏輯；選的握持＋部位都要符合，依「多出的握持／部位越少越前」排序：`searchScoreEntry`，文字標籤不影響排序；`matchEntry` 給隨機抽招（同樣全部符合）） | `js/61-search-index.js` |
 | 搜尋面板 UI（條件、#標籤建議、結果列） | `js/62-search-panel.js`、`css/search-panel.css` |
 | 搜尋用靜態索引（發布後手動觸發，產生 `data/search-index.json` 並部署） | `scripts/build-search-index.js`、`.github/workflows/search-index.yml` |
 | 小工具（左欄按鈕、面板、TOOLS registry） | `js/80-tools.js`、`css/tools.css` |
 | 隨機抽招（條件、抽取／重抽、同輪不重複、紀錄；純邏輯與 UI 分開） | `js/81-random-logic.js`（純邏輯）、`js/82-random-panel.js`、`css/random.css` |
-| 練習清單（清單／招式增刪、目標與計數、上限 20 清單／50 招；個人資料不連成功率） | `js/83-practice-logic.js`（純邏輯、同步決策）、`js/84-practice-panel.js`、`css/practice.css` |
+| 練習清單（計次／每日兩組清單各 20、每份 50 招；計次可無目標無限累計、點到目標自動移出；每日次數每天 `dailyResetHour`（預設 3 點）刷新、`practiceDayKey`；個人資料不連成功率） | `js/83-practice-logic.js`（純邏輯、同步決策）、`js/84-practice-panel.js`、`js/84-practice-modes.js`（模式切換、刷新時間）、`css/practice.css` |
 | 練習清單儲存與雲端同步（localStorage 每帳號一份、`users/{uid}/meta/practice`、debounce、dirty 重試、訪客資料帶入；`practiceOnAuth` 由 `js/59-auth-state.js` 呼叫） | `js/85-practice-sync.js` |
 | 事件綁定、init | `js/90-events-and-init.js` |
 | 樣式 | `css/*.css` |

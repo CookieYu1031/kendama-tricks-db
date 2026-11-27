@@ -52,7 +52,11 @@
       pfxEl.className = "item-prefix"; pfxEl.textContent = pfx;
       nameEl.appendChild(pfxEl);
     }
-    nameEl.appendChild(document.createTextNode(localize(it.name)));
+    if(it.type === "trick" && nameShownUnsure(it.ref, it.name, state.editMode)){
+      var nmEl = document.createElement("span");
+      nmEl.className = "name-unsure"; nmEl.textContent = localize(it.name);
+      nameEl.appendChild(nmEl);
+    } else nameEl.appendChild(document.createTextNode(localize(it.name)));
     textWrap.appendChild(nameEl);
 
     var metaEl = document.createElement("div");

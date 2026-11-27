@@ -164,7 +164,7 @@
     var rec = normalizeDB({ categories: [], tricks: [{ id: newItemId(), name: addNameObj(f), media: media.slice(0, MAX_VIDEOS),
       categoryIds: [addEffectiveParent(parentId, spaceId)], orderByCategory: {}, order: db.tricks.length,
       icon: f.icon || "", color: f.color || "default", custom: !!custom, grip: f.grip || null, parts: f.parts || [],
-      tagIds: f.tagIds || [], note: f.note || "" }] }).tricks[0];
+      tagIds: f.tagIds || [], note: f.note || "", nameUnsure: f.nameUnsure }] }).tricks[0];
     setTrickPrefix(rec, addEffectiveParent(parentId, spaceId), f.prefix);
     db.tricks.push(rec);
     return rec;
@@ -200,6 +200,24 @@
   function addIsLinking(){ return !!addLinkTarget(); }
   function addNoteEl(){ return addEl("addNameHint"); }
 
+  // Translation-to-be-checked dots on the three name boxes (trick type only; flags in addForm.unsure by language).
+  var ADD_NAME_IDS = ["addMainName", "addAlt1", "addAlt2"], ADD_NAME_LANG_KEYS = ["mainLang", "alt1Lang", "alt2Lang"];
+  function addUnsureSync(){
+    ADD_NAME_IDS.forEach(function(id){
+      var w = addEl(id).parentNode;
+      if(w.classList.contains("name-unsure-wrap")){ w.lastChild.hidden = addForm.type !== "trick"; w.lastChild.refresh(); }
+    });
+  }
+  function addBindUnsureDots(){
+    ADD_NAME_IDS.forEach(function(id, i){
+      var inp = addEl(id);
+      if(inp.parentNode.classList.contains("name-unsure-wrap")) return;
+      wrapNameUnsureInput(inp, buildNameUnsureDot(function(){ return !!(addForm && addForm.unsure && addForm.unsure[addForm[ADD_NAME_LANG_KEYS[i]]]); }, function(){
+        if(addForm){ var l = addForm[ADD_NAME_LANG_KEYS[i]]; addForm.unsure[l] = !addForm.unsure[l]; }
+      }));
+    });
+  }
+
   function applyAddType(type){
     addForm.type = type;
     var isTrick = type === "trick";
@@ -210,6 +228,7 @@
     // Every type: icon + prefix and three names (same grid). Trick adds grip + parts, info adds content + image.
     addEl("addPartsSection").hidden = !isTrick;
     addEl("addMainLabel").textContent = addForm.mainLabel;
+    addUnsureSync();
     addEl("addMainName").placeholder = isTrick ? t("addNamePh") : "";
     updateAddIconPreview();
     syncAddLinking();
@@ -295,6 +314,7 @@
     var alts = langs.filter(function(l){ return l !== state.lang; });
     addForm.mainLang = state.lang; addForm.alt1Lang = alts[0]; addForm.alt2Lang = alts[1];
     addForm.mainLabel = names[state.lang];
+    addForm.unsure = {};
     addEl("addAlt1Label").textContent = names[alts[0]];
     addEl("addAlt2Label").textContent = names[alts[1]];
     ["addMainName", "addAlt1", "addAlt2", "addContent", "addPrefix"].forEach(function(id){ addEl(id).value = ""; });
@@ -310,6 +330,7 @@
         addEl(id).addEventListener("input", function(){ if(addForm) syncAddLinking(); });
       });
     }
+    addBindUnsureDots();
     buildAddParts();
     addEl("addContentLabel").textContent = t("infoContentLabel");
     addEl("addCancelBtn").textContent = t("cancel");
@@ -366,6 +387,7 @@
       saveAddInfo(f);
       return;
     } else {
+      f.nameUnsure = addForm.unsure;
       f.grip = addForm.tr.grip; f.parts = addForm.tr.parts.slice();
       var rec = createTrickRecord(parentId, spaceId, f, addForm.types.customTrick);
       showToast(t("savedTrick"));

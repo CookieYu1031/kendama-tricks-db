@@ -87,7 +87,8 @@
     return [e.names.zh, e.names.jp, e.names.en, e.shown, e.romaji].map(function(s){ return (s || "").toLowerCase(); });
   }
 
-  // query: parseSearchQuery result. filters: { grip:null|key, parts:[], partsMode:"any"|"all" }.
+  // query: parseSearchQuery result. filters: { grip:null|key, parts:[] }.
+  // Strict matching (grip AND every part): used by the random-trick tool (js/81).
   function matchEntry(e, query, filters, tagLookup){
     filters = filters || {};
     // A category filter (ken / tama / ito) also matches that category's sub-grips (gripMatches, js/01).
@@ -96,7 +97,7 @@
     if(parts.length){
       // partMatches (js/01): a 劍頂 filter also matches 劍尖 tags, 中皿 matches 中皿邊.
       var has = function(p){ return typeof partMatches === "function" ? partMatches(e.parts, p) : e.parts.indexOf(p) !== -1; };
-      if(filters.partsMode === "all" ? !parts.every(has) : !parts.some(has)) return false;
+      if(!parts.every(has)) return false;
     }
     var qtags = (query && query.tags) || [];
     for(var i = 0; i < qtags.length; i++){
@@ -138,19 +139,42 @@
     return filters;
   }
 
-  // -> matching ids; name-prefix hits first, otherwise index order. No criteria = [].
+  // Search ranking (v0.19.4): grip + parts picked in the panel must all match; closeness orders them.
+  // matched = picked conditions the trick has (grip via gripMatches, part via partMatches);
+  // extra = the trick's own grip / parts that no picked condition covers. Text tags never count
+  // (a trick inherits its table's text tags, so they say nothing about how close it is).
+  // -> { matched, extra, total } (total = number of picked conditions).
+  function searchScoreEntry(e, filters){
+    filters = filters || {};
+    var parts = filters.parts || [];
+    var pm = function(list, p){ return typeof partMatches === "function" ? partMatches(list, p) : list.indexOf(p) !== -1; };
+    var matched = 0, extra = 0, total = parts.length + (filters.grip ? 1 : 0);
+    if(filters.grip){
+      if(gripMatches(e.grip, filters.grip)) matched++; else if(e.grip) extra++;
+    } else if(e.grip) extra++;
+    parts.forEach(function(p){ if(pm(e.parts, p)) matched++; });
+    e.parts.forEach(function(own){ if(!parts.some(function(p){ return pm([own], p); })) extra++; });
+    return { matched: matched, extra: extra, total: total };
+  }
+
+  // -> matching ids. Every picked grip / part must be on the trick (a picked tag it lacks drops it);
+  // the closest come first (fewest extra grip / parts it has beyond the picked ones). Name text and #tags filter too.
+  // Ties: name-prefix hits first, then index order. No criteria = [].
   function runSearch(index, raw, filters, tagLookup){
     var query = parseSearchQuery(raw);
     if(!searchHasCriteria(query, filters)) return [];
     if(!tagLookup && typeof db !== "undefined") tagLookup = buildTagLookup(db.tags);
     var first = query.text.split(" ")[0];
-    var hits = [], rest = [];
-    index.forEach(function(e){
-      if(!matchEntry(e, query, filters, tagLookup)) return;
-      if(first && entryNameFields(e).some(function(f){ return f.indexOf(first) === 0; })) hits.push(e.id);
-      else rest.push(e.id);
+    var rows = [];
+    index.forEach(function(e, i){
+      if(!matchEntry(e, query, {}, tagLookup)) return; // name text + #tags only
+      var sc = searchScoreEntry(e, filters);
+      if(sc.matched < sc.total) return; // every picked grip / part must be on the trick
+      var prefix = !!first && entryNameFields(e).some(function(f){ return f.indexOf(first) === 0; });
+      rows.push({ id: e.id, m: sc.matched, x: sc.extra, p: prefix ? 0 : 1, i: i });
     });
-    return hits.concat(rest);
+    rows.sort(function(a, b){ return (b.m - a.m) || (a.x - b.x) || (a.p - b.p) || (a.i - b.i); });
+    return rows.map(function(r){ return r.id; });
   }
 
   // Tag token being typed at the end of the input ("#ab" -> "ab"; "#" -> ""), else null.

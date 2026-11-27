@@ -60,7 +60,7 @@ test("hasOnly field lists exact", function () {
     "read",
     "lang,favorites,lastActiveAt,createdAt",
     "ownerUid,itemId,createdAt,kind,title,payload,v",
-    "lists,clientUpdatedAt,updatedAt",
+    "lists,dailyResetHour,clientUpdatedAt,updatedAt",
     "pages,updatedAt"
   ].forEach(function (e) {
     assert.ok(l.indexOf(e) >= 0, e);

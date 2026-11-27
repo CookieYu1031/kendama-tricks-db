@@ -6,19 +6,19 @@
   ============================================================ */
   addStrings({
     zh:{ rndTitle:"隨機抽招", rndScope:"範圍", rndWholeTable:"整個表", rndGrip:"握持手勢", rndAny:"不限", rndParts:"部位",
-         rndModeAny:"其一符合", rndModeAll:"全符合", rndClass:"招式類別", rndRate:"成功率", rndCount:"抽取數量",
+         rndClass:"招式類別", rndRate:"成功率", rndCount:"抽取數量",
          rndPool:"符合 {n} 招", rndPoolLeft:"符合 {n} 招（本輪剩 {m}）", rndDraw:"抽招", rndNewRound:"新一輪",
          rndExhausted:"這一輪的招式都抽完了，按「新一輪」重新開始", rndEmptyPool:"沒有符合條件的招式",
          rndReroll:"重抽這張", rndHistory:"紀錄", rndClearHistory:"清除紀錄", rndNoHistory:"還沒有抽招紀錄",
          rndRerollNone:"沒有其他可抽的招式", rndClose:"關閉", rndRoundReset:"已開始新一輪" },
     jp:{ rndTitle:"ランダム出題", rndScope:"範囲", rndWholeTable:"表全体", rndGrip:"持ち方", rndAny:"指定なし", rndParts:"部位",
-         rndModeAny:"いずれか一致", rndModeAll:"すべて一致", rndClass:"技の分類", rndRate:"成功率", rndCount:"出題数",
+         rndClass:"技の分類", rndRate:"成功率", rndCount:"出題数",
          rndPool:"該当 {n} 件", rndPoolLeft:"該当 {n} 件（今回の残り {m}）", rndDraw:"抽選", rndNewRound:"新ラウンド",
          rndExhausted:"このラウンドの技は出尽くしました。「新ラウンド」で再開します", rndEmptyPool:"条件に合う技がありません",
          rndReroll:"この技を引き直す", rndHistory:"履歴", rndClearHistory:"履歴を消去", rndNoHistory:"履歴はまだありません",
          rndRerollNone:"他に引ける技がありません", rndClose:"閉じる", rndRoundReset:"新しいラウンドを開始しました" },
     en:{ rndTitle:"Random Trick", rndScope:"Scope", rndWholeTable:"Whole table", rndGrip:"Grip", rndAny:"Any", rndParts:"Parts",
-         rndModeAny:"Match any", rndModeAll:"Match all", rndClass:"Trick class", rndRate:"Landing rate", rndCount:"Number of tricks",
+         rndClass:"Trick class", rndRate:"Landing rate", rndCount:"Number of tricks",
          rndPool:"{n} tricks match", rndPoolLeft:"{n} tricks match ({m} left this round)", rndDraw:"Draw", rndNewRound:"New round",
          rndExhausted:"Every trick this round is drawn. Press \"New round\" to start over", rndEmptyPool:"No tricks match",
          rndReroll:"Reroll this card", rndHistory:"History", rndClearHistory:"Clear history", rndNoHistory:"No draws yet",
@@ -116,12 +116,7 @@
 
     var partsBox = document.createElement("div"); partsBox.className = "rnd-parts";
     rnd.diagram = createPartDiagram({ selected: c.parts, interactive: true, onToggle: function(k){ rndToggle(c.parts, k); rndChanged(); } });
-    var mode = rndChipRow();
-    ["any", "all"].forEach(function(m){
-      var b = rndChip((m === "all" ? "≅ " : "≈ ") + t(m === "all" ? "rndModeAll" : "rndModeAny"), c.partsMode === m, function(){ c.partsMode = m; rndChanged(); });
-      mode.appendChild(b);
-    });
-    partsBox.appendChild(rnd.diagram); partsBox.appendChild(mode);
+    partsBox.appendChild(rnd.diagram);
     var condRow = document.createElement("div"); condRow.className = "rnd-cond-row";
     condRow.appendChild(rndRow(t("rndParts"), partsBox));
     host.appendChild(condRow);

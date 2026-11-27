@@ -11,10 +11,9 @@ function setup(){
     "js/07-id.js", "js/09-names.js", "js/61-search-index.js", "js/62-search-panel.js"]);
 }
 
-test("default filters: grip null (categories are headers), parts empty, mode any", () => {
+test("default filters: grip null (categories are headers), parts empty", () => {
   const c = setup();
   assert.strictEqual(c.searchFilters.grip, null);
-  assert.strictEqual(c.searchFilters.partsMode, "any");
   assert.strictEqual(c.searchFilters.parts.length, 0);
 });
 
@@ -23,16 +22,9 @@ test("no default grip: empty filters are not a criterion", () => {
   const c = setup();
   const idx = [{ id: "a", grip: "ken", parts: [], tagIds: [], names: [], text: "abc", locs: [] }, { id: "b", grip: null, parts: [], tagIds: [], names: [], text: "abc", locs: [] }];
   assert.ok(!c.searchHasCriteria(c.parseSearchQuery(""), c.searchFilters)); // default grip is null
-  assert.ok(c.searchHasCriteria(c.parseSearchQuery(""), { grip: "ken_sara", parts: [], partsMode: "any" }));
-  const noGrip = { grip: null, parts: [], partsMode: "any" };
+  assert.ok(c.searchHasCriteria(c.parseSearchQuery(""), { grip: "ken_sara", parts: [] }));
+  const noGrip = { grip: null, parts: [] };
   assert.ok(!c.searchHasCriteria(c.parseSearchQuery(""), noGrip));
-});
-
-test("nextPartsMode flips any <-> all", () => {
-  const c = setup();
-  assert.strictEqual(c.nextPartsMode("any"), "all");
-  assert.strictEqual(c.nextPartsMode("all"), "any");
-  assert.strictEqual(c.nextPartsMode(undefined), "all");
 });
 
 test("source: reset returns to default grip", () => {
@@ -47,14 +39,14 @@ test("results gated on interaction: empty filters show hint", () => {
   assert.strictEqual(c.searchInteracted, false);
   assert.strictEqual(c.searchShouldShowResults(q, c.searchFilters, c.searchInteracted), false);
   assert.strictEqual(c.searchShouldShowResults(q, c.searchFilters, true), false);
-  assert.strictEqual(c.searchShouldShowResults(q, { grip: "ken_sara", parts: [], partsMode: "any" }, true), true);
-  assert.strictEqual(c.searchShouldShowResults(q, { grip: null, parts: [], partsMode: "any" }, true), false);
+  assert.strictEqual(c.searchShouldShowResults(q, { grip: "ken_sara", parts: [] }, true), true);
+  assert.strictEqual(c.searchShouldShowResults(q, { grip: null, parts: [] }, true), false);
   assert.strictEqual(c.searchShouldShowResults(c.parseSearchQuery("abc"), { grip: null, parts: [] }, true), true);
 });
 
 test("class tag overwrites grip and parts (only specified dimensions)", () => {
   const c = setup();
-  const f = { grip: "ken", parts: ["sara"], partsMode: "any" };
+  const f = { grip: "ken", parts: ["sara"] };
   c.searchApplyClassTag(f, { kind: "class", combo: { grip: "tama", parts: ["ana", "tamaTop"] } });
   assert.strictEqual(f.grip, "tama");
   assert.deepStrictEqual(Array.from(f.parts), ["ana", "tamaTop"]);
@@ -68,12 +60,13 @@ test("class tag overwrites grip and parts (only specified dimensions)", () => {
   assert.strictEqual(f.grip, "ito");
 });
 
-test("partMatches used: 劍頂 filter matches 劍尖 tricks, 中皿 matches 中皿邊 (any + all)", () => {
+test("partMatches used: 劍頂 filter matches 劍尖 tricks, 中皿 matches 中皿邊 (match + ranking)", () => {
   const c = setup();
   const e = { id: "x", names: { zh: "", jp: "", en: "" }, romaji: "", shown: "", grip: "ken", parts: ["kensaki", "chuzaraEdge"], tagIds: [], locs: [] };
   const q = c.parseSearchQuery("");
-  assert.ok(c.matchEntry(e, q, { grip: null, parts: ["kenchou"], partsMode: "any" }, {}));
-  assert.ok(c.matchEntry(e, q, { grip: null, parts: ["kenchou", "chuzara"], partsMode: "all" }, {}));
-  assert.ok(!c.matchEntry(e, q, { grip: null, parts: ["kenchou", "sara"], partsMode: "all" }, {}));
-  assert.ok(c.matchEntry(e, q, { grip: null, parts: ["kenchou", "sara"], partsMode: "any" }, {}));
+  assert.ok(c.matchEntry(e, q, { grip: null, parts: ["kenchou"] }, {}));
+  assert.ok(c.matchEntry(e, q, { grip: null, parts: ["kenchou", "chuzara"] }, {}));
+  assert.ok(!c.matchEntry(e, q, { grip: null, parts: ["kenchou", "sara"] }, {}));
+  // ranking: 劍尖 is covered by a 劍頂 pick and 中皿邊 by 中皿; only the unpicked grip is extra
+  assert.deepStrictEqual(Object.assign({}, c.searchScoreEntry(e, { grip: null, parts: ["kenchou", "chuzara"] })), { matched: 2, extra: 1, total: 2 });
 });

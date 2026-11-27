@@ -83,7 +83,7 @@
   }
 
   // Head title: optional faint prefix + main-language name (nameObj = tr.name / info.title).
-  function fillDrawerTitle(el, nameObj, prefix){
+  function fillDrawerTitle(el, nameObj, prefix, tr){
     el.textContent = "";
     if(prefix){
       var sp = document.createElement("span");
@@ -91,7 +91,37 @@
       sp.textContent = prefix + " ";
       el.appendChild(sp);
     }
-    el.appendChild(document.createTextNode(resolveDisplayName(nameObj).text));
+    var txt = resolveDisplayName(nameObj).text;
+    if(tr && nameShownUnsure(tr, nameObj, state.editMode)){
+      var sp2 = document.createElement("span");
+      sp2.className = "name-unsure"; sp2.textContent = txt;
+      el.appendChild(sp2);
+    } else el.appendChild(document.createTextNode(txt));
+  }
+
+  // Small dot button inside a name input: grey = normal, red = translation to be checked.
+  // isOn() reads the state, onToggle() flips it; b.refresh() repaints.
+  function buildNameUnsureDot(isOn, onToggle){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "name-unsure-dot";
+    function paint(){
+      var on = !!isOn();
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.title = t("nameUnsureLabel"); b.setAttribute("aria-label", t(on ? "nameUnsureOn" : "nameUnsureLabel"));
+    }
+    b.refresh = paint;
+    b.addEventListener("click", function(ev){ ev.preventDefault(); onToggle(); paint(); });
+    paint();
+    return b;
+  }
+  // Wraps an input so the dot sits at its right edge (padding reserved by CSS).
+  function wrapNameUnsureInput(inp, dot){
+    var w = document.createElement("span");
+    w.className = "name-unsure-wrap";
+    if(inp.parentNode) inp.parentNode.insertBefore(w, inp);
+    w.appendChild(inp); w.appendChild(dot);
+    return w;
   }
 
   // Prefix of the placement `key` (js/05-data-prefix.js; info items have one own prefix, key unused):
@@ -143,7 +173,13 @@
       });
       inp.addEventListener("blur", function(){ commitNameInput(rec, l, inp, isInfo); });
       if(isInfo) inp.addEventListener("change", function(){ renderColumns(); }); // row title follows on blur
-      grid.appendChild(drawerNameCell(t(l === "jp" ? "categoryNameJp" : l === "en" ? "categoryNameEn" : "categoryNameZh"), inp));
+      var ctl = inp;
+      if(!isInfo){
+        ctl = wrapNameUnsureInput(inp, buildNameUnsureDot(function(){ return isNameUnsure(rec, l); }, function(){
+          toggleNameUnsure(rec, l); saveDB(); if(onChange) onChange(); renderColumns();
+        }));
+      }
+      grid.appendChild(drawerNameCell(t(l === "jp" ? "categoryNameJp" : l === "en" ? "categoryNameEn" : "categoryNameZh"), ctl));
     });
     return grid;
   }

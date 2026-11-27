@@ -3,7 +3,7 @@
   /* ============================================================
      RANDOM TRICK — pure logic (tests/random-pick.test.js). UI: js/82-random-panel.js.
 
-     conditions: { space, folder|null, grip|null, parts:[], partsMode:"any"|"all",
+     conditions: { space, folder|null, grip|null, parts:[] (every part must match),
                    classId|null, rates:[RATE_LEVELS... and/or "none"], count:1..10 }
      Class tag choice: when classId is set the pool is "tricks carrying that tag id OR (when grip /
      parts filters are non-empty) tricks matching the grip / parts filters". The UI also copies the
@@ -17,7 +17,7 @@
   var RANDOM_RATE_KEYS = ["none"].concat(RATE_LEVELS);
 
   function defaultRandomConds(){
-    return { space: "t00", folder: null, grip: null, parts: [], partsMode: "any", classId: null,
+    return { space: "t00", folder: null, grip: null, parts: [], classId: null,
              rates: RANDOM_RATE_KEYS.slice(), count: 3 };
   }
 
@@ -30,7 +30,6 @@
     d.folder = typeof raw.folder === "string" && raw.folder ? raw.folder : null;
     d.grip = GRIP_KEYS.indexOf(raw.grip) !== -1 ? raw.grip : null;
     d.parts = Array.isArray(raw.parts) ? raw.parts.filter(function(p, i, a){ return PART_KEYS.indexOf(p) !== -1 && a.indexOf(p) === i; }) : [];
-    d.partsMode = raw.partsMode === "all" ? "all" : "any";
     d.classId = typeof raw.classId === "string" && raw.classId ? raw.classId : null;
     if(Array.isArray(raw.rates)) d.rates = RANDOM_RATE_KEYS.filter(function(k){ return raw.rates.indexOf(k) !== -1; });
     var n = Math.floor(Number(raw.count));
@@ -60,7 +59,7 @@
   // -> array of trick ids (index order).
   function buildRandomPool(index, conds, opts){
     opts = opts || {};
-    var filters = { grip: conds.grip, parts: conds.parts, partsMode: conds.partsMode };
+    var filters = { grip: conds.grip, parts: conds.parts };
     var hasFilter = !!(conds.grip || conds.parts.length);
     var useRate = !opts.ignoreRate && conds.rates.length < RANDOM_RATE_KEYS.length;
     var out = [];

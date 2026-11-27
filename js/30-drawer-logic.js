@@ -22,6 +22,22 @@
     return true;
   }
   function setTrickName(tr, lang, value){ return setRecordName(tr, "name", lang, value); }
+  // Translation-to-be-checked flag per language (trick.nameUnsure = { zh:true, ... }, only true keys stored).
+  function isNameUnsure(tr, lang){ return !!(tr && tr.nameUnsure && tr.nameUnsure[lang] === true); }
+  function toggleNameUnsure(tr, lang){
+    if(lang !== "zh" && lang !== "jp" && lang !== "en") return false;
+    var cur = {};
+    if(tr.nameUnsure) ["zh", "jp", "en"].forEach(function(l){ if(tr.nameUnsure[l] === true) cur[l] = true; });
+    if(cur[lang]) delete cur[lang]; else cur[lang] = true;
+    if(cur.zh || cur.jp || cur.en) tr.nameUnsure = cur; else delete tr.nameUnsure;
+    return isNameUnsure(tr, lang);
+  }
+  // Grey only for editors: the shown name is flagged and edit mode is on.
+  function nameShownUnsure(tr, nameObj, editMode){
+    if(!editMode || !tr) return false;
+    var r = resolveDisplayName(nameObj);
+    return !!r.sourceLang && isNameUnsure(tr, r.sourceLang);
+  }
   function setInfoTitle(info, lang, value){ return setRecordName(info, "title", lang, value); }
   // The two languages shown in the edit-mode name table (the title edits `main`).
   function nameTableLangs(main){

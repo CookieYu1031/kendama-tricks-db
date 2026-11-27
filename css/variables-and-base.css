@@ -27,6 +27,7 @@
     --radius: 20px;
     --radius-sm: 14px;
     --radius-xs: 10px;
+    --rail-btn: 40px; /* table (space) button size; list rows use the same height (--item-h) */
     --ease: cubic-bezier(.22,1,.36,1);
     --font-display: 'Zen Maru Gothic', 'Noto Sans JP', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     --font-body: 'Noto Sans TC', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', sans-serif;

@@ -56,11 +56,11 @@ test("guest: custom table not in index", () => {
   assert.deepStrictEqual(pool(c, { space: "t00", rates: ["mastered"] }, true).length, 3); // rate ignored
 });
 
-test("grip and parts any/all", () => {
+test("grip and parts: every part must match", () => {
   const c = setup();
   assert.deepStrictEqual(pool(c, { grip: "ken" }), ["a000001", "a000003"]);
-  assert.deepStrictEqual(pool(c, { parts: ["sara", "ana"], partsMode: "any" }), ["a000001", "a000002", "a000003"]);
-  assert.deepStrictEqual(pool(c, { parts: ["sara", "kensaki"], partsMode: "all" }), ["a000003"]);
+  assert.deepStrictEqual(pool(c, { parts: ["sara", "ana"] }), []);
+  assert.deepStrictEqual(pool(c, { parts: ["sara", "kensaki"] }), ["a000003"]);
 });
 
 test("class tag: tagged OR combo match", () => {
@@ -110,13 +110,12 @@ test("history cap 10, newest first, storage roundtrip", () => {
 
 test("normalizeRandomConds", () => {
   const c = setup();
-  const n = c.normalizeRandomConds({ space: "zz", grip: "bad", parts: ["sara", "sara", "nope"], count: 99, rates: ["rare", "x"], partsMode: "all" }, ["t00", "t01"]);
+  const n = c.normalizeRandomConds({ space: "zz", grip: "bad", parts: ["sara", "sara", "nope"], count: 99, rates: ["rare", "x"] }, ["t00", "t01"]);
   assert.strictEqual(n.space, "t00");
   assert.strictEqual(n.grip, null);
   assert.deepStrictEqual(Array.from(n.parts), ["sara"]);
   assert.strictEqual(n.count, 10);
   assert.deepStrictEqual(Array.from(n.rates), ["rare"]);
-  assert.strictEqual(n.partsMode, "all");
   assert.strictEqual(c.normalizeRandomConds(null, ["t00"]).count, 3);
   assert.strictEqual(c.normalizeRandomConds({ count: 0 }, ["t00"]).count, 1);
   c.saveRandomConds(n);
