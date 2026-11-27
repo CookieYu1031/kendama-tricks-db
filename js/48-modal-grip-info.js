@@ -50,8 +50,8 @@
         jp:["扣皿（かぶせ皿）", "親指を大皿に、人差し指と中指を小皿にかけ、けん先を上に向ける", "けんの向きはけん持ちと同じで、握る位置が大小の皿"],
         en:["Swivel ken grip", "Thumb on the large cup, index and middle fingers on the small cup, ken tip up", "The ken points as in the ken grip, but it is held at the cups"] }],
       ["Downspike grip", [4], {
-        zh:["持殺", "劍尖朝下的「持皿手勢」不同銜接招式有數種握法", "天中殺、轉劍天中殺等數個招式都可能使用到"],
-        jp:["殺持ち", "けん先を下に向けた「皿持ち」。つなぐ技によって握り方がいくつかある", "天中殺、ガンスリンガー天中殺などの技で使われることがある"],
+        zh:["反持", "劍尖朝下的「持皿手勢」不同銜接招式有數種握法", "天中殺、轉劍天中殺等數個招式都可能使用到"],
+        jp:["反持（ダウンスパイク持ち）", "けん先を下に向けた「皿持ち」。つなぐ技によって握り方がいくつかある", "天中殺、ガンスリンガー天中殺などの技で使われることがある"],
         en:["Downspike grip", "The sara grip with the ken tip pointing down; there are several variations depending on the trick it links to", "Used by tricks such as Tenchusatsu and Gunslinger Tenchusatsu"] }]
     ],
     tama: [
@@ -91,15 +91,15 @@
   var GRIP_INFO_NOTES = {
     zh:[["*1", "直譯為「宇宙遊泳手勢」，但因拋接技握持亦類似，因此暫譯為「持劍尾」"],
         ["*2", "直譯為「旋轉手勢」，改採中文圈命名「極意手勢」標示之"],
-        ["*3*4", "原文件中將兩者視為Swivel grip的變體，但實際上是「持劍」與「持皿」的變體，因此Swivel ken grip以其直觀招式之樣態，暫譯為「扣皿」；而Swivel sara grip則因其長銜接之代表性招式「天中殺」，而命名為「持殺」"],
+        ["*3*4", "原文件中將兩者視為Swivel grip的變體，但實際上是「持劍」與「持皿」的變體，因此Swivel ken grip以其直觀招式之樣態，暫譯為「扣皿」；而Swivel sara grip則因劍尖朝下、反向持皿的樣態，命名為「反持」"],
         ["*4*5", "將手腕外翻，手勢不變使劍尖/球洞朝上，則為「企鵝持劍/持球」"]],
     jp:[["*1", "直訳は「宇宙遊泳の持ち方」ですが、投げ技の持ち方にも似ているため、仮に「けん尻持ち」と訳しました"],
         ["*2", "直訳は「旋回の持ち方」ですが、中国語圏の呼び名「極意持ち」を採用しました"],
-        ["*3*4", "原文ではどちらも Swivel grip の変形とされていますが、実際には「けん持ち」と「皿持ち」の変形です。そのため Swivel ken grip は見た目どおり「扣皿」、Swivel sara grip は代表技「天中殺」につながることから「殺持ち」と仮に呼んでいます"],
+        ["*3*4", "原文ではどちらも Swivel grip の変形とされていますが、実際には「けん持ち」と「皿持ち」の変形です。そのため Swivel ken grip は見た目どおり「扣皿」、Swivel sara grip はけん先を下に向けて皿持ちを逆さにした形から「反持」と仮に呼んでいます"],
         ["*4*5", "手首を外側に返し、握りは変えずにけん先／玉の穴を上に向けると「ペンギンけん持ち／玉持ち」になります"]],
     en:[["*1", "Literally \"Spacewalk\"; since the hold for toss tricks is similar, it is tentatively called 「持劍尾」 (ken-end grip) in Chinese"],
         ["*2", "Literally \"Stall\" (a spin-style hold); the Chinese-speaking community name 「極意」 (Gokui) is used instead"],
-        ["*3*4", "The source treats both as variants of the swivel grip, but they are really variants of the ken grip and the sara grip. So the Swivel ken grip is tentatively called 「扣皿」 after how it looks, and the Swivel sara grip 「持殺」 after its signature linked trick, Tenchusatsu"],
+        ["*3*4", "The source treats both as variants of the swivel grip, but they are really variants of the ken grip and the sara grip. So the Swivel ken grip is tentatively called 「扣皿」 after how it looks, and the Swivel sara grip 「反持」 (reverse grip), as it is the sara grip held upside down with the ken tip pointing down"],
         ["*4*5", "Turn the wrist outward while keeping the hold, so that the ken tip / ball hole faces up: this is the Penguin ken / tama grip"]]
   };
 

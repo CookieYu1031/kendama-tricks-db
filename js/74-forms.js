@@ -289,7 +289,7 @@
     ov.querySelector(".modal").classList.add("sf-wide");
     // parts diagram, then the shared grip picker (js/36; sub-grips only)
     var gripCol = ov.querySelector("#sfGrips");
-    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, onToggle: function(key){ togglePart(tr, key); sync(); } });
+    var diagram = createPartDiagram({ selected: tr.parts, interactive: true, info: true, onToggle: function(key){ togglePart(tr, key); sync(); } });
     ov.querySelector("#sfParts").insertBefore(diagram, gripCol);
     var gripPicker = buildGripPicker({ value: tr.grip, onChange: function(v){ tr.grip = v; } });
     gripCol.appendChild(gripPicker);

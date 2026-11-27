@@ -79,7 +79,7 @@ test("class tag -> apply combo sets grip and adds missing parts only", () => {
   const moon = c.getTag("moon");
   const tr = { grip: "ken", parts: ["ana"], tagIds: ["moon"] };
   assert.deepStrictEqual(J(c.classComboGap(tr, moon)), { grip: "tama", parts: ["sara", "tamaTop"] });
-  assert.strictEqual(c.comboLabel(moon.combo), "持球＋大小皿＋球面");
+  assert.strictEqual(c.comboLabel(moon.combo), "持球＋大小皿＋球");
   assert.strictEqual(c.applyClassCombo(tr, moon), true);
   assert.strictEqual(tr.grip, "tama");
   assert.deepStrictEqual(Array.from(tr.parts), ["sara", "tamaTop", "ana"]);
