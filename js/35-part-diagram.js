@@ -36,8 +36,9 @@
     { key:"junction",    rect:[306, 436, 108, 66, 8] },   // dashed box: where the body meets the cups (not a physical part)
     { key:"string",      d: PD_STRING_A + PD_STRING_B, line:true },
     { key:"tamaTop",     circle:[818, 848, 164] },
-    { key:"tamaPoint",   circle:[818, 712, 14], hit:24, dot:true },
-    { key:"ana",         ellipse:[818, 990, 58, 22] }
+    { key:"anaHole",     d:"M818 714L846 740L846 987L790 987L790 740Z" },  // the bore: from the hole up through the ball
+    { key:"tamaPoint",   circle:[902, 752, 17], hit:26, dot:true },          // a spot on the upper right of the ball
+    { key:"ana",         ellipse:[818, 990, 58, 22] }                         // 球洞邊: the hole's rim
   ];
 
   function pdShapeMarkup(s){

@@ -44,11 +44,11 @@
     if(trickGrip === wanted) return true;
     return isGripCategory(wanted) && gripCategoryOf(trickGrip) === wanted;
   }
-  // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球; "junction" (交界) is a pseudo-part.
+  // Parts (multi), grouped ken / ito / tama. Unknown keys are filtered by normalization. tamaTop is shown as 球; anaHole = 球洞 (the bore), ana = 球洞邊 (its rim, v0.20.3); "junction" (交界) is a pseudo-part.
   var PART_GROUPS = [
     { key:"ken",  parts:["kenchou","kensaki","sara","saraEdge","junction","kenBody","suberidome","chuzara","chuzaraEdge"] },
     { key:"ito",  parts:["string"] },
-    { key:"tama", parts:["tamaTop","tamaPoint","ana"] }
+    { key:"tama", parts:["tamaTop","tamaPoint","anaHole","ana"] }
   ];
   var PART_KEYS = PART_GROUPS.reduce(function(a, g){ return a.concat(g.parts); }, []);
   // child -> parent: the tip is inside 劍頂, the rim inside 中皿. A child can be lit alone;

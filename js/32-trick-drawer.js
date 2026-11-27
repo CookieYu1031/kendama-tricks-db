@@ -8,7 +8,7 @@
       rate_none:"無", rateHint_none:"尚未成功", nameRequiredToast:"至少要保留一個名稱",
       part_kensaki:"劍尖", part_kenchou:"劍頂", part_sara:"大小皿", part_saraEdge:"皿邊",
       part_kenBody:"劍身", part_suberidome:"止滑", part_chuzara:"中皿", part_chuzaraEdge:"中皿邊",
-      part_string:"線", part_tamaTop:"球", part_ana:"球洞", part_tamaPoint:"球上一點", part_junction:"交界" },
+      part_string:"線", part_tamaTop:"球", part_ana:"球洞邊", part_anaHole:"球洞", part_tamaPoint:"球上一點", part_junction:"交界" },
     jp: { editIconColor:"色とアイコンを編集", copied:"コピーしました", copyHint:"クリックでコピー", tagsLabel:"タグ", addTag:"タグを選ぶ",
       removeTagFromTrick:"この技からタグを外す",
       confirmDeleteTagTitle:"このタグを削除しますか？", confirmDeleteTagBody:"このタグは全ての技から外れます。この操作は元に戻せません。",
@@ -16,7 +16,7 @@
       rate_none:"なし", rateHint_none:"まだ成功していない", nameRequiredToast:"名前は最低1つ必要です",
       part_kensaki:"けん先", part_kenchou:"剣頂", part_sara:"大皿・小皿", part_saraEdge:"皿の縁",
       part_kenBody:"剣身", part_suberidome:"滑り止め", part_chuzara:"中皿", part_chuzaraEdge:"中皿の縁",
-      part_string:"糸", part_tamaTop:"玉", part_ana:"穴", part_tamaPoint:"玉の一点", part_junction:"境目" },
+      part_string:"糸", part_tamaTop:"玉", part_ana:"穴の縁", part_anaHole:"穴", part_tamaPoint:"玉の一点", part_junction:"境目" },
     en: { editIconColor:"Edit color & icon", copied:"Copied", copyHint:"Click to copy", tagsLabel:"Tags", addTag:"Pick tag",
       removeTagFromTrick:"Remove tag from this trick",
       confirmDeleteTagTitle:"Delete this tag?", confirmDeleteTagBody:"This tag will be removed from every trick. This cannot be undone.",
@@ -24,7 +24,7 @@
       rate_none:"None", rateHint_none:"not landed yet", nameRequiredToast:"At least one name is required",
       part_kensaki:"Spike top", part_kenchou:"Spike", part_sara:"Cup", part_saraEdge:"CupSide",
       part_kenBody:"Body", part_suberidome:"Slide", part_chuzara:"BaseCup", part_chuzaraEdge:"Stilt",
-      part_string:"String", part_tamaTop:"Ball", part_ana:"Hole", part_tamaPoint:"Ball top point", part_junction:"Junction" }
+      part_string:"String", part_tamaTop:"Ball", part_ana:"Hole edge", part_anaHole:"Hole", part_tamaPoint:"Ball top point", part_junction:"Junction" }
   });
 
   /* ============================================================
